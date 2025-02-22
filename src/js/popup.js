@@ -595,11 +595,71 @@ document.addEventListener('DOMContentLoaded', () => {
         updateOrganizeButton();
     });
 
+    function toggleExecutionUI(state) {
+        // Elements to manage
+        const elementsToManage = {
+            normal: [
+                bookmarksContainer,
+                pendingSection,
+                document.querySelector('.controls'),
+                document.querySelector('.header'),
+                settingsSection
+            ],
+            executing: [
+                logsSection,
+                progressSection
+            ],
+            results: [
+                resultsSection
+            ]
+        };
+
+        // Hide all elements first
+        Object.values(elementsToManage).flat().forEach(element => {
+            if (element) {
+                element.style.display = 'none';
+            }
+        });
+
+        // Show elements based on state
+        switch (state) {
+            case 'normal':
+                elementsToManage.normal.forEach(element => {
+                    if (element) {
+                        element.style.display = '';
+                    }
+                });
+                break;
+            case 'executing':
+                elementsToManage.executing.forEach(element => {
+                    if (element) {
+                        element.style.display = 'block';
+                    }
+                });
+                break;
+            case 'results':
+                elementsToManage.results.forEach(element => {
+                    if (element) {
+                        element.style.display = 'block';
+                    }
+                });
+                break;
+        }
+
+        // Adjust container padding
+        const container = document.querySelector('.container');
+        if (container) {
+            container.style.padding = state === 'normal' ? '24px' : '12px';
+        }
+    }
+
     organizeBtn.addEventListener('click', async () => {
         try {
+            // Toggle UI to execution mode
+            toggleExecutionUI('executing');
+            
             // Limpa logs anteriores
             logsContainer.innerHTML = '';
-            logsSection.style.display = 'block';
             
             // Coleta os bookmarks selecionados
             const selectedBookmarks = Array.from(pendingBookmarks);
@@ -640,9 +700,8 @@ document.addEventListener('DOMContentLoaded', () => {
             const suggestion = await geminiService.suggestOrganization(selectedBookmarks, existingFolders);
             addLog('Sugestão de organização recebida com sucesso', 'success');
 
-            // Esconde progresso e mostra resultados
-            progressSection.style.display = 'none';
-            resultsSection.style.display = 'block';
+            // After receiving suggestion, show only results
+            toggleExecutionUI('results');
 
             // Mostra a sugestão para o usuário
             const resultsList = document.getElementById('results-list');
@@ -668,13 +727,14 @@ document.addEventListener('DOMContentLoaded', () => {
                 </div>
                 <div class="suggestion-actions">
                     <button id="apply-suggestion" class="primary-btn">Aplicar Organização</button>
-                    <button id="cancel-suggestion" class="secondary-btn">Cancelar</button>
+                    <button id="cancel-suggestion" class="secondary-btn">Voltar</button>
                 </div>
             `;
 
-            // Adiciona eventos aos botões
+            // Update button handlers
             document.getElementById('apply-suggestion').addEventListener('click', async () => {
                 try {
+                    toggleExecutionUI('executing');
                     progressSection.style.display = 'block';
                     progressText.textContent = 'Aplicando organização...';
                     addLog('Iniciando aplicação das alterações...');
@@ -720,48 +780,60 @@ document.addEventListener('DOMContentLoaded', () => {
                     await loadBookmarksTree();
                     addLog('Organização concluída com sucesso!', 'success');
                     
-                    // Mostra mensagem de sucesso
+                    // After success
+                    toggleExecutionUI('results');
                     resultsSection.innerHTML = `
                         <div class="success-message">
                             <p>✅ Organização aplicada com sucesso!</p>
-                            <button id="close-results" class="secondary-btn">Fechar</button>
+                            <button id="close-results" class="secondary-btn">Voltar</button>
                         </div>
                     `;
+                    
+                    // Add event listener for the close button
+                    document.getElementById('close-results').addEventListener('click', () => {
+                        toggleExecutionUI('normal');
+                        loadBookmarksTree();
+                    });
                 } catch (error) {
                     console.error('Erro ao aplicar organização:', error);
                     addLog(`Erro ao aplicar organização: ${error.message}`, 'error');
+                    
+                    toggleExecutionUI('results');
                     resultsSection.innerHTML = `
                         <div class="error-message">
                             <p>❌ Erro ao aplicar organização: ${error.message}</p>
-                            <button id="close-results" class="secondary-btn">Fechar</button>
+                            <button id="close-results" class="secondary-btn">Voltar</button>
                         </div>
                     `;
-                } finally {
-                    progressSection.style.display = 'none';
+                    
+                    // Add event listener for the close button
+                    document.getElementById('close-results').addEventListener('click', () => {
+                        toggleExecutionUI('normal');
+                    });
                 }
             });
 
             document.getElementById('cancel-suggestion').addEventListener('click', () => {
-                resultsSection.style.display = 'none';
+                toggleExecutionUI('normal');
             });
 
         } catch (error) {
             console.error('Erro ao organizar bookmarks:', error);
             addLog(`Erro: ${error.message}`, 'error');
-            resultsSection.style.display = 'block';
+            
+            toggleExecutionUI('results');
             resultsSection.innerHTML = `
                 <div class="error-message">
                     <p>❌ Erro: ${error.message}</p>
-                    <button id="close-results" class="secondary-btn">Fechar</button>
+                    <button id="close-results" class="secondary-btn">Voltar</button>
                 </div>
             `;
-            progressSection.style.display = 'none';
+            
+            // Add event listener for the close button
+            document.getElementById('close-results').addEventListener('click', () => {
+                toggleExecutionUI('normal');
+            });
         }
-    });
-
-    closeResultsBtn.addEventListener('click', () => {
-        resultsSection.style.display = 'none';
-        loadBookmarksTree();
     });
 
     addCurrentBtn.addEventListener('click', async () => {
