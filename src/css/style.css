@@ -685,6 +685,15 @@ input[type="checkbox"] + label {
     color: #e37400;
 }
 
+.log-entry.code {
+    font-family: monospace;
+    white-space: pre-wrap;
+    background-color: #f5f5f5;
+    padding: 8px;
+    border-radius: 4px;
+    margin: 4px 0;
+}
+
 .log-timestamp {
     color: var(--secondary-color);
     margin-right: 8px;

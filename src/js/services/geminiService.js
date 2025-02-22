@@ -114,48 +114,160 @@ class GeminiService {
                 throw new Error('API key não configurada');
             }
 
-            const prompt = {
-                contents: [{
-                    parts: [{
-                        text: `Analise estes bookmarks e sugira como organizá-los em pastas.
+            // Constrói o prompt com os dados
+            const bookmarksData = bookmarks.map(b => `- ${b.title}\n  URL: ${b.url}`).join('\n');
+            const foldersData = existingFolders.map(f => `- ${f.title}`).join('\n');
 
+            const promptText = `Você é um assistente especializado em organizar bookmarks em pastas.
+Sua tarefa é APENAS retornar um JSON válido, sem nenhum texto adicional.
+
+ENTRADA:
 Bookmarks para organizar:
-${bookmarks.map(b => `- ${b.title}\n  URL: ${b.url}`).join('\n')}
+${bookmarksData}
 
 Pastas existentes:
-${existingFolders.map(f => `- ${f.title}`).join('\n')}
+${foldersData}
 
-Por favor, sugira uma organização que:
+REGRAS:
 1. Use as pastas existentes quando apropriado
 2. Sugira novas pastas apenas se necessário
 3. Agrupe bookmarks relacionados
+4. TODOS os bookmarks devem ser incluídos
+5. Seja conciso nas descrições
 
-Responda em formato JSON com:
+FORMATO DE RESPOSTA OBRIGATÓRIO:
 {
     "folders": [
         {
             "name": "Nome da Pasta",
             "isNew": true/false,
-            "icon": "emoji apropriado",
             "bookmarks": [
                 {
-                    "title": "título do bookmark",
-                    "url": "url do bookmark",
-                    "reason": "explicação breve da categorização"
+                    "url": "url exata do bookmark",
+                    "title": "título do bookmark"
                 }
             ]
         }
-    ],
-    "summary": "Breve explicação da organização sugerida"
-}`
+    ]
+}
+
+IMPORTANTE:
+- Responda APENAS com o JSON
+- Não adicione texto antes ou depois
+- Certifique-se que o JSON é válido
+- Use as URLs exatas fornecidas
+- Inclua TODOS os bookmarks fornecidos
+- Mantenha a resposta mínima`;
+
+            // Conta tokens do prompt
+            const promptTokenCount = promptText.split(/\s+/).length;
+            console.log('📝 Prompt enviada:', promptText);
+            console.log('🔢 Tokens no prompt:', promptTokenCount);
+
+            const prompt = {
+                contents: [{
+                    parts: [{
+                        text: promptText
                     }]
                 }]
             };
 
+            // Faz a chamada à API
             const response = await this.callGeminiAPI(prompt);
-            return this.parseResponse(response);
+            const responseText = response.candidates[0].content.parts[0].text;
+            
+            // Conta tokens da resposta
+            const responseTokenCount = responseText.split(/\s+/).length;
+            console.log('📤 Resposta completa:', responseText);
+            console.log('🔢 Tokens na resposta:', responseTokenCount);
+
+            // Remove qualquer texto que não seja JSON
+            const jsonMatch = responseText.match(/\{[\s\S]*\}/);
+            if (!jsonMatch) {
+                console.error('❌ Resposta não contém JSON válido:', responseText);
+                throw new Error('Resposta não contém JSON válido');
+            }
+
+            let result;
+            try {
+                const jsonText = jsonMatch[0];
+                console.log('🔍 Tentando parsear JSON:', jsonText);
+                result = JSON.parse(jsonText);
+            } catch (error) {
+                console.error('❌ Erro ao parsear JSON. Texto recebido:', jsonMatch[0]);
+                throw new Error(`Erro ao parsear JSON: ${error.message}`);
+            }
+
+            // Validação rigorosa da estrutura
+            if (!result || typeof result !== 'object') {
+                throw new Error('Resposta não é um objeto válido');
+            }
+
+            if (!Array.isArray(result.folders)) {
+                throw new Error('Propriedade folders não é um array');
+            }
+
+            if (result.folders.length === 0) {
+                throw new Error('Nenhuma pasta sugerida');
+            }
+
+            // Validação de cada pasta e bookmark
+            result.folders.forEach((folder, index) => {
+                if (!folder.name || typeof folder.name !== 'string') {
+                    throw new Error(`Pasta ${index} não tem nome válido`);
+                }
+                if (typeof folder.isNew !== 'boolean') {
+                    folder.isNew = !existingFolders.some(f => f.title === folder.name);
+                }
+                if (!Array.isArray(folder.bookmarks)) {
+                    throw new Error(`Pasta ${folder.name} não tem array de bookmarks válido`);
+                }
+
+                folder.bookmarks.forEach((bm, bmIndex) => {
+                    if (!bm.url || !bm.title) {
+                        throw new Error(`Bookmark ${bmIndex} em ${folder.name} não tem url ou título`);
+                    }
+                    if (!bookmarks.some(b => b.url === bm.url)) {
+                        throw new Error(`URL não reconhecida em ${folder.name}: ${bm.url}`);
+                    }
+                });
+
+                // Adiciona ícone padrão se não existir
+                folder.icon = folder.icon || '📁';
+            });
+
+            // Verifica se todos os bookmarks foram incluídos
+            const allUrls = new Set(bookmarks.map(b => b.url));
+            const includedUrls = new Set();
+            result.folders.forEach(folder => {
+                folder.bookmarks.forEach(bm => includedUrls.add(bm.url));
+            });
+
+            const missingUrls = [...allUrls].filter(url => !includedUrls.has(url));
+            if (missingUrls.length > 0) {
+                console.log('⚠️ URLs não categorizadas:', missingUrls);
+                const missingBookmarks = bookmarks.filter(b => missingUrls.includes(b.url));
+                const othersFolder = {
+                    name: "Outros",
+                    isNew: !existingFolders.some(f => f.title === "Outros"),
+                    icon: "📌",
+                    bookmarks: missingBookmarks.map(b => ({
+                        title: b.title,
+                        url: b.url,
+                        reason: "Bookmark não categorizado automaticamente"
+                    }))
+                };
+                result.folders.push(othersFolder);
+            }
+
+            if (!result.summary || typeof result.summary !== 'string') {
+                result.summary = 'Organização baseada no conteúdo dos bookmarks';
+            }
+
+            console.log('✅ Processamento concluído com sucesso:', result);
+            return result;
         } catch (error) {
-            console.error('Erro ao sugerir organização:', error);
+            console.error('❌ Erro ao sugerir organização:', error);
             throw error;
         }
     }
