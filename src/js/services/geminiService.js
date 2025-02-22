@@ -115,7 +115,27 @@ class GeminiService {
                 logger(`📚 Processing ${bookmarks.length} bookmarks...`, 'info');
             }
 
-            const bookmarksData = bookmarks.map(b => `- ${b.title}\n  URL: ${b.url}`).join('\n');
+            // Helper function to clean URLs
+            const cleanUrl = (url) => {
+                try {
+                    const urlObj = new URL(url);
+                    // Remove query parameters and hash
+                    return `${urlObj.protocol}//${urlObj.hostname}${urlObj.pathname}`;
+                } catch (e) {
+                    console.error('Error cleaning URL:', e);
+                    return url;
+                }
+            };
+
+            // Clean URLs before sending to API
+            const bookmarksData = bookmarks.map(b => {
+                const cleanedUrl = cleanUrl(b.url);
+                if (cleanedUrl !== b.url && logger) {
+                    logger(`🧹 Cleaned URL: ${b.url} -> ${cleanedUrl}`, 'info');
+                }
+                return `- ${b.title}\n  URL: ${cleanedUrl}\n  ID: ${b.id || 'new'}`;
+            }).join('\n');
+
             const foldersData = existingFolders.map(f => `- ${f.title}`).join('\n');
 
             const promptText = `You are an AI assistant specialized in organizing bookmarks into folders.
@@ -145,7 +165,8 @@ REQUIRED RESPONSE FORMAT:
             "bookmarks": [
                 {
                     "url": "exact bookmark url",
-                    "title": "bookmark title"
+                    "title": "bookmark title",
+                    "id": "bookmark id from input"
                 }
             ]
         }
@@ -157,7 +178,7 @@ IMPORTANT:
 - No text before or after
 - Ensure JSON is valid
 - Use exact URLs provided
-- Include ALL provided bookmarks
+- Include ALL provided bookmarks with their IDs
 - Keep response minimal
 - For existing folders, use EXACT names from the input list
 - DO NOT use emoji in folder names`;
@@ -249,11 +270,17 @@ IMPORTANT:
                 }
 
                 folder.bookmarks.forEach((bm, bmIndex) => {
-                    if (!bm.url || !bm.title) {
-                        throw new Error(`Bookmark ${bmIndex} in ${folder.name} missing url or title`);
+                    if (!bm.url || !bm.title || !bm.id) {
+                        throw new Error(`Bookmark ${bmIndex} in ${folder.name} missing required fields`);
                     }
-                    if (!bookmarks.some(b => b.url === bm.url)) {
-                        throw new Error(`Unrecognized URL in ${folder.name}: ${bm.url}`);
+                    // Find bookmark by ID first
+                    const originalBookmark = bookmarks.find(b => b.id === bm.id);
+                    if (!originalBookmark) {
+                        // Fallback to URL matching if ID not found
+                        const cleanedUrl = cleanUrl(bm.url);
+                        if (!bookmarks.some(b => cleanUrl(b.url) === cleanedUrl)) {
+                            throw new Error(`Unrecognized bookmark in ${folder.name}: ${bm.title}`);
+                        }
                     }
                 });
             });
@@ -262,22 +289,23 @@ IMPORTANT:
                 logger('🔍 Checking for uncategorized bookmarks...', 'info');
             }
 
-            const allUrls = new Set(bookmarks.map(b => b.url));
-            const includedUrls = new Set();
+            // Create a Set of bookmark IDs that have been included
+            const includedIds = new Set();
             result.folders.forEach(folder => {
-                folder.bookmarks.forEach(bm => includedUrls.add(bm.url));
+                folder.bookmarks.forEach(bm => includedIds.add(bm.id));
             });
 
-            const missingUrls = [...allUrls].filter(url => !includedUrls.has(url));
-            if (missingUrls.length > 0) {
-                console.log('⚠️ Uncategorized URLs:', missingUrls);
-                const missingBookmarks = bookmarks.filter(b => missingUrls.includes(b.url));
+            // Find bookmarks that weren't included by ID
+            const missingBookmarks = bookmarks.filter(b => !includedIds.has(b.id));
+            if (missingBookmarks.length > 0) {
+                console.log('⚠️ Uncategorized bookmarks:', missingBookmarks);
                 const othersFolder = {
                     name: "Others",
                     isNew: !existingFolders.some(f => f.title === "Others"),
                     bookmarks: missingBookmarks.map(b => ({
                         title: b.title,
-                        url: b.url
+                        url: b.url,
+                        id: b.id
                     }))
                 };
                 result.folders.push(othersFolder);

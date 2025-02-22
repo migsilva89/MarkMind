@@ -837,6 +837,10 @@ REQUIRED RESPONSE FORMAT:
                         } else {
                             addLog(`Using existing folder "${folder.name}"...`, 'info');
                             targetFolder = currentPrompt.folders.find(f => f.title === folder.name);
+                            if (!targetFolder) {
+                                addLog(`❌ Could not find folder: ${folder.name}`, 'error');
+                                continue;
+                            }
                             addLog(`✓ Folder found with ID: ${targetFolder.id}`, 'success');
                         }
 
@@ -845,9 +849,10 @@ REQUIRED RESPONSE FORMAT:
                         
                         for (const bookmark of folder.bookmarks) {
                             try {
-                                const existingBookmark = selectedBookmarks.find(bm => bm.url === bookmark.url);
+                                // Find bookmark by ID
+                                const existingBookmark = selectedBookmarks.find(bm => bm.id === bookmark.id);
                                 if (!existingBookmark) {
-                                    addLog(`⚠️ Bookmark not found: ${bookmark.title}`, 'warning');
+                                    addLog(`⚠️ Bookmark not found by ID: ${bookmark.title}`, 'warning');
                                     continue;
                                 }
 
