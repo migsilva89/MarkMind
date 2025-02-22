@@ -453,7 +453,7 @@ REQUIRED RESPONSE FORMAT:
         const label = document.createElement('label');
         label.htmlFor = `folder-${node.id}`;
         label.className = 'folder-name';
-        label.textContent = `📁 ${node.title || 'Bookmarks'} `;
+        label.textContent = `${node.title || 'Bookmarks'} `;
         
         const count = document.createElement('span');
         count.className = 'bookmark-count';
@@ -510,7 +510,7 @@ REQUIRED RESPONSE FORMAT:
         const label = document.createElement('label');
         label.htmlFor = `bookmark-${bookmark.id}`;
         label.className = 'bookmark-name';
-        label.textContent = `🔖 ${bookmark.title || bookmark.url}`;
+        label.textContent = `${bookmark.title || bookmark.url}`;
 
         checkbox.addEventListener('change', (e) => {
             handleBookmarkSelection(e, bookmark);
@@ -792,7 +792,7 @@ REQUIRED RESPONSE FORMAT:
                 <div class="folders-preview">
                     ${suggestion.folders.map(folder => `
                         <div class="folder-group">
-                            <h4>${folder.icon} ${folder.name} ${folder.isNew ? '<span class="new-badge">New</span>' : ''}</h4>
+                            <h4>${folder.name} ${folder.isNew ? '<span class="new-badge">New</span>' : ''}</h4>
                             <ul>
                                 ${folder.bookmarks.map(bm => `
                                     <li>
@@ -820,7 +820,7 @@ REQUIRED RESPONSE FORMAT:
                     
                     suggestion.folders.forEach(folder => {
                         const status = folder.isNew ? '[New]' : '[Existing]';
-                        addLog(`• ${status} Folder "${folder.icon} ${folder.name}" with ${folder.bookmarks.length} bookmarks`, 'info');
+                        addLog(`• ${status} Folder "${folder.name}" with ${folder.bookmarks.length} bookmarks`, 'info');
                     });
                     
                     // Apply suggested organization
@@ -828,10 +828,10 @@ REQUIRED RESPONSE FORMAT:
                         // Find or create folder
                         let targetFolder;
                         if (folder.isNew) {
-                            addLog(`Creating folder "${folder.icon} ${folder.name}"...`, 'info');
+                            addLog(`Creating folder "${folder.name}"...`, 'info');
                             targetFolder = await chrome.bookmarks.create({
                                 parentId: '1', // Bookmarks bar
-                                title: `${folder.icon} ${folder.name}`
+                                title: folder.name
                             });
                             addLog(`✓ Folder created with ID: ${targetFolder.id}`, 'success');
                         } else {

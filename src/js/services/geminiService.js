@@ -110,6 +110,11 @@ class GeminiService {
                 throw new Error('API key not configured');
             }
 
+            if (logger) {
+                logger('🔄 Starting bookmark analysis...', 'info');
+                logger(`📚 Processing ${bookmarks.length} bookmarks...`, 'info');
+            }
+
             const bookmarksData = bookmarks.map(b => `- ${b.title}\n  URL: ${b.url}`).join('\n');
             const foldersData = existingFolders.map(f => `- ${f.title}`).join('\n');
 
@@ -129,14 +134,14 @@ RULES:
 3. Group related bookmarks
 4. ALL bookmarks must be included
 5. Be concise in descriptions
+6. DO NOT use emoji in folder names
 
 REQUIRED RESPONSE FORMAT:
 {
     "folders": [
         {
-            "name": "Folder Name",
+            "name": "Folder Name (no emoji)",
             "isNew": true/false,
-            "icon": "appropriate emoji",
             "bookmarks": [
                 {
                     "url": "exact bookmark url",
@@ -153,11 +158,14 @@ IMPORTANT:
 - Ensure JSON is valid
 - Use exact URLs provided
 - Include ALL provided bookmarks
-- Keep response minimal`;
+- Keep response minimal
+- For existing folders, use EXACT names from the input list
+- DO NOT use emoji in folder names`;
 
             const promptTokenCount = promptText.split(/\s+/).length;
             if (logger) {
                 logger(`📊 Estimated prompt tokens: ${promptTokenCount}`, 'info');
+                logger('🤔 Analyzing bookmark patterns...', 'info');
             }
 
             const prompt = {
@@ -168,12 +176,17 @@ IMPORTANT:
                 }]
             };
 
+            if (logger) {
+                logger('📡 Sending request to AI...', 'info');
+            }
+
             const response = await this.callGeminiAPI(prompt);
             const responseText = response.candidates[0].content.parts[0].text;
             
             const responseTokenCount = responseText.split(/\s+/).length;
             if (logger) {
                 logger(`📊 Estimated response tokens: ${responseTokenCount}`, 'info');
+                logger('🔍 Processing AI response...', 'info');
             }
 
             const jsonMatch = responseText.match(/\{[\s\S]*\}/);
@@ -204,13 +217,33 @@ IMPORTANT:
                 throw new Error('No folders suggested');
             }
 
+            if (logger) {
+                logger('✨ Validating folder structure...', 'info');
+            }
+
+            // Helper function to normalize folder names for comparison
+            const normalizeFolderName = (name) => {
+                // Remove emoji and trim
+                return name.replace(/[\u{1F300}-\u{1F9FF}]|[\u{1F600}-\u{1F64F}]|[\u{2700}-\u{27BF}]|[\u{1F680}-\u{1F6FF}]|[\u{24C2}-\u{1F251}]|[\u{1F900}-\u{1F9FF}]|[\u{1F1E0}-\u{1F1FF}]/gu, '').trim();
+            };
+
             result.folders.forEach((folder, index) => {
                 if (!folder.name || typeof folder.name !== 'string') {
                     throw new Error(`Folder ${index} has no valid name`);
                 }
-                if (typeof folder.isNew !== 'boolean') {
-                    folder.isNew = !existingFolders.some(f => f.title === folder.name);
+
+                // Check if folder exists by comparing normalized names
+                const normalizedFolderName = normalizeFolderName(folder.name);
+                const existingFolder = existingFolders.find(f => 
+                    normalizeFolderName(f.title) === normalizedFolderName
+                );
+
+                folder.isNew = !existingFolder;
+                if (!folder.isNew) {
+                    // Use the exact name from existing folders
+                    folder.name = existingFolder.title;
                 }
+
                 if (!Array.isArray(folder.bookmarks)) {
                     throw new Error(`Folder ${folder.name} has no valid bookmarks array`);
                 }
@@ -223,9 +256,11 @@ IMPORTANT:
                         throw new Error(`Unrecognized URL in ${folder.name}: ${bm.url}`);
                     }
                 });
-
-                folder.icon = folder.icon || '📁';
             });
+
+            if (logger) {
+                logger('🔍 Checking for uncategorized bookmarks...', 'info');
+            }
 
             const allUrls = new Set(bookmarks.map(b => b.url));
             const includedUrls = new Set();
@@ -240,7 +275,6 @@ IMPORTANT:
                 const othersFolder = {
                     name: "Others",
                     isNew: !existingFolders.some(f => f.title === "Others"),
-                    icon: "📌",
                     bookmarks: missingBookmarks.map(b => ({
                         title: b.title,
                         url: b.url
@@ -253,10 +287,17 @@ IMPORTANT:
                 result.summary = 'Organization based on bookmark content';
             }
 
+            if (logger) {
+                logger('✅ Organization analysis completed', 'success');
+            }
+
             console.log('✅ Processing completed successfully:', result);
             return result;
         } catch (error) {
             console.error('❌ Error suggesting organization:', error);
+            if (logger) {
+                logger(`❌ Error: ${error.message}`, 'error');
+            }
             throw error;
         }
     }
