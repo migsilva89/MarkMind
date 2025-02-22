@@ -1,34 +1,34 @@
-// Configurações da API Gemini
+// Gemini API Configuration
 const config = {
-    // A API key deve ser configurada pelo usuário
+    // API key must be set by user
     GEMINI_API_KEY: '',
     
-    // Endpoint da API atualizado para usar gemini-2.0-flash-exp
+    // API endpoint updated to use gemini-2.0-flash-exp
     GEMINI_API_URL: 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-exp:generateContent',
     
-    // Configurações do modelo
+    // Model settings
     MODEL_CONFIG: {
         temperature: 0.7,
         topK: 40,
         topP: 0.95,
-        maxOutputTokens: 8192, // Aumentado para 8K tokens (limite máximo do flash-exp)
+        maxOutputTokens: 8192, // Increased to 8K tokens (flash-exp max limit)
     },
     
-    // Categorias padrão para organização
+    // Default categories for organization
     DEFAULT_CATEGORIES: [
-        'Tecnologia',
-        'Notícias',
-        'Entretenimento',
-        'Educação',
-        'Finanças',
-        'Saúde',
-        'Esportes',
-        'Viagens',
-        'Compras',
+        'Technology',
+        'News',
+        'Entertainment',
+        'Education',
+        'Finance',
+        'Health',
+        'Sports',
+        'Travel',
+        'Shopping',
         'Social',
-        'Desenvolvimento',
-        'Produtividade',
-        'Outros'
+        'Development',
+        'Productivity',
+        'Others'
     ]
 };
 

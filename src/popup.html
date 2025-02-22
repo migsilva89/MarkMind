@@ -10,42 +10,42 @@
         <div class="header">
             <div class="header-top">
                 <h1>Bookmark AI</h1>
-                <button id="settings-btn" class="icon-btn" title="Configurações">⚙️</button>
+                <button id="settings-btn" class="icon-btn" title="Settings">⚙️</button>
             </div>
             <button id="add-current-btn" class="primary-btn">
                 <span class="icon">+</span>
-                Adicionar Página
+                Add Current Page
             </button>
             <div id="add-status" class="status-message" style="display: none;"></div>
         </div>
 
         <div id="settings-section" class="settings-section" style="display: none;">
-            <h2>Configurações</h2>
+            <h2>Settings</h2>
             <div class="settings-form">
                 <div class="form-group">
                     <label for="api-key">Gemini API Key</label>
                     <div class="api-key-input">
-                        <input type="password" id="api-key" placeholder="Cole sua API key aqui">
-                        <button id="save-api-key" class="secondary-btn">Salvar</button>
+                        <input type="password" id="api-key" placeholder="Paste your API key here">
+                        <button id="save-api-key" class="secondary-btn">Save</button>
                     </div>
                     <div id="settings-status" class="status-message" style="display: none;"></div>
-                    <p class="help-text">Obtenha sua API key em: <a href="https://makersuite.google.com/app/apikey" target="_blank">Google AI Studio</a></p>
-                    <button id="test-api" class="secondary-btn test-btn" style="display: none;">Testar API</button>
+                    <p class="help-text">Get your API key at: <a href="https://makersuite.google.com/app/apikey" target="_blank">Google AI Studio</a></p>
+                    <button id="test-api" class="secondary-btn test-btn" style="display: none;">Test API</button>
                     <div id="test-result" class="test-result" style="display: none;"></div>
                 </div>
             </div>
         </div>
 
         <div class="controls">
-            <button id="select-all" class="secondary-btn">Selecionar</button>
-            <button id="deselect-all" class="secondary-btn">Limpar</button>
-            <button id="organize-btn" class="primary-btn" disabled>Organizar</button>
+            <button id="select-all" class="secondary-btn">Select All</button>
+            <button id="deselect-all" class="secondary-btn">Clear</button>
+            <button id="organize-btn" class="primary-btn" disabled>Organize</button>
         </div>
 
         <div id="bookmarks-container" class="bookmarks-tree"></div>
 
         <div id="pending-bookmarks" class="pending-section" style="display: none;">
-            <h2>Links Selecionados (<span id="pending-count">0</span>)</h2>
+            <h2>Selected Links (<span id="pending-count">0</span>)</h2>
             <div id="pending-list" class="pending-list"></div>
         </div>
 
@@ -54,19 +54,19 @@
                 <div id="progress-indicator" class="progress-indicator"></div>
             </div>
             <div class="progress-info">
-                <div id="progress-text" class="progress-text">Processando...</div>
+                <div id="progress-text" class="progress-text">Processing...</div>
                 <div id="progress-count" class="progress-count">0%</div>
             </div>
         </div>
 
         <div class="logs-section" style="display: none;">
-            <h3>Logs do Processo</h3>
+            <h3>Process Logs</h3>
             <div id="logs-container" class="logs-container"></div>
         </div>
 
         <div class="results-section" style="display: none;">
             <div id="results-list"></div>
-            <button id="close-results" class="secondary-btn">Fechar</button>
+            <button id="close-results" class="secondary-btn">Close</button>
         </div>
     </div>
 

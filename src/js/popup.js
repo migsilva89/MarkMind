@@ -39,7 +39,7 @@ document.addEventListener('DOMContentLoaded', () => {
         text: ''
     };
 
-    // Função para adicionar logs
+    // Function to add logs
     function addLog(message, type = 'info') {
         const timestamp = new Date().toLocaleTimeString();
         const logEntry = document.createElement('div');
@@ -104,50 +104,50 @@ document.addEventListener('DOMContentLoaded', () => {
         
         if (!apiKey) {
             console.log('API key is empty');
-            showStatus('Por favor, insira uma API key válida.', 'error', true);
+            showStatus('Please enter a valid API key.', 'error', true);
             return;
         }
 
-        // Validação básica do formato da API key
+        // Basic validation of API key format
         if (!apiKey.match(/^AIza[0-9A-Za-z-_]{35}$/)) {
             console.log('Invalid API key format');
-            showStatus('API key inválida. Deve começar com "AIza" e ter 39 caracteres.', 'error', true);
+            showStatus('Invalid API key. Must start with "AIza" and be 39 characters long.', 'error', true);
             return;
         }
 
         console.log('Saving API key...');
         try {
-            // Verifica se o objeto chrome.storage está disponível
+            // Check if chrome.storage object is available
             if (!chrome || !chrome.storage || !chrome.storage.local) {
-                throw new Error('Chrome storage API não está disponível');
+                throw new Error('Chrome storage API is not available');
             }
 
-            // Salva a API key
+            // Save the API key
             chrome.storage.local.set(
                 { geminiApiKey: apiKey },
                 () => {
                     if (chrome.runtime.lastError) {
                         console.error('Error saving API key:', chrome.runtime.lastError);
-                        showStatus('Erro ao salvar API key: ' + chrome.runtime.lastError.message, 'error', true);
+                        showStatus('Error saving API key: ' + chrome.runtime.lastError.message, 'error', true);
                         return;
                     }
                     console.log('API key saved successfully');
-                    showStatus('API key salva com sucesso!', 'success', true);
+                    showStatus('API key saved successfully!', 'success', true);
                     testApiBtn.style.display = 'block';
-                    // Configura a API key no serviço após salvar
+                    // Configure API key in service after saving
                     geminiService.setApiKey(apiKey);
                 }
             );
         } catch (error) {
             console.error('Error saving API key:', error);
-            showStatus('Erro ao salvar API key: ' + error.message, 'error', true);
+            showStatus('Error saving API key: ' + error.message, 'error', true);
         }
     });
 
-    // Teste da API
+    // Test API
     testApiBtn.addEventListener('click', async () => {
         testResult.style.display = 'block';
-        testResult.innerHTML = 'Testando API...';
+        testResult.innerHTML = 'Testing API...';
         
         try {
             const testBookmark = {
@@ -158,12 +158,12 @@ document.addEventListener('DOMContentLoaded', () => {
             const response = await testGeminiAPI(testBookmark);
             
             testResult.innerHTML = `
-                <div>✅ API funcionando corretamente!</div>
+                <div>✅ API working correctly!</div>
                 <pre>${JSON.stringify(response, null, 2)}</pre>
             `;
         } catch (error) {
             testResult.innerHTML = `
-                <div>❌ Erro ao testar API:</div>
+                <div>❌ Error testing API:</div>
                 <pre>${error.message}</pre>
             `;
         }
@@ -174,29 +174,29 @@ document.addEventListener('DOMContentLoaded', () => {
         console.log('Testing API with key length:', apiKey.length);
         
         if (!apiKey) {
-            throw new Error('API key não configurada');
+            throw new Error('API key not configured');
         }
 
-        // Validação básica do formato da API key
+        // Basic validation of API key format
         if (!apiKey.match(/^AIza[0-9A-Za-z-_]{35}$/)) {
-            throw new Error('Formato da API key inválido. Deve começar com "AIza" e ter 39 caracteres.');
+            throw new Error('Invalid API key format. Must start with "AIza" and be 39 characters long.');
         }
 
         const prompt = {
             contents: [{
                 parts: [{
-                    text: `Analise o título e URL do bookmark e sugira a melhor categoria.
+                    text: `Analyze the bookmark title and URL and suggest the best category.
                     
-                    Título: ${bookmark.title}
+                    Title: ${bookmark.title}
                     URL: ${bookmark.url}
                     
-                    Categorias disponíveis:
-                    Tecnologia, Notícias, Entretenimento, Educação, Finanças, Saúde, Esportes, Viagens, Compras, Social, Desenvolvimento, Produtividade, Outros
+                    Available categories:
+                    Technology, News, Entertainment, Education, Finance, Health, Sports, Travel, Shopping, Social, Development, Productivity, Others
                     
-                    Responda em formato JSON com:
-                    - category: a categoria mais apropriada da lista
-                    - confidence: número de 0 a 1 indicando confiança
-                    - explanation: breve explicação da escolha`
+                    Respond in JSON format with:
+                    - category: most appropriate category from the list
+                    - confidence: number from 0 to 1 indicating confidence
+                    - explanation: brief explanation for the choice`
                 }]
             }]
         };
@@ -226,16 +226,16 @@ document.addEventListener('DOMContentLoaded', () => {
             console.log('API Response text:', responseText);
 
             if (!response.ok) {
-                throw new Error(`Erro na API: ${response.status} - ${responseText}`);
+                throw new Error(`API Error: ${response.status} - ${responseText}`);
             }
 
             const data = JSON.parse(responseText);
             const text = data.candidates[0].content.parts[0].text;
             
-            // Tenta encontrar e parsear o JSON na resposta
+            // Try to find and parse JSON in response
             const jsonMatch = text.match(/\{[\s\S]*\}/);
             if (!jsonMatch) {
-                throw new Error('Resposta não contém JSON válido');
+                throw new Error('Response does not contain valid JSON');
             }
 
             return JSON.parse(jsonMatch[0]);
@@ -283,55 +283,55 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    // Função para atualizar a prompt
+    // Function to update prompt
     function updatePrompt() {
         const bookmarks = Array.from(pendingBookmarks);
         currentPrompt.bookmarks = bookmarks;
         
-        // Atualiza o texto da prompt
+        // Update prompt text
         const bookmarksText = bookmarks.map(b => `- ${b.title}\n  URL: ${b.url}`).join('\n');
         const foldersText = currentPrompt.folders.map(f => `- ${f.title}`).join('\n');
         
-        currentPrompt.text = `Você é um assistente especializado em organizar bookmarks em pastas.
-Sua tarefa é APENAS retornar um JSON válido, sem nenhum texto adicional.
+        currentPrompt.text = `You are an AI assistant specialized in organizing bookmarks into folders.
+Your task is to ONLY return a valid JSON, with no additional text.
 
-ENTRADA:
-Bookmarks para organizar:
+INPUT:
+Bookmarks to organize:
 ${bookmarksText}
 
-Pastas existentes:
+Existing folders:
 ${foldersText}
 
-REGRAS:
-1. Use as pastas existentes quando apropriado
-2. Sugira novas pastas apenas se necessário
-3. Agrupe bookmarks relacionados
-4. TODOS os bookmarks devem ser incluídos em alguma pasta
-5. Mantenha as razões de categorização curtas e objetivas
+RULES:
+1. Use existing folders when appropriate
+2. Suggest new folders only if necessary
+3. Group related bookmarks
+4. ALL bookmarks must be included in a folder
+5. Keep categorization reasons short and objective
 
-FORMATO DE RESPOSTA OBRIGATÓRIO:
+REQUIRED RESPONSE FORMAT:
 {
     "folders": [
         {
-            "name": "Nome da Pasta",
+            "name": "Folder Name",
             "isNew": true/false,
-            "icon": "emoji apropriado",
+            "icon": "appropriate emoji",
             "bookmarks": [
                 {
-                    "title": "título exato do bookmark",
-                    "url": "url exata do bookmark",
-                    "reason": "razão curta"
+                    "title": "exact bookmark title",
+                    "url": "exact bookmark url",
+                    "reason": "short reason"
                 }
             ]
         }
     ],
-    "summary": "Breve explicação da organização"
+    "summary": "Brief organization explanation"
 }`;
 
-        addLog(`📝 Prompt atualizada: ${bookmarks.length} bookmarks`, 'info');
-        addLog(`📊 Tamanho da prompt: ${currentPrompt.text.length} caracteres`, 'info');
+        addLog(`📝 Prompt updated: ${bookmarks.length} bookmarks`, 'info');
+        addLog(`📊 Prompt size: ${currentPrompt.text.length} characters`, 'info');
         const tokenEstimate = currentPrompt.text.split(/\s+/).length;
-        addLog(`🔤 Tokens estimados: ${tokenEstimate}`, 'info');
+        addLog(`🔤 Estimated tokens: ${tokenEstimate}`, 'info');
     }
 
     // Core Functions
@@ -341,7 +341,7 @@ FORMATO DE RESPOSTA OBRIGATÓRIO:
             const tree = await chrome.bookmarks.getTree();
             bookmarksTree = tree;
             
-            // Coleta as pastas existentes para a prompt
+            // Collect existing folders for prompt
             const existingFolders = [];
             function collectFolders(node) {
                 if (!node.url && node.title) {
@@ -356,15 +356,15 @@ FORMATO DE RESPOSTA OBRIGATÓRIO:
             }
             tree[0].children.forEach(collectFolders);
             currentPrompt.folders = existingFolders;
-            addLog(`📂 Pastas existentes carregadas: ${existingFolders.length}`, 'info');
+            addLog(`📂 Existing folders loaded: ${existingFolders.length}`, 'info');
             
             renderBookmarksTree(tree[0], bookmarksContainer);
             updateOrganizeButton();
             updatePendingList();
             updatePrompt();
         } catch (error) {
-            console.error('Erro ao carregar bookmarks:', error);
-            showStatus('Erro ao atualizar a lista de bookmarks.', 'error');
+            console.error('Error loading bookmarks:', error);
+            showStatus('Error updating bookmarks list.', 'error');
         }
     }
 
@@ -544,12 +544,12 @@ FORMATO DE RESPOSTA OBRIGATÓRIO:
                 title: bookmark.title,
                 url: bookmark.url
             });
-            addLog(`➕ Bookmark adicionado: ${bookmark.title}`, 'info');
+            addLog(`➕ Bookmark added: ${bookmark.title}`, 'info');
         } else {
             for (const item of pendingBookmarks) {
                 if (item.type === 'existing' && item.id === bookmark.id) {
                     pendingBookmarks.delete(item);
-                    addLog(`➖ Bookmark removido: ${bookmark.title}`, 'info');
+                    addLog(`➖ Bookmark removed: ${bookmark.title}`, 'info');
                     break;
                 }
             }
@@ -564,7 +564,7 @@ FORMATO DE RESPOSTA OBRIGATÓRIO:
             const bookmarks = await chrome.bookmarks.getTree();
             const searchFolder = (nodes) => {
                 for (const node of nodes) {
-                    if (node.title === "Não Categorizado") return node;
+                    if (node.title === "Uncategorized") return node;
                     if (node.children) {
                         const found = searchFolder(node.children);
                         if (found) return found;
@@ -578,10 +578,10 @@ FORMATO DE RESPOSTA OBRIGATÓRIO:
 
             return await chrome.bookmarks.create({
                 parentId: '1',
-                title: 'Não Categorizado'
+                title: 'Uncategorized'
             });
         } catch (error) {
-            console.error('Erro ao buscar/criar pasta:', error);
+            console.error('Error finding/creating folder:', error);
             throw error;
         }
     }
@@ -742,47 +742,47 @@ FORMATO DE RESPOSTA OBRIGATÓRIO:
             
             const selectedBookmarks = Array.from(pendingBookmarks);
             if (selectedBookmarks.length === 0) {
-                throw new Error('Nenhum bookmark selecionado');
+                throw new Error('No bookmarks selected');
             }
             
-            addLog('📝 Prompt que será enviada:', 'info');
+            addLog('📝 Prompt to be sent:', 'info');
             addLog(currentPrompt.text, 'code');
-            addLog('', 'info'); // Linha em branco para separar
-            addLog(`🚀 Iniciando organização de ${selectedBookmarks.length} bookmarks`, 'info');
-            addLog(`• ${selectedBookmarks.length} bookmarks para analisar`, 'info');
-            addLog(`• ${currentPrompt.folders.length} pastas existentes`, 'info');
-            addLog(`• ${currentPrompt.text.length} caracteres na prompt`, 'info');
-            addLog(`• ${currentPrompt.text.split(/\s+/).length} tokens estimados`, 'info');
+            addLog('', 'info'); // Blank line for separation
+            addLog(`🚀 Starting organization of ${selectedBookmarks.length} bookmarks`, 'info');
+            addLog(`• ${selectedBookmarks.length} bookmarks to analyze`, 'info');
+            addLog(`• ${currentPrompt.folders.length} existing folders`, 'info');
+            addLog(`• ${currentPrompt.text.length} characters in prompt`, 'info');
+            addLog(`• ${currentPrompt.text.split(/\s+/).length} estimated tokens`, 'info');
 
-            // Mostra seção de progresso
+            // Show progress section
             progressSection.style.display = 'block';
-            progressText.textContent = 'Enviando para análise...';
+            progressText.textContent = 'Sending for analysis...';
             progressIndicator.style.width = '50%';
             
-            // Obtém sugestão do Gemini usando a prompt já preparada
+            // Get suggestion from Gemini using prepared prompt
             let suggestion;
             try {
                 suggestion = await geminiService.suggestOrganization(selectedBookmarks, currentPrompt.folders, addLog);
                 
-                addLog('✅ Resposta recebida do Gemini', 'success');
-                addLog(`📊 Formato da resposta: ${typeof suggestion}`, 'info');
+                addLog('✅ Response received from Gemini', 'success');
+                addLog(`📊 Response format: ${typeof suggestion}`, 'info');
                 
                 if (!suggestion || typeof suggestion !== 'object') {
-                    throw new Error('Resposta inválida do Gemini');
+                    throw new Error('Invalid response from Gemini');
                 }
                 
                 if (!suggestion.folders || !Array.isArray(suggestion.folders)) {
-                    addLog('⚠️ Estrutura da resposta:', 'warning');
+                    addLog('⚠️ Response structure:', 'warning');
                     addLog(JSON.stringify(suggestion, null, 2), 'info');
-                    throw new Error('Formato de resposta inválido: folders não encontrado ou não é um array');
+                    throw new Error('Invalid response format: folders not found or not an array');
                 }
                 
-                addLog('✨ Sugestão de organização recebida com sucesso', 'success');
-                addLog(`📂 Total de pastas sugeridas: ${suggestion.folders.length}`, 'info');
+                addLog('✨ Organization suggestion received successfully', 'success');
+                addLog(`📂 Total suggested folders: ${suggestion.folders.length}`, 'info');
             } catch (error) {
-                addLog(`❌ Erro ao processar resposta do Gemini: ${error.message}`, 'error');
+                addLog(`❌ Error processing Gemini response: ${error.message}`, 'error');
                 if (suggestion) {
-                    addLog('⚠️ Conteúdo da resposta:', 'warning');
+                    addLog('⚠️ Response content:', 'warning');
                     addLog(JSON.stringify(suggestion, null, 2), 'info');
                 }
                 throw error;
@@ -791,17 +791,17 @@ FORMATO DE RESPOSTA OBRIGATÓRIO:
             // After receiving suggestion, show only results
             toggleExecutionUI('results');
 
-            // Mostra a sugestão para o usuário
+            // Show suggestion to user
             const resultsList = document.getElementById('results-list');
             resultsList.innerHTML = `
                 <div class="suggestion-summary">
-                    <h3>Sugestão de Organização</h3>
-                    <p>Os bookmarks serão organizados nas seguintes pastas:</p>
+                    <h3>Organization Suggestion</h3>
+                    <p>Bookmarks will be organized into the following folders:</p>
                 </div>
                 <div class="folders-preview">
                     ${suggestion.folders.map(folder => `
                         <div class="folder-group">
-                            <h4>${folder.icon} ${folder.name} ${folder.isNew ? '<span class="new-badge">Nova</span>' : ''}</h4>
+                            <h4>${folder.icon} ${folder.name} ${folder.isNew ? '<span class="new-badge">New</span>' : ''}</h4>
                             <ul>
                                 ${folder.bookmarks.map(bm => `
                                     <li>
@@ -813,8 +813,8 @@ FORMATO DE RESPOSTA OBRIGATÓRIO:
                     `).join('')}
                 </div>
                 <div class="suggestion-actions">
-                    <button id="apply-suggestion" class="primary-btn">Aplicar Organização</button>
-                    <button id="cancel-suggestion" class="secondary-btn">Voltar</button>
+                    <button id="apply-suggestion" class="primary-btn">Apply Organization</button>
+                    <button id="cancel-suggestion" class="secondary-btn">Back</button>
                 </div>
             `;
 
@@ -823,40 +823,40 @@ FORMATO DE RESPOSTA OBRIGATÓRIO:
                 try {
                     toggleExecutionUI('executing');
                     progressSection.style.display = 'block';
-                    progressText.textContent = 'Aplicando organização...';
-                    addLog('Iniciando aplicação das alterações...', 'info');
-                    addLog('Estrutura a ser criada:', 'info');
+                    progressText.textContent = 'Applying organization...';
+                    addLog('Starting to apply changes...', 'info');
+                    addLog('Structure to be created:', 'info');
                     
                     suggestion.folders.forEach(folder => {
-                        const status = folder.isNew ? '[Nova]' : '[Existente]';
-                        addLog(`• ${status} Pasta "${folder.icon} ${folder.name}" com ${folder.bookmarks.length} bookmarks`, 'info');
+                        const status = folder.isNew ? '[New]' : '[Existing]';
+                        addLog(`• ${status} Folder "${folder.icon} ${folder.name}" with ${folder.bookmarks.length} bookmarks`, 'info');
                     });
                     
-                    // Aplica a organização sugerida
+                    // Apply suggested organization
                     for (const folder of suggestion.folders) {
-                        // Encontra ou cria a pasta
+                        // Find or create folder
                         let targetFolder;
                         if (folder.isNew) {
-                            addLog(`Criando pasta "${folder.icon} ${folder.name}"...`, 'info');
+                            addLog(`Creating folder "${folder.icon} ${folder.name}"...`, 'info');
                             targetFolder = await chrome.bookmarks.create({
-                                parentId: '1', // Barra de favoritos
+                                parentId: '1', // Bookmarks bar
                                 title: `${folder.icon} ${folder.name}`
                             });
-                            addLog(`✓ Pasta criada com ID: ${targetFolder.id}`, 'success');
+                            addLog(`✓ Folder created with ID: ${targetFolder.id}`, 'success');
                         } else {
-                            addLog(`Usando pasta existente "${folder.name}"...`, 'info');
+                            addLog(`Using existing folder "${folder.name}"...`, 'info');
                             targetFolder = currentPrompt.folders.find(f => f.title === folder.name);
-                            addLog(`✓ Pasta encontrada com ID: ${targetFolder.id}`, 'success');
+                            addLog(`✓ Folder found with ID: ${targetFolder.id}`, 'success');
                         }
 
-                        // Move os bookmarks para a pasta
-                        addLog(`Movendo ${folder.bookmarks.length} bookmarks para "${folder.name}"...`, 'info');
+                        // Move bookmarks to folder
+                        addLog(`Moving ${folder.bookmarks.length} bookmarks to "${folder.name}"...`, 'info');
                         
                         for (const bookmark of folder.bookmarks) {
                             try {
                                 const existingBookmark = selectedBookmarks.find(bm => bm.url === bookmark.url);
                                 if (!existingBookmark) {
-                                    addLog(`⚠️ Bookmark não encontrado: ${bookmark.title}`, 'warning');
+                                    addLog(`⚠️ Bookmark not found: ${bookmark.title}`, 'warning');
                                     continue;
                                 }
 
@@ -866,25 +866,25 @@ FORMATO DE RESPOSTA OBRIGATÓRIO:
                                         title: bookmark.title,
                                         url: bookmark.url
                                     });
-                                    addLog(`✓ Criado: ${bookmark.title}`, 'success');
+                                    addLog(`✓ Created: ${bookmark.title}`, 'success');
                                 } else {
                                     await chrome.bookmarks.move(existingBookmark.id, {
                                         parentId: targetFolder.id
                                     });
-                                    addLog(`✓ Movido: ${bookmark.title}`, 'success');
+                                    addLog(`✓ Moved: ${bookmark.title}`, 'success');
                                 }
                             } catch (error) {
-                                addLog(`❌ Erro ao processar ${bookmark.title}: ${error.message}`, 'error');
+                                addLog(`❌ Error processing ${bookmark.title}: ${error.message}`, 'error');
                             }
                         }
                     }
 
-                    // Atualiza a UI
+                    // Update UI
                     toggleExecutionUI('results');
                     resultsList.innerHTML = `
                         <div class="success-message">
-                            <p>✅ Organização concluída com sucesso!</p>
-                            <button id="view-bookmarks" class="primary-btn">Ver Bookmarks</button>
+                            <p>✅ Organization completed successfully!</p>
+                            <button id="view-bookmarks" class="primary-btn">View Bookmarks</button>
                         </div>
                     `;
 
@@ -893,13 +893,13 @@ FORMATO DE RESPOSTA OBRIGATÓRIO:
                         loadBookmarksTree();
                     });
 
-                    addLog('Organização concluída com sucesso!', 'success');
+                    addLog('Organization completed successfully!', 'success');
                 } catch (error) {
-                    addLog(`❌ Erro durante a organização: ${error.message}`, 'error');
+                    addLog(`❌ Error during organization: ${error.message}`, 'error');
                     resultsList.innerHTML = `
                         <div class="error-message">
-                            <p>❌ Erro durante a organização: ${error.message}</p>
-                            <button id="try-again" class="primary-btn">Tentar Novamente</button>
+                            <p>❌ Error during organization: ${error.message}</p>
+                            <button id="try-again" class="primary-btn">Try Again</button>
                         </div>
                     `;
 
@@ -915,7 +915,7 @@ FORMATO DE RESPOSTA OBRIGATÓRIO:
             });
 
         } catch (error) {
-            addLog(`❌ Erro: ${error.message}`, 'error');
+            addLog(`❌ Error: ${error.message}`, 'error');
             toggleExecutionUI('normal');
         }
     });

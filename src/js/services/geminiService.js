@@ -10,7 +10,7 @@ class GeminiService {
     async categorizeBookmark(bookmark) {
         try {
             if (!this.apiKey) {
-                throw new Error('API key não configurada');
+                throw new Error('API key not configured');
             }
 
             const prompt = this.buildPrompt(bookmark);
@@ -18,38 +18,37 @@ class GeminiService {
             
             return this.parseResponse(response);
         } catch (error) {
-            console.error('Erro ao categorizar bookmark:', error);
+            console.error('Error categorizing bookmark:', error);
             return {
-                category: 'Outros',
+                category: 'Others',
                 confidence: 0,
                 explanation: error.message
             };
         }
-
     }
 
     buildPrompt(bookmark) {
         return {
             contents: [{
                 parts: [{
-                    text: `Analise o título e URL do bookmark e sugira a melhor categoria.
+                    text: `Analyze the bookmark title and URL and suggest the best category.
                     
-                    Título: ${bookmark.title}
+                    Title: ${bookmark.title}
                     URL: ${bookmark.url}
                     
-                    Categorias disponíveis:
+                    Available categories:
                     ${this.categories.join(', ')}
                     
-                    Responda em formato JSON com:
-                    - category: a categoria mais apropriada da lista
-                    - confidence: número de 0 a 1 indicando confiança
-                    - explanation: breve explicação da escolha
+                    Respond in JSON format with:
+                    - category: most appropriate category from the list
+                    - confidence: number from 0 to 1 indicating confidence
+                    - explanation: brief explanation for the choice
                     
-                    Exemplo de resposta:
+                    Example response:
                     {
-                        "category": "Tecnologia",
+                        "category": "Technology",
                         "confidence": 0.95,
-                        "explanation": "Site sobre desenvolvimento de software"
+                        "explanation": "Website about software development"
                     }`
                 }]
             }]
@@ -71,7 +70,7 @@ class GeminiService {
         });
 
         if (!response.ok) {
-            throw new Error(`Erro na API: ${response.status}`);
+            throw new Error(`API Error: ${response.status}`);
         }
 
         return await response.json();
@@ -79,31 +78,28 @@ class GeminiService {
 
     parseResponse(response) {
         try {
-            // Extrai o texto da resposta
             const text = response.candidates[0].content.parts[0].text;
             
-            // Tenta encontrar e parsear o JSON na resposta
             const jsonMatch = text.match(/\{[\s\S]*\}/);
             if (!jsonMatch) {
-                throw new Error('Resposta não contém JSON válido');
+                throw new Error('Response does not contain valid JSON');
             }
 
             const result = JSON.parse(jsonMatch[0]);
 
-            // Valida se a categoria existe
             if (!this.categories.includes(result.category)) {
-                result.category = 'Outros';
+                result.category = 'Others';
                 result.confidence = 0.5;
-                result.explanation += ' (Categoria ajustada para Outros)';
+                result.explanation += ' (Category adjusted to Others)';
             }
 
             return result;
         } catch (error) {
-            console.error('Erro ao processar resposta:', error);
+            console.error('Error processing response:', error);
             return {
-                category: 'Outros',
+                category: 'Others',
                 confidence: 0,
-                explanation: 'Erro ao processar resposta da API'
+                explanation: 'Error processing API response'
             };
         }
     }
@@ -111,58 +107,57 @@ class GeminiService {
     async suggestOrganization(bookmarks, existingFolders, logger) {
         try {
             if (!this.apiKey) {
-                throw new Error('API key não configurada');
+                throw new Error('API key not configured');
             }
 
-            // Constrói o prompt com os dados
             const bookmarksData = bookmarks.map(b => `- ${b.title}\n  URL: ${b.url}`).join('\n');
             const foldersData = existingFolders.map(f => `- ${f.title}`).join('\n');
 
-            const promptText = `Você é um assistente especializado em organizar bookmarks em pastas.
-Sua tarefa é APENAS retornar um JSON válido, sem nenhum texto adicional.
+            const promptText = `You are an AI assistant specialized in organizing bookmarks into folders.
+Your task is to ONLY return a valid JSON, with no additional text.
 
-ENTRADA:
-Bookmarks para organizar:
+INPUT:
+Bookmarks to organize:
 ${bookmarksData}
 
-Pastas existentes:
+Existing folders:
 ${foldersData}
 
-REGRAS:
-1. Use as pastas existentes quando apropriado
-2. Sugira novas pastas apenas se necessário
-3. Agrupe bookmarks relacionados
-4. TODOS os bookmarks devem ser incluídos
-5. Seja conciso nas descrições
+RULES:
+1. Use existing folders when appropriate
+2. Suggest new folders only if necessary
+3. Group related bookmarks
+4. ALL bookmarks must be included
+5. Be concise in descriptions
 
-FORMATO DE RESPOSTA OBRIGATÓRIO:
+REQUIRED RESPONSE FORMAT:
 {
     "folders": [
         {
-            "name": "Nome da Pasta",
+            "name": "Folder Name",
             "isNew": true/false,
+            "icon": "appropriate emoji",
             "bookmarks": [
                 {
-                    "url": "url exata do bookmark",
-                    "title": "título do bookmark"
+                    "url": "exact bookmark url",
+                    "title": "bookmark title"
                 }
             ]
         }
     ]
 }
 
-IMPORTANTE:
-- Responda APENAS com o JSON
-- Não adicione texto antes ou depois
-- Certifique-se que o JSON é válido
-- Use as URLs exatas fornecidas
-- Inclua TODOS os bookmarks fornecidos
-- Mantenha a resposta mínima`;
+IMPORTANT:
+- Respond ONLY with JSON
+- No text before or after
+- Ensure JSON is valid
+- Use exact URLs provided
+- Include ALL provided bookmarks
+- Keep response minimal`;
 
-            // Conta tokens do prompt e loga
             const promptTokenCount = promptText.split(/\s+/).length;
             if (logger) {
-                logger(`📊 Tokens estimados na prompt: ${promptTokenCount}`, 'info');
+                logger(`📊 Estimated prompt tokens: ${promptTokenCount}`, 'info');
             }
 
             const prompt = {
@@ -173,74 +168,67 @@ IMPORTANTE:
                 }]
             };
 
-            // Faz a chamada à API
             const response = await this.callGeminiAPI(prompt);
             const responseText = response.candidates[0].content.parts[0].text;
             
-            // Conta tokens da resposta e loga
             const responseTokenCount = responseText.split(/\s+/).length;
             if (logger) {
-                logger(`📊 Tokens estimados na resposta: ${responseTokenCount}`, 'info');
-                logger(`📤 Resposta do Gemini:`, 'info');
+                logger(`📊 Estimated response tokens: ${responseTokenCount}`, 'info');
+                logger(`📤 Gemini Response:`, 'info');
                 logger(responseText, 'code');
             }
 
-            // Remove qualquer texto que não seja JSON
             const jsonMatch = responseText.match(/\{[\s\S]*\}/);
             if (!jsonMatch) {
-                console.error('❌ Resposta não contém JSON válido:', responseText);
-                throw new Error('Resposta não contém JSON válido');
+                console.error('❌ Response does not contain valid JSON:', responseText);
+                throw new Error('Response does not contain valid JSON');
             }
 
             let result;
             try {
                 const jsonText = jsonMatch[0];
-                console.log('🔍 Tentando parsear JSON:', jsonText);
+                console.log('🔍 Attempting to parse JSON:', jsonText);
                 result = JSON.parse(jsonText);
             } catch (error) {
-                console.error('❌ Erro ao parsear JSON. Texto recebido:', jsonMatch[0]);
-                throw new Error(`Erro ao parsear JSON: ${error.message}`);
+                console.error('❌ Error parsing JSON. Received text:', jsonMatch[0]);
+                throw new Error(`JSON parsing error: ${error.message}`);
             }
 
-            // Validação rigorosa da estrutura
             if (!result || typeof result !== 'object') {
-                throw new Error('Resposta não é um objeto válido');
+                throw new Error('Response is not a valid object');
             }
 
             if (!Array.isArray(result.folders)) {
-                throw new Error('Propriedade folders não é um array');
+                throw new Error('Folders property is not an array');
             }
 
             if (result.folders.length === 0) {
-                throw new Error('Nenhuma pasta sugerida');
+                throw new Error('No folders suggested');
             }
 
-            // Validação de cada pasta e bookmark
             result.folders.forEach((folder, index) => {
                 if (!folder.name || typeof folder.name !== 'string') {
-                    throw new Error(`Pasta ${index} não tem nome válido`);
+                    throw new Error(`Folder ${index} has no valid name`);
                 }
                 if (typeof folder.isNew !== 'boolean') {
                     folder.isNew = !existingFolders.some(f => f.title === folder.name);
                 }
                 if (!Array.isArray(folder.bookmarks)) {
-                    throw new Error(`Pasta ${folder.name} não tem array de bookmarks válido`);
+                    throw new Error(`Folder ${folder.name} has no valid bookmarks array`);
                 }
 
                 folder.bookmarks.forEach((bm, bmIndex) => {
                     if (!bm.url || !bm.title) {
-                        throw new Error(`Bookmark ${bmIndex} em ${folder.name} não tem url ou título`);
+                        throw new Error(`Bookmark ${bmIndex} in ${folder.name} missing url or title`);
                     }
                     if (!bookmarks.some(b => b.url === bm.url)) {
-                        throw new Error(`URL não reconhecida em ${folder.name}: ${bm.url}`);
+                        throw new Error(`Unrecognized URL in ${folder.name}: ${bm.url}`);
                     }
                 });
 
-                // Adiciona ícone padrão se não existir
                 folder.icon = folder.icon || '📁';
             });
 
-            // Verifica se todos os bookmarks foram incluídos
             const allUrls = new Set(bookmarks.map(b => b.url));
             const includedUrls = new Set();
             result.folders.forEach(folder => {
@@ -249,34 +237,32 @@ IMPORTANTE:
 
             const missingUrls = [...allUrls].filter(url => !includedUrls.has(url));
             if (missingUrls.length > 0) {
-                console.log('⚠️ URLs não categorizadas:', missingUrls);
+                console.log('⚠️ Uncategorized URLs:', missingUrls);
                 const missingBookmarks = bookmarks.filter(b => missingUrls.includes(b.url));
                 const othersFolder = {
-                    name: "Outros",
-                    isNew: !existingFolders.some(f => f.title === "Outros"),
+                    name: "Others",
+                    isNew: !existingFolders.some(f => f.title === "Others"),
                     icon: "📌",
                     bookmarks: missingBookmarks.map(b => ({
                         title: b.title,
-                        url: b.url,
-                        reason: "Bookmark não categorizado automaticamente"
+                        url: b.url
                     }))
                 };
                 result.folders.push(othersFolder);
             }
 
             if (!result.summary || typeof result.summary !== 'string') {
-                result.summary = 'Organização baseada no conteúdo dos bookmarks';
+                result.summary = 'Organization based on bookmark content';
             }
 
-            console.log('✅ Processamento concluído com sucesso:', result);
+            console.log('✅ Processing completed successfully:', result);
             return result;
         } catch (error) {
-            console.error('❌ Erro ao sugerir organização:', error);
+            console.error('❌ Error suggesting organization:', error);
             throw error;
         }
     }
 
-    // Método para configurar a API key
     setApiKey(key) {
         this.apiKey = key;
     }
