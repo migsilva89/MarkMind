@@ -809,6 +809,16 @@ REQUIRED RESPONSE FORMAT:
                 </div>
             `;
 
+            // Add click handlers for folder toggles
+            const folderHeaders = resultsList.querySelectorAll('.folder-group h4');
+            folderHeaders.forEach(header => {
+                header.addEventListener('click', () => {
+                    header.classList.toggle('expanded');
+                    const bookmarksList = header.nextElementSibling;
+                    bookmarksList.classList.toggle('expanded');
+                });
+            });
+
             // Update button handlers
             document.getElementById('apply-suggestion').addEventListener('click', async () => {
                 try {

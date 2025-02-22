@@ -531,60 +531,81 @@ input[type="checkbox"] + label {
 
 /* Sugestão de Organização */
 .suggestion-summary {
-    margin-bottom: 24px;
-    padding: 16px;
-    background-color: var(--hover-background);
-    border-radius: 12px;
-    border: 1.5px solid var(--border-color);
+    margin-bottom: 16px;
 }
 
 .suggestion-summary h3 {
-    font-size: 18px;
-    margin-bottom: 8px;
+    font-size: 16px;
+    margin-bottom: 4px;
+}
+
+.suggestion-summary p {
+    font-size: 13px;
+    color: var(--secondary-color);
 }
 
 .folders-preview {
     display: flex;
     flex-direction: column;
-    gap: 16px;
-    margin-bottom: 24px;
-    max-height: 200px;
+    gap: 8px;
+    margin-bottom: 16px;
+    max-height: 300px;
     overflow-y: auto;
-    padding-right: 8px;
 }
 
 .folder-group {
-    padding: 16px;
     background-color: var(--background-color);
-    border-radius: 12px;
+    border-radius: 8px;
     border: 1.5px solid var(--border-color);
-    margin-bottom: 4px;
-}
-
-/* Remove margin from last folder to avoid extra space */
-.folder-group:last-child {
-    margin-bottom: 0;
 }
 
 .folder-group h4 {
-    font-size: 16px;
-    margin-bottom: 12px;
+    font-size: 14px;
+    margin: 0;
+    padding: 8px 12px;
     display: flex;
     align-items: center;
     gap: 8px;
+    cursor: pointer;
+    user-select: none;
+    border-bottom: 1.5px solid transparent;
+}
+
+.folder-group h4:hover {
+    background-color: var(--hover-background);
+}
+
+.folder-group h4::before {
+    content: '›';
+    display: inline-block;
+    transition: transform 0.2s ease;
+    font-size: 16px;
+    width: 16px;
+    text-align: center;
+}
+
+.folder-group h4.expanded::before {
+    transform: rotate(90deg);
 }
 
 .folder-group ul {
     list-style: none;
-    padding: 0;
+    padding: 8px 12px;
     margin: 0;
+    display: none;
+    border-top: 1.5px solid var(--border-color);
+}
+
+.folder-group ul.expanded {
+    display: block;
 }
 
 .folder-group li {
-    padding: 8px;
-    border-radius: 8px;
-    margin-bottom: 8px;
+    padding: 4px 8px;
+    border-radius: 4px;
+    margin-bottom: 4px;
     background-color: var(--hover-background);
+    font-size: 13px;
 }
 
 .folder-group li:last-child {
@@ -592,17 +613,17 @@ input[type="checkbox"] + label {
 }
 
 .new-badge {
-    font-size: 12px;
-    padding: 2px 8px;
+    font-size: 11px;
+    padding: 1px 6px;
     background-color: var(--primary-color);
     color: white;
-    border-radius: 12px;
+    border-radius: 10px;
     font-weight: normal;
 }
 
 .bookmark-title {
-    font-weight: 500;
-    margin-bottom: 4px;
+    font-weight: 400;
+    font-size: 13px;
 }
 
 .bookmark-reason {
@@ -649,8 +670,8 @@ input[type="checkbox"] + label {
 }
 
 .logs-section h3 {
-    font-size: 16px;
-    padding: 12px 16px;
+    font-size: 14px;
+    padding: 8px 12px;
     margin: 0;
     border-bottom: 1.5px solid var(--border-color);
     color: var(--text-color);
@@ -658,18 +679,18 @@ input[type="checkbox"] + label {
 }
 
 .logs-container {
-    max-height: 100px;
+    max-height: 150px;
     overflow-y: auto;
-    padding: 12px 16px;
+    padding: 8px 12px;
     font-family: ui-monospace, SFMono-Regular, SF Mono, Menlo, Consolas, Liberation Mono, monospace;
-    font-size: 13px;
-    line-height: 1.5;
+    font-size: 12px;
+    line-height: 1.4;
     background-color: var(--background-color);
 }
 
 .log-entry {
-    margin-bottom: 8px;
-    padding: 4px 8px;
+    margin-bottom: 6px;
+    padding: 2px 6px;
     border-radius: 4px;
     display: flex;
     align-items: flex-start;
@@ -711,5 +732,6 @@ input[type="checkbox"] + label {
     color: var(--secondary-color);
     margin-right: 8px;
     font-weight: 500;
-    min-width: 75px;
+    min-width: 65px;
+    font-size: 11px;
 }
