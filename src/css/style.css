@@ -612,3 +612,59 @@ input[type="checkbox"] + label {
     margin-bottom: 16px;
     font-size: 16px;
 }
+
+/* Logs Section */
+.logs-section {
+    margin-top: 16px;
+    padding: 16px;
+    background-color: var(--hover-background);
+    border-radius: 12px;
+    border: 1.5px solid var(--border-color);
+}
+
+.logs-section h3 {
+    font-size: 16px;
+    margin-bottom: 12px;
+    color: var(--text-color);
+}
+
+.logs-container {
+    max-height: 200px;
+    overflow-y: auto;
+    font-family: monospace;
+    font-size: 12px;
+    background-color: var(--background-color);
+    padding: 12px;
+    border-radius: 8px;
+    border: 1px solid var(--border-color);
+}
+
+.log-entry {
+    margin-bottom: 8px;
+    padding: 4px 8px;
+    border-radius: 4px;
+}
+
+.log-entry.info {
+    color: var(--text-color);
+}
+
+.log-entry.success {
+    color: #1e8e3e;
+    background-color: #e6f4ea;
+}
+
+.log-entry.error {
+    color: #d93025;
+    background-color: #fce8e6;
+}
+
+.log-entry.warning {
+    color: #e37400;
+    background-color: #fef7e0;
+}
+
+.log-timestamp {
+    color: var(--secondary-color);
+    margin-right: 8px;
+}

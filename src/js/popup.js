@@ -27,10 +27,26 @@ document.addEventListener('DOMContentLoaded', () => {
     const progressText = document.getElementById('progress-text');
     const progressCount = document.getElementById('progress-count');
     const resultsSection = document.querySelector('.results-section');
+    const logsSection = document.querySelector('.logs-section');
+    const logsContainer = document.getElementById('logs-container');
     
     // Application State
     let bookmarksTree = [];
     let pendingBookmarks = new Set();
+
+    // Função para adicionar logs
+    function addLog(message, type = 'info') {
+        const timestamp = new Date().toLocaleTimeString();
+        const logEntry = document.createElement('div');
+        logEntry.className = `log-entry ${type}`;
+        logEntry.innerHTML = `<span class="log-timestamp">[${timestamp}]</span> ${message}`;
+        logsContainer.appendChild(logEntry);
+        logsContainer.scrollTop = logsContainer.scrollHeight;
+        
+        if (logsSection.style.display === 'none') {
+            logsSection.style.display = 'block';
+        }
+    }
 
     // Carrega a API key inicial
     chrome.storage.local.get(['geminiApiKey'], (result) => {
@@ -581,13 +597,20 @@ document.addEventListener('DOMContentLoaded', () => {
 
     organizeBtn.addEventListener('click', async () => {
         try {
+            // Limpa logs anteriores
+            logsContainer.innerHTML = '';
+            logsSection.style.display = 'block';
+            
             // Coleta os bookmarks selecionados
             const selectedBookmarks = Array.from(pendingBookmarks);
             if (selectedBookmarks.length === 0) {
                 throw new Error('Nenhum bookmark selecionado');
             }
+            
+            addLog(`Iniciando organização de ${selectedBookmarks.length} bookmarks`);
 
             // Coleta as pastas existentes
+            addLog('Coletando pastas existentes...');
             const bookmarks = await chrome.bookmarks.getTree();
             const existingFolders = [];
             
@@ -604,14 +627,18 @@ document.addEventListener('DOMContentLoaded', () => {
             }
             
             bookmarks[0].children.forEach(collectFolders);
+            addLog(`Encontradas ${existingFolders.length} pastas existentes`);
 
             // Mostra seção de progresso
             progressSection.style.display = 'block';
             progressText.textContent = 'Analisando bookmarks...';
             progressIndicator.style.width = '50%';
+            
+            addLog('Enviando bookmarks para análise do Gemini...');
 
             // Obtém sugestão do Gemini
             const suggestion = await geminiService.suggestOrganization(selectedBookmarks, existingFolders);
+            addLog('Sugestão de organização recebida com sucesso', 'success');
 
             // Esconde progresso e mostra resultados
             progressSection.style.display = 'none';
@@ -650,17 +677,20 @@ document.addEventListener('DOMContentLoaded', () => {
                 try {
                     progressSection.style.display = 'block';
                     progressText.textContent = 'Aplicando organização...';
+                    addLog('Iniciando aplicação das alterações...');
                     
                     // Aplica a organização sugerida
                     for (const folder of suggestion.folders) {
                         // Encontra ou cria a pasta
                         let targetFolder;
                         if (folder.isNew) {
+                            addLog(`Criando nova pasta: ${folder.name}`);
                             targetFolder = await chrome.bookmarks.create({
                                 parentId: '1', // Barra de favoritos
                                 title: `${folder.icon} ${folder.name}`
                             });
                         } else {
+                            addLog(`Usando pasta existente: ${folder.name}`);
                             targetFolder = existingFolders.find(f => f.title === folder.name);
                         }
 
@@ -669,12 +699,14 @@ document.addEventListener('DOMContentLoaded', () => {
                             const bookmark = selectedBookmarks.find(b => b.url === bm.url);
                             if (bookmark) {
                                 if (bookmark.type === 'new') {
+                                    addLog(`Criando novo bookmark: ${bookmark.title}`);
                                     await chrome.bookmarks.create({
                                         parentId: targetFolder.id,
                                         title: bookmark.title,
                                         url: bookmark.url
                                     });
                                 } else {
+                                    addLog(`Movendo bookmark: ${bookmark.title}`);
                                     await chrome.bookmarks.move(bookmark.id, {
                                         parentId: targetFolder.id
                                     });
@@ -686,6 +718,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     // Limpa a seleção e atualiza a UI
                     pendingBookmarks.clear();
                     await loadBookmarksTree();
+                    addLog('Organização concluída com sucesso!', 'success');
                     
                     // Mostra mensagem de sucesso
                     resultsSection.innerHTML = `
@@ -696,6 +729,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     `;
                 } catch (error) {
                     console.error('Erro ao aplicar organização:', error);
+                    addLog(`Erro ao aplicar organização: ${error.message}`, 'error');
                     resultsSection.innerHTML = `
                         <div class="error-message">
                             <p>❌ Erro ao aplicar organização: ${error.message}</p>
@@ -713,6 +747,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         } catch (error) {
             console.error('Erro ao organizar bookmarks:', error);
+            addLog(`Erro: ${error.message}`, 'error');
             resultsSection.style.display = 'block';
             resultsSection.innerHTML = `
                 <div class="error-message">
