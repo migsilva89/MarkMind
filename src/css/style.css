@@ -116,9 +116,9 @@ button:disabled {
 .bookmark-item {
     display: flex;
     align-items: center;
-    padding: 8px;
+    padding: 6px;
     border-radius: 8px;
-    margin: 4px 0;
+    margin: 3px 0;
     transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
@@ -127,18 +127,37 @@ button:disabled {
     transform: translateX(4px);
 }
 
-.folder-name, .bookmark-name {
-    margin-left: 8px;
+.bookmark-item input[type="checkbox"] {
+    margin-right: 8px;
+}
+
+.folder-name {
+    font-weight: 500;
+    color: var(--primary-color);
     cursor: pointer;
     flex: 1;
-    font-weight: 450;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    font-size: 14px;
+}
+
+.bookmark-name {
+    color: var(--text-color);
+    text-overflow: ellipsis;
+    overflow: hidden;
+    white-space: nowrap;
+    max-width: 300px;
+    cursor: pointer;
+    flex: 1;
+    font-size: 13px;
 }
 
 .bookmark-count {
     color: var(--secondary-color);
-    font-size: 12px;
-    margin-left: 8px;
-    font-weight: 400;
+    font-size: 11px;
+    margin-left: 4px;
+    font-weight: normal;
 }
 
 /* Status messages com design clean */
@@ -334,7 +353,7 @@ input[type="checkbox"] + label {
 /* Atualizar a árvore de bookmarks */
 .folder-toggle {
     font-family: monospace;
-    font-size: 16px;
+    font-size: 12px;
     color: var(--secondary-color);
     transition: all 0.2s ease;
     display: inline-block;
@@ -355,6 +374,16 @@ input[type="checkbox"] + label {
 .folder-children {
     margin-left: 20px;
     transition: all 0.2s ease;
+}
+
+.folder-children .bookmark-item {
+    font-size: 12px;
+    padding: 4px 6px;
+}
+
+.folder-children .bookmark-name {
+    font-size: 12px;
+    margin-left: 4px;
 }
 
 /* Efeitos de hover mais suaves */
