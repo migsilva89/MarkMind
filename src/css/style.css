@@ -352,3 +352,60 @@ input[type="checkbox"] + label {
     background-color: var(--hover-background);
     transform: translateX(4px);
 }
+
+/* Seção de bookmarks pendentes */
+.pending-section {
+    margin-top: 24px;
+    padding: 16px;
+    background-color: var(--hover-background);
+    border-radius: 16px;
+    border: 1.5px solid var(--border-color);
+}
+
+.pending-section h2 {
+    font-size: 16px;
+    font-weight: 500;
+    color: var(--text-color);
+    margin-bottom: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.pending-list {
+    max-height: 150px;
+    overflow-y: auto;
+}
+
+.pending-item {
+    display: flex;
+    align-items: center;
+    padding: 8px;
+    border-radius: 8px;
+    margin: 4px 0;
+    background-color: var(--background-color);
+    border: 1px solid var(--border-color);
+}
+
+.pending-item .title {
+    flex: 1;
+    font-size: 14px;
+    font-weight: 450;
+    margin-right: 8px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.pending-item .remove-btn {
+    color: var(--secondary-color);
+    cursor: pointer;
+    padding: 4px;
+    border-radius: 4px;
+    transition: all 0.2s ease;
+}
+
+.pending-item .remove-btn:hover {
+    color: var(--primary-color);
+    background-color: var(--hover-background);
+}

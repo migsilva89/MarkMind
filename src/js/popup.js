@@ -7,6 +7,9 @@ document.addEventListener('DOMContentLoaded', () => {
     const closeResultsBtn = document.getElementById('close-results');
     const addCurrentBtn = document.getElementById('add-current-btn');
     const addStatus = document.getElementById('add-status');
+    const pendingSection = document.getElementById('pending-bookmarks');
+    const pendingList = document.getElementById('pending-list');
+    const pendingCount = document.getElementById('pending-count');
     
     // UI Sections
     const progressSection = document.querySelector('.progress-section');
@@ -16,6 +19,44 @@ document.addEventListener('DOMContentLoaded', () => {
     let bookmarksTree = [];
     let pendingBookmarks = new Set();
 
+    // Função para atualizar a lista de bookmarks pendentes
+    function updatePendingList() {
+        const bookmarks = Array.from(pendingBookmarks);
+        pendingCount.textContent = bookmarks.length;
+        pendingSection.style.display = bookmarks.length > 0 ? 'block' : 'none';
+        
+        pendingList.innerHTML = '';
+        bookmarks.forEach(bookmark => {
+            const item = document.createElement('div');
+            item.className = 'pending-item';
+            
+            const title = document.createElement('span');
+            title.className = 'title';
+            title.title = bookmark.title;
+            title.textContent = bookmark.title;
+            
+            const removeBtn = document.createElement('span');
+            removeBtn.className = 'remove-btn';
+            removeBtn.innerHTML = '✕';
+            removeBtn.title = 'Remover';
+            removeBtn.onclick = () => {
+                pendingBookmarks.delete(bookmark);
+                updatePendingList();
+                updateOrganizeButton();
+                
+                // Desmarcar checkbox se existir
+                if (bookmark.type === 'existing') {
+                    const checkbox = document.querySelector(`input[data-bookmark-id="${bookmark.id}"]`);
+                    if (checkbox) checkbox.checked = false;
+                }
+            };
+            
+            item.appendChild(title);
+            item.appendChild(removeBtn);
+            pendingList.appendChild(item);
+        });
+    }
+
     // Core Functions
     async function loadBookmarksTree() {
         try {
@@ -24,6 +65,7 @@ document.addEventListener('DOMContentLoaded', () => {
             bookmarksTree = tree;
             renderBookmarksTree(tree[0], bookmarksContainer);
             updateOrganizeButton();
+            updatePendingList();
         } catch (error) {
             console.error('Erro ao carregar bookmarks:', error);
             showStatus('Erro ao atualizar a lista de bookmarks.', 'error');
@@ -32,16 +74,26 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function toggleFolderBookmarks(folderNode, checked) {
         if (folderNode.url) {
-            pendingBookmarks[checked ? 'add' : 'delete']({
-                type: 'existing',
-                id: folderNode.id,
-                title: folderNode.title,
-                url: folderNode.url
-            });
+            if (checked) {
+                pendingBookmarks.add({
+                    type: 'existing',
+                    id: folderNode.id,
+                    title: folderNode.title,
+                    url: folderNode.url
+                });
+            } else {
+                for (const item of pendingBookmarks) {
+                    if (item.type === 'existing' && item.id === folderNode.id) {
+                        pendingBookmarks.delete(item);
+                        break;
+                    }
+                }
+            }
         }
         if (folderNode.children) {
             folderNode.children.forEach(child => toggleFolderBookmarks(child, checked));
         }
+        updatePendingList();
     }
 
     function renderBookmarksTree(node, container, level = 0) {
@@ -202,6 +254,7 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         }
         updateOrganizeButton();
+        updatePendingList();
     }
 
     async function findOrCreateUncategorizedFolder() {
@@ -371,6 +424,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
             showStatus('Página adicionada à lista de organização!', 'success');
             updateOrganizeButton();
+            updatePendingList();
 
         } catch (error) {
             console.error('Erro ao acessar aba:', error);
