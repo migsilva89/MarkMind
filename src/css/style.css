@@ -1,0 +1,193 @@
+/* Reset e variáveis */
+:root {
+    --primary-color: #2196F3;
+    --primary-hover: #1976D2;
+    --secondary-color: #757575;
+    --secondary-hover: #616161;
+    --success-color: #4CAF50;
+    --error-color: #F44336;
+    --text-color: #212121;
+    --border-color: #E0E0E0;
+    --background-color: #FFFFFF;
+    --hover-background: #F5F5F5;
+}
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+    color: var(--text-color);
+    background-color: var(--background-color);
+    width: 400px;
+    min-height: 500px;
+}
+
+/* Container principal */
+.container {
+    padding: 16px;
+}
+
+/* Header */
+.header {
+    margin-bottom: 16px;
+}
+
+.header h1 {
+    font-size: 24px;
+    margin-bottom: 12px;
+}
+
+/* Botões */
+button {
+    padding: 8px 16px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 14px;
+    transition: background-color 0.2s, opacity 0.2s;
+}
+
+button:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+.primary-btn {
+    background-color: var(--primary-color);
+    color: white;
+}
+
+.primary-btn:hover:not(:disabled) {
+    background-color: var(--primary-hover);
+}
+
+.secondary-btn {
+    background-color: transparent;
+    color: var(--secondary-color);
+    border: 1px solid var(--border-color);
+}
+
+.secondary-btn:hover:not(:disabled) {
+    background-color: var(--hover-background);
+}
+
+/* Controles */
+.controls {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 16px;
+}
+
+/* Árvore de bookmarks */
+.bookmarks-tree {
+    border: 1px solid var(--border-color);
+    border-radius: 4px;
+    padding: 8px;
+    max-height: 400px;
+    overflow-y: auto;
+}
+
+.bookmark-item {
+    display: flex;
+    align-items: center;
+    padding: 4px;
+    border-radius: 4px;
+}
+
+.bookmark-item:hover {
+    background-color: var(--hover-background);
+}
+
+.folder-name, .bookmark-name {
+    margin-left: 4px;
+    cursor: pointer;
+    flex: 1;
+}
+
+.bookmark-count {
+    color: var(--secondary-color);
+    font-size: 12px;
+    margin-left: 4px;
+}
+
+/* Status messages */
+.status-message {
+    margin-top: 8px;
+    padding: 8px;
+    border-radius: 4px;
+    font-size: 14px;
+}
+
+.status-message.loading {
+    background-color: var(--hover-background);
+    color: var(--text-color);
+}
+
+.status-message.success {
+    background-color: var(--success-color);
+    color: white;
+}
+
+.status-message.error {
+    background-color: var(--error-color);
+    color: white;
+}
+
+/* Progress bar */
+.progress-section {
+    margin-top: 16px;
+}
+
+.progress-bar {
+    height: 4px;
+    background-color: var(--border-color);
+    border-radius: 2px;
+    overflow: hidden;
+}
+
+.progress-indicator {
+    height: 100%;
+    background-color: var(--primary-color);
+    width: 0;
+    transition: width 0.3s ease;
+}
+
+.progress-text, .progress-count {
+    margin-top: 8px;
+    font-size: 14px;
+    color: var(--secondary-color);
+}
+
+/* Results section */
+.results-section {
+    margin-top: 16px;
+    padding: 16px;
+    background-color: var(--hover-background);
+    border-radius: 4px;
+}
+
+.results-section .error {
+    color: var(--error-color);
+}
+
+/* Scrollbar customization */
+::-webkit-scrollbar {
+    width: 8px;
+}
+
+::-webkit-scrollbar-track {
+    background: var(--hover-background);
+}
+
+::-webkit-scrollbar-thumb {
+    background: var(--secondary-color);
+    border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: var(--secondary-hover);
+}

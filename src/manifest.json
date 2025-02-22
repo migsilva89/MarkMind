@@ -1,0 +1,21 @@
+{
+  "manifest_version": 3,
+  "name": "Bookmark AI",
+  "version": "1.0",
+  "description": "Organize seus bookmarks de forma inteligente",
+  "permissions": [
+    "bookmarks",
+    "activeTab"
+  ],
+  "action": {
+    "default_popup": "popup.html"
+  },
+  "background": {
+    "service_worker": "js/background.js"
+  },
+  "icons": {
+    "16": "assets/icons/icon16.png",
+    "48": "assets/icons/icon48.png",
+    "128": "assets/icons/icon128.png"
+  }
+} 
