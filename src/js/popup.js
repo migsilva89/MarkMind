@@ -610,6 +610,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 progressSection
             ],
             results: [
+                logsSection,
                 resultsSection
             ]
         };
@@ -655,31 +656,31 @@ document.addEventListener('DOMContentLoaded', () => {
 
     organizeBtn.addEventListener('click', async () => {
         try {
-            // Toggle UI to execution mode
             toggleExecutionUI('executing');
-            
-            // Limpa logs anteriores
             logsContainer.innerHTML = '';
             
-            // Coleta os bookmarks selecionados
             const selectedBookmarks = Array.from(pendingBookmarks);
             if (selectedBookmarks.length === 0) {
                 throw new Error('Nenhum bookmark selecionado');
             }
             
-            addLog(`Iniciando organização de ${selectedBookmarks.length} bookmarks`);
+            addLog(`Iniciando organização de ${selectedBookmarks.length} bookmarks`, 'info');
+            selectedBookmarks.forEach(bm => {
+                addLog(`• ${bm.type === 'new' ? '[Novo]' : '[Existente]'} ${bm.title}`, 'info');
+            });
 
             // Coleta as pastas existentes
-            addLog('Coletando pastas existentes...');
+            addLog('Analisando estrutura atual de pastas...', 'info');
             const bookmarks = await chrome.bookmarks.getTree();
             const existingFolders = [];
             
             function collectFolders(node) {
-                if (!node.url && node.title) { // É uma pasta
+                if (!node.url && node.title) {
                     existingFolders.push({
                         id: node.id,
                         title: node.title
                     });
+                    addLog(`• Pasta encontrada: "${node.title}" (ID: ${node.id})`, 'info');
                 }
                 if (node.children) {
                     node.children.forEach(collectFolders);
@@ -687,14 +688,17 @@ document.addEventListener('DOMContentLoaded', () => {
             }
             
             bookmarks[0].children.forEach(collectFolders);
-            addLog(`Encontradas ${existingFolders.length} pastas existentes`);
+            addLog(`Total de ${existingFolders.length} pastas encontradas`, 'success');
 
             // Mostra seção de progresso
             progressSection.style.display = 'block';
             progressText.textContent = 'Analisando bookmarks...';
             progressIndicator.style.width = '50%';
             
-            addLog('Enviando bookmarks para análise do Gemini...');
+            addLog('Preparando análise do Gemini...', 'info');
+            addLog(`• ${selectedBookmarks.length} bookmarks para analisar`, 'info');
+            addLog(`• ${existingFolders.length} pastas existentes para considerar`, 'info');
+            addLog('Enviando dados para análise...', 'info');
 
             // Obtém sugestão do Gemini
             const suggestion = await geminiService.suggestOrganization(selectedBookmarks, existingFolders);
@@ -737,42 +741,52 @@ document.addEventListener('DOMContentLoaded', () => {
                     toggleExecutionUI('executing');
                     progressSection.style.display = 'block';
                     progressText.textContent = 'Aplicando organização...';
-                    addLog('Iniciando aplicação das alterações...');
+                    addLog('Iniciando aplicação das alterações...', 'info');
+                    addLog('Estrutura a ser criada:', 'info');
+                    
+                    suggestion.folders.forEach(folder => {
+                        const status = folder.isNew ? '[Nova]' : '[Existente]';
+                        addLog(`• ${status} Pasta "${folder.icon} ${folder.name}" com ${folder.bookmarks.length} bookmarks`, 'info');
+                    });
                     
                     // Aplica a organização sugerida
                     for (const folder of suggestion.folders) {
                         // Encontra ou cria a pasta
                         let targetFolder;
                         if (folder.isNew) {
-                            addLog(`Criando nova pasta: ${folder.name}`);
+                            addLog(`Criando pasta "${folder.icon} ${folder.name}"...`, 'info');
                             targetFolder = await chrome.bookmarks.create({
                                 parentId: '1', // Barra de favoritos
                                 title: `${folder.icon} ${folder.name}`
                             });
+                            addLog(`✓ Pasta criada com ID: ${targetFolder.id}`, 'success');
                         } else {
-                            addLog(`Usando pasta existente: ${folder.name}`);
+                            addLog(`Usando pasta existente "${folder.name}"...`, 'info');
                             targetFolder = existingFolders.find(f => f.title === folder.name);
+                            addLog(`✓ Pasta encontrada com ID: ${targetFolder.id}`, 'success');
                         }
 
                         // Move os bookmarks para a pasta
+                        addLog(`Movendo bookmarks para "${folder.icon} ${folder.name}"...`, 'info');
                         for (const bm of folder.bookmarks) {
                             const bookmark = selectedBookmarks.find(b => b.url === bm.url);
                             if (bookmark) {
                                 if (bookmark.type === 'new') {
-                                    addLog(`Criando novo bookmark: ${bookmark.title}`);
+                                    addLog(`• Criando: ${bookmark.title}`, 'info');
                                     await chrome.bookmarks.create({
                                         parentId: targetFolder.id,
                                         title: bookmark.title,
                                         url: bookmark.url
                                     });
                                 } else {
-                                    addLog(`Movendo bookmark: ${bookmark.title}`);
+                                    addLog(`• Movendo: ${bookmark.title}`, 'info');
                                     await chrome.bookmarks.move(bookmark.id, {
                                         parentId: targetFolder.id
                                     });
                                 }
                             }
                         }
+                        addLog(`✓ ${folder.bookmarks.length} bookmarks processados`, 'success');
                     }
 
                     // Limpa a seleção e atualiza a UI
@@ -784,7 +798,9 @@ document.addEventListener('DOMContentLoaded', () => {
                     toggleExecutionUI('results');
                     resultsSection.innerHTML = `
                         <div class="success-message">
-                            <p>✅ Organização aplicada com sucesso!</p>
+                            <h3>✅ Organização Concluída</h3>
+                            <p>Todas as alterações foram aplicadas com sucesso!</p>
+                            <p>Confira o histórico de ações acima.</p>
                             <button id="close-results" class="secondary-btn">Voltar</button>
                         </div>
                     `;
@@ -801,7 +817,9 @@ document.addEventListener('DOMContentLoaded', () => {
                     toggleExecutionUI('results');
                     resultsSection.innerHTML = `
                         <div class="error-message">
-                            <p>❌ Erro ao aplicar organização: ${error.message}</p>
+                            <h3>❌ Erro na Organização</h3>
+                            <p>${error.message}</p>
+                            <p>Confira o histórico de ações acima para mais detalhes.</p>
                             <button id="close-results" class="secondary-btn">Voltar</button>
                         </div>
                     `;
