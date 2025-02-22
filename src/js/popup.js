@@ -762,7 +762,7 @@ FORMATO DE RESPOSTA OBRIGATÓRIO:
             // Obtém sugestão do Gemini usando a prompt já preparada
             let suggestion;
             try {
-                suggestion = await geminiService.suggestOrganization(selectedBookmarks, currentPrompt.folders);
+                suggestion = await geminiService.suggestOrganization(selectedBookmarks, currentPrompt.folders, addLog);
                 
                 addLog('✅ Resposta recebida do Gemini', 'success');
                 addLog(`📊 Formato da resposta: ${typeof suggestion}`, 'info');

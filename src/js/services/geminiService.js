@@ -108,7 +108,7 @@ class GeminiService {
         }
     }
 
-    async suggestOrganization(bookmarks, existingFolders) {
+    async suggestOrganization(bookmarks, existingFolders, logger) {
         try {
             if (!this.apiKey) {
                 throw new Error('API key não configurada');
@@ -159,10 +159,11 @@ IMPORTANTE:
 - Inclua TODOS os bookmarks fornecidos
 - Mantenha a resposta mínima`;
 
-            // Conta tokens do prompt
+            // Conta tokens do prompt e loga
             const promptTokenCount = promptText.split(/\s+/).length;
-            console.log('📝 Prompt enviada:', promptText);
-            console.log('🔢 Tokens no prompt:', promptTokenCount);
+            if (logger) {
+                logger(`📊 Tokens estimados na prompt: ${promptTokenCount}`, 'info');
+            }
 
             const prompt = {
                 contents: [{
@@ -176,10 +177,13 @@ IMPORTANTE:
             const response = await this.callGeminiAPI(prompt);
             const responseText = response.candidates[0].content.parts[0].text;
             
-            // Conta tokens da resposta
+            // Conta tokens da resposta e loga
             const responseTokenCount = responseText.split(/\s+/).length;
-            console.log('📤 Resposta completa:', responseText);
-            console.log('🔢 Tokens na resposta:', responseTokenCount);
+            if (logger) {
+                logger(`📊 Tokens estimados na resposta: ${responseTokenCount}`, 'info');
+                logger(`📤 Resposta do Gemini:`, 'info');
+                logger(responseText, 'code');
+            }
 
             // Remove qualquer texto que não seja JSON
             const jsonMatch = responseText.match(/\{[\s\S]*\}/);
