@@ -514,3 +514,101 @@ input[type="checkbox"] + label {
     font-family: monospace;
     font-size: 12px;
 }
+
+/* Sugestão de Organização */
+.suggestion-summary {
+    margin-bottom: 24px;
+    padding: 16px;
+    background-color: var(--hover-background);
+    border-radius: 12px;
+    border: 1.5px solid var(--border-color);
+}
+
+.suggestion-summary h3 {
+    font-size: 18px;
+    margin-bottom: 8px;
+}
+
+.folders-preview {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    margin-bottom: 24px;
+}
+
+.folder-group {
+    padding: 16px;
+    background-color: var(--background-color);
+    border-radius: 12px;
+    border: 1.5px solid var(--border-color);
+}
+
+.folder-group h4 {
+    font-size: 16px;
+    margin-bottom: 12px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.new-badge {
+    font-size: 12px;
+    padding: 2px 8px;
+    background-color: var(--primary-color);
+    color: white;
+    border-radius: 12px;
+    font-weight: normal;
+}
+
+.folder-group ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.folder-group li {
+    padding: 8px;
+    border-radius: 8px;
+    margin-bottom: 8px;
+    background-color: var(--hover-background);
+}
+
+.bookmark-title {
+    font-weight: 500;
+    margin-bottom: 4px;
+}
+
+.bookmark-reason {
+    font-size: 12px;
+    color: var(--secondary-color);
+}
+
+.suggestion-actions {
+    display: flex;
+    gap: 12px;
+    justify-content: flex-end;
+    margin-top: 24px;
+}
+
+.success-message,
+.error-message {
+    text-align: center;
+    padding: 24px;
+    border-radius: 12px;
+}
+
+.success-message {
+    background-color: var(--hover-background);
+    border: 1.5px solid var(--success-color);
+}
+
+.error-message {
+    background-color: var(--hover-background);
+    border: 1.5px solid var(--error-color);
+}
+
+.success-message p,
+.error-message p {
+    margin-bottom: 16px;
+    font-size: 16px;
+}

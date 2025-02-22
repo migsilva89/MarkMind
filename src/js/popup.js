@@ -1,3 +1,5 @@
+import geminiService from './services/geminiService.js';
+
 document.addEventListener('DOMContentLoaded', () => {
     // UI Elements
     const bookmarksContainer = document.getElementById('bookmarks-container');
@@ -21,11 +23,23 @@ document.addEventListener('DOMContentLoaded', () => {
     
     // UI Sections
     const progressSection = document.querySelector('.progress-section');
+    const progressIndicator = document.getElementById('progress-indicator');
+    const progressText = document.getElementById('progress-text');
+    const progressCount = document.getElementById('progress-count');
     const resultsSection = document.querySelector('.results-section');
     
     // Application State
     let bookmarksTree = [];
     let pendingBookmarks = new Set();
+
+    // Carrega a API key inicial
+    chrome.storage.local.get(['geminiApiKey'], (result) => {
+        if (result.geminiApiKey) {
+            apiKeyInput.value = result.geminiApiKey;
+            testApiBtn.style.display = 'block';
+            geminiService.setApiKey(result.geminiApiKey);
+        }
+    });
 
     // Configurações
     settingsBtn.addEventListener('click', () => {
@@ -51,6 +65,8 @@ document.addEventListener('DOMContentLoaded', () => {
                     if (result.geminiApiKey) {
                         apiKeyInput.value = result.geminiApiKey;
                         testApiBtn.style.display = 'block';
+                        // Configura a API key no serviço
+                        geminiService.setApiKey(result.geminiApiKey);
                     }
                 });
             } catch (error) {
@@ -97,6 +113,8 @@ document.addEventListener('DOMContentLoaded', () => {
                     console.log('API key saved successfully');
                     showStatus('API key salva com sucesso!', 'success', true);
                     testApiBtn.style.display = 'block';
+                    // Configura a API key no serviço após salvar
+                    geminiService.setApiKey(apiKey);
                 }
             );
         } catch (error) {
@@ -562,22 +580,146 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     organizeBtn.addEventListener('click', async () => {
-        progressSection.style.display = 'block';
-        
         try {
-            const total = await organizeBookmarks();
+            // Coleta os bookmarks selecionados
+            const selectedBookmarks = Array.from(pendingBookmarks);
+            if (selectedBookmarks.length === 0) {
+                throw new Error('Nenhum bookmark selecionado');
+            }
+
+            // Coleta as pastas existentes
+            const bookmarks = await chrome.bookmarks.getTree();
+            const existingFolders = [];
             
+            function collectFolders(node) {
+                if (!node.url && node.title) { // É uma pasta
+                    existingFolders.push({
+                        id: node.id,
+                        title: node.title
+                    });
+                }
+                if (node.children) {
+                    node.children.forEach(collectFolders);
+                }
+            }
+            
+            bookmarks[0].children.forEach(collectFolders);
+
+            // Mostra seção de progresso
+            progressSection.style.display = 'block';
+            progressText.textContent = 'Analisando bookmarks...';
+            progressIndicator.style.width = '50%';
+
+            // Obtém sugestão do Gemini
+            const suggestion = await geminiService.suggestOrganization(selectedBookmarks, existingFolders);
+
+            // Esconde progresso e mostra resultados
+            progressSection.style.display = 'none';
             resultsSection.style.display = 'block';
-            document.getElementById('results-list').innerHTML = `
-                <p>Organização concluída com sucesso!</p>
-                <p>Total de bookmarks organizados: ${total}</p>
+
+            // Mostra a sugestão para o usuário
+            const resultsList = document.getElementById('results-list');
+            resultsList.innerHTML = `
+                <div class="suggestion-summary">
+                    <h3>Sugestão de Organização</h3>
+                    <p>${suggestion.summary}</p>
+                </div>
+                <div class="folders-preview">
+                    ${suggestion.folders.map(folder => `
+                        <div class="folder-group">
+                            <h4>${folder.icon} ${folder.name} ${folder.isNew ? '<span class="new-badge">Nova</span>' : ''}</h4>
+                            <ul>
+                                ${folder.bookmarks.map(bm => `
+                                    <li>
+                                        <div class="bookmark-title">${bm.title}</div>
+                                        <div class="bookmark-reason">${bm.reason}</div>
+                                    </li>
+                                `).join('')}
+                            </ul>
+                        </div>
+                    `).join('')}
+                </div>
+                <div class="suggestion-actions">
+                    <button id="apply-suggestion" class="primary-btn">Aplicar Organização</button>
+                    <button id="cancel-suggestion" class="secondary-btn">Cancelar</button>
+                </div>
             `;
+
+            // Adiciona eventos aos botões
+            document.getElementById('apply-suggestion').addEventListener('click', async () => {
+                try {
+                    progressSection.style.display = 'block';
+                    progressText.textContent = 'Aplicando organização...';
+                    
+                    // Aplica a organização sugerida
+                    for (const folder of suggestion.folders) {
+                        // Encontra ou cria a pasta
+                        let targetFolder;
+                        if (folder.isNew) {
+                            targetFolder = await chrome.bookmarks.create({
+                                parentId: '1', // Barra de favoritos
+                                title: `${folder.icon} ${folder.name}`
+                            });
+                        } else {
+                            targetFolder = existingFolders.find(f => f.title === folder.name);
+                        }
+
+                        // Move os bookmarks para a pasta
+                        for (const bm of folder.bookmarks) {
+                            const bookmark = selectedBookmarks.find(b => b.url === bm.url);
+                            if (bookmark) {
+                                if (bookmark.type === 'new') {
+                                    await chrome.bookmarks.create({
+                                        parentId: targetFolder.id,
+                                        title: bookmark.title,
+                                        url: bookmark.url
+                                    });
+                                } else {
+                                    await chrome.bookmarks.move(bookmark.id, {
+                                        parentId: targetFolder.id
+                                    });
+                                }
+                            }
+                        }
+                    }
+
+                    // Limpa a seleção e atualiza a UI
+                    pendingBookmarks.clear();
+                    await loadBookmarksTree();
+                    
+                    // Mostra mensagem de sucesso
+                    resultsSection.innerHTML = `
+                        <div class="success-message">
+                            <p>✅ Organização aplicada com sucesso!</p>
+                            <button id="close-results" class="secondary-btn">Fechar</button>
+                        </div>
+                    `;
+                } catch (error) {
+                    console.error('Erro ao aplicar organização:', error);
+                    resultsSection.innerHTML = `
+                        <div class="error-message">
+                            <p>❌ Erro ao aplicar organização: ${error.message}</p>
+                            <button id="close-results" class="secondary-btn">Fechar</button>
+                        </div>
+                    `;
+                } finally {
+                    progressSection.style.display = 'none';
+                }
+            });
+
+            document.getElementById('cancel-suggestion').addEventListener('click', () => {
+                resultsSection.style.display = 'none';
+            });
+
         } catch (error) {
+            console.error('Erro ao organizar bookmarks:', error);
             resultsSection.style.display = 'block';
-            document.getElementById('results-list').innerHTML = `
-                <p class="error">Erro durante a organização: ${error.message}</p>
+            resultsSection.innerHTML = `
+                <div class="error-message">
+                    <p>❌ Erro: ${error.message}</p>
+                    <button id="close-results" class="secondary-btn">Fechar</button>
+                </div>
             `;
-        } finally {
             progressSection.style.display = 'none';
         }
     });

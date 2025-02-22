@@ -25,6 +25,7 @@ class GeminiService {
                 explanation: error.message
             };
         }
+
     }
 
     buildPrompt(bookmark) {
@@ -104,6 +105,58 @@ class GeminiService {
                 confidence: 0,
                 explanation: 'Erro ao processar resposta da API'
             };
+        }
+    }
+
+    async suggestOrganization(bookmarks, existingFolders) {
+        try {
+            if (!this.apiKey) {
+                throw new Error('API key não configurada');
+            }
+
+            const prompt = {
+                contents: [{
+                    parts: [{
+                        text: `Analise estes bookmarks e sugira como organizá-los em pastas.
+
+Bookmarks para organizar:
+${bookmarks.map(b => `- ${b.title}\n  URL: ${b.url}`).join('\n')}
+
+Pastas existentes:
+${existingFolders.map(f => `- ${f.title}`).join('\n')}
+
+Por favor, sugira uma organização que:
+1. Use as pastas existentes quando apropriado
+2. Sugira novas pastas apenas se necessário
+3. Agrupe bookmarks relacionados
+
+Responda em formato JSON com:
+{
+    "folders": [
+        {
+            "name": "Nome da Pasta",
+            "isNew": true/false,
+            "icon": "emoji apropriado",
+            "bookmarks": [
+                {
+                    "title": "título do bookmark",
+                    "url": "url do bookmark",
+                    "reason": "explicação breve da categorização"
+                }
+            ]
+        }
+    ],
+    "summary": "Breve explicação da organização sugerida"
+}`
+                    }]
+                }]
+            };
+
+            const response = await this.callGeminiAPI(prompt);
+            return this.parseResponse(response);
+        } catch (error) {
+            console.error('Erro ao sugerir organização:', error);
+            throw error;
         }
     }
 
