@@ -1,15 +1,16 @@
 /* Reset e variáveis */
 :root {
-    --primary-color: #2196F3;
-    --primary-hover: #1976D2;
-    --secondary-color: #757575;
-    --secondary-hover: #616161;
-    --success-color: #4CAF50;
-    --error-color: #F44336;
-    --text-color: #212121;
+    --primary-color: #000000;
+    --primary-hover: #333333;
+    --secondary-color: #666666;
+    --secondary-hover: #999999;
+    --success-color: #2D2D2D;
+    --error-color: #4D4D4D;
+    --text-color: #000000;
     --border-color: #E0E0E0;
     --background-color: #FFFFFF;
-    --hover-background: #F5F5F5;
+    --hover-background: #F7F7F7;
+    --blur-background: rgba(255, 255, 255, 0.8);
 }
 
 * {
@@ -24,128 +25,151 @@ body {
     background-color: var(--background-color);
     width: 400px;
     min-height: 500px;
+    letter-spacing: -0.2px;
 }
 
-/* Container principal */
+/* Container principal com blur effect */
 .container {
-    padding: 16px;
+    padding: 24px;
+    background: var(--blur-background);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
 }
 
-/* Header */
+/* Header moderno */
 .header {
-    margin-bottom: 16px;
+    margin-bottom: 24px;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
 }
 
 .header h1 {
-    font-size: 24px;
-    margin-bottom: 12px;
+    font-size: 28px;
+    font-weight: 600;
+    letter-spacing: -0.5px;
+    margin: 0;
 }
 
-/* Botões */
+/* Botões modernos e minimalistas */
 button {
-    padding: 8px 16px;
+    padding: 12px 20px;
     border: none;
-    border-radius: 4px;
+    border-radius: 12px;
     cursor: pointer;
     font-size: 14px;
-    transition: background-color 0.2s, opacity 0.2s;
+    font-weight: 500;
+    transition: all 0.2s ease;
+    letter-spacing: -0.3px;
 }
 
 button:disabled {
-    opacity: 0.6;
+    opacity: 0.5;
     cursor: not-allowed;
 }
 
 .primary-btn {
     background-color: var(--primary-color);
     color: white;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
 }
 
 .primary-btn:hover:not(:disabled) {
     background-color: var(--primary-hover);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
 }
 
 .secondary-btn {
-    background-color: transparent;
-    color: var(--secondary-color);
-    border: 1px solid var(--border-color);
+    background-color: var(--background-color);
+    color: var(--text-color);
+    border: 1.5px solid var(--border-color);
 }
 
 .secondary-btn:hover:not(:disabled) {
     background-color: var(--hover-background);
+    border-color: var(--text-color);
 }
 
-/* Controles */
+/* Controles com layout moderno */
 .controls {
     display: flex;
-    gap: 8px;
-    margin-bottom: 16px;
+    gap: 12px;
+    margin-bottom: 24px;
+    justify-content: space-between;
 }
 
-/* Árvore de bookmarks */
+.controls button {
+    flex: 1;
+}
+
+/* Árvore de bookmarks com design minimalista */
 .bookmarks-tree {
-    border: 1px solid var(--border-color);
-    border-radius: 4px;
-    padding: 8px;
+    border: 1.5px solid var(--border-color);
+    border-radius: 16px;
+    padding: 16px;
     max-height: 400px;
     overflow-y: auto;
+    background: var(--background-color);
 }
 
 .bookmark-item {
     display: flex;
     align-items: center;
-    padding: 4px;
-    border-radius: 4px;
+    padding: 8px;
+    border-radius: 8px;
+    margin: 4px 0;
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .bookmark-item:hover {
     background-color: var(--hover-background);
+    transform: translateX(4px);
 }
 
 .folder-name, .bookmark-name {
-    margin-left: 4px;
+    margin-left: 8px;
     cursor: pointer;
     flex: 1;
+    font-weight: 450;
 }
 
 .bookmark-count {
     color: var(--secondary-color);
     font-size: 12px;
-    margin-left: 4px;
+    margin-left: 8px;
+    font-weight: 400;
 }
 
-/* Status messages */
+/* Status messages com design clean */
 .status-message {
-    margin-top: 8px;
-    padding: 8px;
-    border-radius: 4px;
+    margin-top: 0;
+    padding: 12px;
+    border-radius: 12px;
     font-size: 14px;
-}
-
-.status-message.loading {
-    background-color: var(--hover-background);
-    color: var(--text-color);
+    font-weight: 450;
+    background: var(--hover-background);
+    border: 1.5px solid var(--border-color);
+    text-align: center;
 }
 
 .status-message.success {
-    background-color: var(--success-color);
-    color: white;
+    border-color: var(--success-color);
 }
 
 .status-message.error {
-    background-color: var(--error-color);
-    color: white;
+    border-color: var(--error-color);
 }
 
-/* Progress bar */
+/* Progress bar moderna */
 .progress-section {
-    margin-top: 16px;
+    margin-top: 24px;
 }
 
 .progress-bar {
-    height: 4px;
-    background-color: var(--border-color);
-    border-radius: 2px;
+    height: 6px;
+    background-color: var(--hover-background);
+    border-radius: 3px;
     overflow: hidden;
 }
 
@@ -153,41 +177,178 @@ button:disabled {
     height: 100%;
     background-color: var(--primary-color);
     width: 0;
-    transition: width 0.3s ease;
+    transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .progress-text, .progress-count {
-    margin-top: 8px;
+    margin-top: 12px;
     font-size: 14px;
     color: var(--secondary-color);
+    font-weight: 450;
 }
 
-/* Results section */
+/* Results section com visual clean */
 .results-section {
-    margin-top: 16px;
-    padding: 16px;
+    margin-top: 24px;
+    padding: 20px;
     background-color: var(--hover-background);
-    border-radius: 4px;
+    border-radius: 16px;
+    border: 1.5px solid var(--border-color);
+    text-align: center;
 }
 
 .results-section .error {
     color: var(--error-color);
 }
 
-/* Scrollbar customization */
+.results-section #results-list {
+    margin-bottom: 16px;
+    font-weight: 450;
+}
+
+/* Scrollbar moderna */
 ::-webkit-scrollbar {
     width: 8px;
 }
 
 ::-webkit-scrollbar-track {
-    background: var(--hover-background);
+    background: transparent;
 }
 
 ::-webkit-scrollbar-thumb {
-    background: var(--secondary-color);
+    background: var(--border-color);
     border-radius: 4px;
+    border: 2px solid var(--background-color);
 }
 
 ::-webkit-scrollbar-thumb:hover {
-    background: var(--secondary-hover);
+    background: var(--secondary-color);
+}
+
+/* Checkbox personalizado e minimalista */
+input[type="checkbox"] {
+    appearance: none;
+    -webkit-appearance: none;
+    width: 20px;
+    height: 20px;
+    border: 1.5px solid var(--border-color);
+    border-radius: 6px;
+    cursor: pointer;
+    position: relative;
+    transition: all 0.2s ease;
+}
+
+input[type="checkbox"]:checked {
+    background-color: var(--primary-color);
+    border-color: var(--primary-color);
+}
+
+input[type="checkbox"]:checked::after {
+    content: "✓";
+    color: white;
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    font-size: 12px;
+}
+
+input[type="checkbox"] + label {
+    cursor: pointer;
+}
+
+/* Hover effect para a área da checkbox */
+.bookmark-item input[type="checkbox"]:hover {
+    border-color: var(--primary-color);
+    transform: scale(1.05);
+}
+
+/* Adicionar após os estilos dos botões */
+.icon {
+    font-size: 18px;
+    margin-right: 8px;
+    font-weight: 300;
+}
+
+/* Atualizar o header */
+.header {
+    margin-bottom: 24px;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+.header h1 {
+    font-size: 28px;
+    font-weight: 600;
+    letter-spacing: -0.5px;
+    margin: 0;
+}
+
+/* Atualizar os controles */
+.controls {
+    display: flex;
+    gap: 12px;
+    margin-bottom: 24px;
+    justify-content: space-between;
+}
+
+.controls button {
+    flex: 1;
+}
+
+/* Atualizar a seção de progresso */
+.progress-info {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 12px;
+}
+
+/* Atualizar os status messages */
+.status-message {
+    margin-top: 0;
+    padding: 12px;
+    border-radius: 12px;
+    font-size: 14px;
+    font-weight: 450;
+    background: var(--hover-background);
+    border: 1.5px solid var(--border-color);
+    text-align: center;
+}
+
+/* Atualizar a árvore de bookmarks */
+.folder-toggle {
+    font-family: monospace;
+    font-size: 16px;
+    color: var(--secondary-color);
+    transition: all 0.2s ease;
+    display: inline-block;
+    width: 20px;
+    text-align: center;
+    margin-right: 4px;
+    cursor: pointer;
+}
+
+.folder-toggle:hover {
+    color: var(--primary-color);
+}
+
+.folder-toggle.expanded {
+    transform: rotate(90deg);
+}
+
+.folder-children {
+    margin-left: 20px;
+    transition: all 0.2s ease;
+}
+
+/* Efeitos de hover mais suaves */
+.bookmark-item {
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.bookmark-item:hover {
+    background-color: var(--hover-background);
+    transform: translateX(4px);
 }

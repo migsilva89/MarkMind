@@ -9,14 +9,17 @@
     <div class="container">
         <div class="header">
             <h1>Bookmark AI</h1>
-            <button id="add-current-btn" class="primary-btn">Adicionar Página Atual</button>
+            <button id="add-current-btn" class="primary-btn">
+                <span class="icon">+</span>
+                Adicionar Página
+            </button>
             <div id="add-status" class="status-message" style="display: none;"></div>
         </div>
 
         <div class="controls">
-            <button id="select-all" class="secondary-btn">Selecionar Todos</button>
-            <button id="deselect-all" class="secondary-btn">Desmarcar Todos</button>
-            <button id="organize-btn" class="primary-btn" disabled>Organizar Selecionados</button>
+            <button id="select-all" class="secondary-btn">Selecionar</button>
+            <button id="deselect-all" class="secondary-btn">Limpar</button>
+            <button id="organize-btn" class="primary-btn" disabled>Organizar</button>
         </div>
 
         <div id="bookmarks-container" class="bookmarks-tree"></div>
@@ -25,8 +28,10 @@
             <div class="progress-bar">
                 <div id="progress-indicator" class="progress-indicator"></div>
             </div>
-            <div id="progress-text" class="progress-text"></div>
-            <div id="progress-count" class="progress-count"></div>
+            <div class="progress-info">
+                <div id="progress-text" class="progress-text"></div>
+                <div id="progress-count" class="progress-count"></div>
+            </div>
         </div>
 
         <div class="results-section" style="display: none;">

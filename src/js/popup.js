@@ -95,11 +95,7 @@ document.addEventListener('DOMContentLoaded', () => {
     function createFolderToggleButton() {
         const toggleBtn = document.createElement('span');
         toggleBtn.className = 'folder-toggle';
-        toggleBtn.textContent = '▶';
-        toggleBtn.style.marginRight = '4px';
-        toggleBtn.style.cursor = 'pointer';
-        toggleBtn.style.width = '16px';
-        toggleBtn.style.display = 'inline-block';
+        toggleBtn.textContent = '›';
         return toggleBtn;
     }
 
@@ -141,7 +137,7 @@ document.addEventListener('DOMContentLoaded', () => {
         toggleBtn.addEventListener('click', () => {
             const isExpanded = childrenContainer.style.display === 'block';
             childrenContainer.style.display = isExpanded ? 'none' : 'block';
-            toggleBtn.textContent = isExpanded ? '▶' : '▼';
+            toggleBtn.classList.toggle('expanded');
         });
 
         label.addEventListener('click', (e) => {
