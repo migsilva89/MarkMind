@@ -174,8 +174,6 @@ IMPORTANT:
             const responseTokenCount = responseText.split(/\s+/).length;
             if (logger) {
                 logger(`📊 Estimated response tokens: ${responseTokenCount}`, 'info');
-                logger(`📤 Gemini Response:`, 'info');
-                logger(responseText, 'code');
             }
 
             const jsonMatch = responseText.match(/\{[\s\S]*\}/);

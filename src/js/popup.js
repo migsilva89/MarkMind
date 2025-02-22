@@ -6,7 +6,6 @@ document.addEventListener('DOMContentLoaded', () => {
     const selectAllBtn = document.getElementById('select-all');
     const deselectAllBtn = document.getElementById('deselect-all');
     const organizeBtn = document.getElementById('organize-btn');
-    const closeResultsBtn = document.getElementById('close-results');
     const addCurrentBtn = document.getElementById('add-current-btn');
     const addStatus = document.getElementById('add-status');
     const pendingSection = document.getElementById('pending-bookmarks');
@@ -745,14 +744,9 @@ REQUIRED RESPONSE FORMAT:
                 throw new Error('No bookmarks selected');
             }
             
-            addLog('📝 Prompt to be sent:', 'info');
-            addLog(currentPrompt.text, 'code');
-            addLog('', 'info'); // Blank line for separation
             addLog(`🚀 Starting organization of ${selectedBookmarks.length} bookmarks`, 'info');
             addLog(`• ${selectedBookmarks.length} bookmarks to analyze`, 'info');
             addLog(`• ${currentPrompt.folders.length} existing folders`, 'info');
-            addLog(`• ${currentPrompt.text.length} characters in prompt`, 'info');
-            addLog(`• ${currentPrompt.text.split(/\s+/).length} estimated tokens`, 'info');
 
             // Show progress section
             progressSection.style.display = 'block';
@@ -765,15 +759,12 @@ REQUIRED RESPONSE FORMAT:
                 suggestion = await geminiService.suggestOrganization(selectedBookmarks, currentPrompt.folders, addLog);
                 
                 addLog('✅ Response received from Gemini', 'success');
-                addLog(`📊 Response format: ${typeof suggestion}`, 'info');
                 
                 if (!suggestion || typeof suggestion !== 'object') {
                     throw new Error('Invalid response from Gemini');
                 }
                 
                 if (!suggestion.folders || !Array.isArray(suggestion.folders)) {
-                    addLog('⚠️ Response structure:', 'warning');
-                    addLog(JSON.stringify(suggestion, null, 2), 'info');
                     throw new Error('Invalid response format: folders not found or not an array');
                 }
                 
@@ -918,10 +909,6 @@ REQUIRED RESPONSE FORMAT:
             addLog(`❌ Error: ${error.message}`, 'error');
             toggleExecutionUI('normal');
         }
-    });
-
-    closeResultsBtn.addEventListener('click', () => {
-        resultsSection.style.display = 'none';
     });
 
     // Carrega a árvore inicial de bookmarks
