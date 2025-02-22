@@ -151,22 +151,77 @@ ${foldersData}
 RULES:
 1. Use existing folders when appropriate
 2. Suggest new folders only if necessary
-3. Group related bookmarks
+3. Group related bookmarks into a logical hierarchy
 4. ALL bookmarks must be included
 5. Be concise in descriptions
 6. DO NOT use emoji in folder names
+7. Maximum folder depth is 3 levels
+8. Create subfolders for development-related services (e.g., Vercel, Stripe, Hostinger should be under Development)
+9. Group similar services together (e.g., all cloud services, all payment services)
+10. Keep related tools and services in appropriate subfolders
 
 REQUIRED RESPONSE FORMAT:
 {
     "folders": [
         {
-            "name": "Folder Name (no emoji)",
+            "name": "Folder Name",
             "isNew": true/false,
             "bookmarks": [
                 {
                     "url": "exact bookmark url",
                     "title": "bookmark title",
                     "id": "bookmark id from input"
+                }
+            ],
+            "subfolders": [
+                {
+                    "name": "Subfolder Name",
+                    "isNew": true/false,
+                    "bookmarks": [],
+                    "subfolders": []
+                }
+            ]
+        }
+    ]
+}
+
+EXAMPLE STRUCTURE:
+{
+    "folders": [
+        {
+            "name": "Development",
+            "isNew": false,
+            "bookmarks": [
+                {
+                    "url": "https://github.com",
+                    "title": "GitHub",
+                    "id": "1"
+                }
+            ],
+            "subfolders": [
+                {
+                    "name": "Cloud Services",
+                    "isNew": true,
+                    "bookmarks": [
+                        {
+                            "url": "https://vercel.com",
+                            "title": "Vercel",
+                            "id": "2"
+                        }
+                    ],
+                    "subfolders": []
+                },
+                {
+                    "name": "Payment Services",
+                    "isNew": true,
+                    "bookmarks": [
+                        {
+                            "url": "https://stripe.com",
+                            "title": "Stripe Dashboard",
+                            "id": "3"
+                        }
+                    ],
+                    "subfolders": []
                 }
             ]
         }
@@ -181,7 +236,10 @@ IMPORTANT:
 - Include ALL provided bookmarks with their IDs
 - Keep response minimal
 - For existing folders, use EXACT names from the input list
-- DO NOT use emoji in folder names`;
+- DO NOT use emoji in folder names
+- Maximum depth of 3 levels (folder > subfolder > subfolder)
+- Create subfolders for related services and tools
+- Group similar services together`;
 
             const promptTokenCount = promptText.split(/\s+/).length;
             if (logger) {
@@ -248,9 +306,10 @@ IMPORTANT:
                 return name.replace(/[\u{1F300}-\u{1F9FF}]|[\u{1F600}-\u{1F64F}]|[\u{2700}-\u{27BF}]|[\u{1F680}-\u{1F6FF}]|[\u{24C2}-\u{1F251}]|[\u{1F900}-\u{1F9FF}]|[\u{1F1E0}-\u{1F1FF}]/gu, '').trim();
             };
 
-            result.folders.forEach((folder, index) => {
+            // Helper function to validate folder structure recursively
+            function validateFolderStructure(folder, existingFolders, bookmarkIds, depth = 1) {
                 if (!folder.name || typeof folder.name !== 'string') {
-                    throw new Error(`Folder ${index} has no valid name`);
+                    throw new Error(`Folder at depth ${depth} has no valid name`);
                 }
 
                 // Check if folder exists by comparing normalized names
@@ -265,38 +324,52 @@ IMPORTANT:
                     folder.name = existingFolder.title;
                 }
 
+                // Validate bookmarks array
                 if (!Array.isArray(folder.bookmarks)) {
                     throw new Error(`Folder ${folder.name} has no valid bookmarks array`);
                 }
 
+                // Validate each bookmark
                 folder.bookmarks.forEach((bm, bmIndex) => {
                     if (!bm.url || !bm.title || !bm.id) {
                         throw new Error(`Bookmark ${bmIndex} in ${folder.name} missing required fields`);
                     }
-                    // Find bookmark by ID first
-                    const originalBookmark = bookmarks.find(b => b.id === bm.id);
-                    if (!originalBookmark) {
-                        // Fallback to URL matching if ID not found
-                        const cleanedUrl = cleanUrl(bm.url);
-                        if (!bookmarks.some(b => cleanUrl(b.url) === cleanedUrl)) {
-                            throw new Error(`Unrecognized bookmark in ${folder.name}: ${bm.title}`);
-                        }
-                    }
+                    // Mark bookmark as processed
+                    bookmarkIds.add(bm.id);
                 });
-            });
 
-            if (logger) {
-                logger('🔍 Checking for uncategorized bookmarks...', 'info');
+                // Validate subfolders if they exist
+                if (folder.subfolders) {
+                    if (!Array.isArray(folder.subfolders)) {
+                        throw new Error(`Folder ${folder.name} has invalid subfolders property`);
+                    }
+
+                    if (depth >= 3 && folder.subfolders.length > 0) {
+                        throw new Error(`Folder ${folder.name} exceeds maximum depth of 3`);
+                    }
+
+                    folder.subfolders.forEach(subfolder => {
+                        validateFolderStructure(subfolder, existingFolders, bookmarkIds, depth + 1);
+                    });
+                } else {
+                    folder.subfolders = []; // Ensure subfolders array always exists
+                }
             }
 
-            // Create a Set of bookmark IDs that have been included
-            const includedIds = new Set();
             result.folders.forEach(folder => {
-                folder.bookmarks.forEach(bm => includedIds.add(bm.id));
+                validateFolderStructure(folder, existingFolders, new Set());
             });
 
-            // Find bookmarks that weren't included by ID
-            const missingBookmarks = bookmarks.filter(b => !includedIds.has(b.id));
+            // Check for uncategorized bookmarks
+            const processedIds = new Set();
+            const collectIds = (folder) => {
+                folder.bookmarks.forEach(bm => processedIds.add(bm.id));
+                folder.subfolders.forEach(subfolder => collectIds(subfolder));
+            };
+            result.folders.forEach(folder => collectIds(folder));
+
+            // Find bookmarks that weren't included
+            const missingBookmarks = bookmarks.filter(b => !processedIds.has(b.id));
             if (missingBookmarks.length > 0) {
                 console.log('⚠️ Uncategorized bookmarks:', missingBookmarks);
                 const othersFolder = {
@@ -306,7 +379,8 @@ IMPORTANT:
                         title: b.title,
                         url: b.url,
                         id: b.id
-                    }))
+                    })),
+                    subfolders: []
                 };
                 result.folders.push(othersFolder);
             }

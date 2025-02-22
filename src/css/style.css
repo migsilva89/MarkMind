@@ -228,6 +228,9 @@ button:disabled {
     border: 1.5px solid var(--border-color);
     padding: 16px;
     margin-top: 16px;
+    max-height: 80vh;
+    display: flex;
+    flex-direction: column;
 }
 
 .results-section .error {
@@ -237,6 +240,8 @@ button:disabled {
 .results-section #results-list {
     margin-bottom: 16px;
     font-weight: 450;
+    flex: 1;
+    overflow: hidden;
 }
 
 /* Scrollbar moderna */
@@ -582,14 +587,20 @@ input[type="checkbox"] + label {
     flex-direction: column;
     gap: 8px;
     margin-bottom: 16px;
-    max-height: 300px;
+    max-height: 400px;
     overflow-y: auto;
+    padding-right: 12px;
 }
 
 .folder-group {
-    background-color: var(--background-color);
-    border-radius: 8px;
     border: 1.5px solid var(--border-color);
+    border-radius: 8px;
+    margin-bottom: 12px;
+    overflow: visible;
+}
+
+.folder-group:last-child {
+    margin-bottom: 0;
 }
 
 .folder-group h4 {
@@ -627,6 +638,7 @@ input[type="checkbox"] + label {
     margin: 0;
     display: none;
     border-top: 1.5px solid var(--border-color);
+    max-height: none;
 }
 
 .folder-group ul.expanded {
@@ -643,6 +655,60 @@ input[type="checkbox"] + label {
 
 .folder-group li:last-child {
     margin-bottom: 0;
+}
+
+/* Subfolder styles */
+.folder-group li.subfolders {
+    padding: 0;
+    background-color: transparent;
+}
+
+.folder-group li.subfolders .subfolder-list {
+    margin: 8px 0 0 24px;
+    border-left: 1px solid var(--border-color);
+    padding-left: 12px;
+    overflow: visible;
+}
+
+.folder-group li.subfolders .folder-group {
+    margin: 8px 0;
+    border-width: 1px;
+}
+
+.folder-group li.subfolders .folder-group h4 {
+    font-size: 13px;
+    padding: 6px 10px;
+    background-color: var(--hover-background);
+    border-radius: 6px;
+    margin-bottom: 4px;
+    position: sticky;
+    top: 0;
+    z-index: 1;
+}
+
+.folder-group li.subfolders .folder-group ul {
+    padding: 6px 10px;
+}
+
+.folder-group li.subfolders .folder-group li {
+    font-size: 12px;
+    padding: 3px 6px;
+}
+
+/* Ensure proper nesting visualization */
+.folder-group ul {
+    margin-left: 0;
+    border-left: none;
+}
+
+.folder-group h4 {
+    position: relative;
+    padding-left: 24px;
+}
+
+.folder-group h4::before {
+    position: absolute;
+    left: 8px;
 }
 
 .new-badge {
@@ -700,6 +766,7 @@ input[type="checkbox"] + label {
     border-radius: 12px;
     border: 1.5px solid var(--border-color);
     margin-bottom: 16px;
+    margin-top: 24px;
 }
 
 .logs-section h3 {
@@ -767,4 +834,15 @@ input[type="checkbox"] + label {
     font-weight: 500;
     min-width: 65px;
     font-size: 11px;
+}
+
+/* Improve visibility of expanded subfolders */
+.folder-group li.subfolders .folder-group.expanded {
+    margin-bottom: 16px;
+}
+
+/* Add smooth transition for expanding/collapsing */
+.folder-group ul,
+.folder-group h4::before {
+    transition: all 0.3s ease;
 }

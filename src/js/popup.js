@@ -794,18 +794,7 @@ REQUIRED RESPONSE FORMAT:
                     <p>Bookmarks will be organized into the following folders:</p>
                 </div>
                 <div class="folders-preview">
-                    ${suggestion.folders.map(folder => `
-                        <div class="folder-group">
-                            <h4>${folder.name} ${folder.isNew ? '<span class="new-badge">New</span>' : ''}</h4>
-                            <ul>
-                                ${folder.bookmarks.map(bm => `
-                                    <li>
-                                        <div class="bookmark-title">${bm.title}</div>
-                                    </li>
-                                `).join('')}
-                            </ul>
-                        </div>
-                    `).join('')}
+                    ${renderFolderStructure(suggestion.folders)}
                 </div>
                 <div class="suggestion-actions">
                     <button id="apply-suggestion" class="primary-btn">Apply Organization</button>
@@ -813,13 +802,62 @@ REQUIRED RESPONSE FORMAT:
                 </div>
             `;
 
+            function renderFolderStructure(folders) {
+                return folders.map(folder => `
+                    <div class="folder-group">
+                        <h4>${folder.name} ${folder.isNew ? '<span class="new-badge">New</span>' : ''}</h4>
+                        <ul>
+                            ${folder.bookmarks.map(bm => `
+                                <li>
+                                    <div class="bookmark-title">${bm.title}</div>
+                                </li>
+                            `).join('')}
+                            ${folder.subfolders && folder.subfolders.length > 0 ? `
+                                <li class="subfolders">
+                                    <div class="subfolder-list">
+                                        ${renderFolderStructure(folder.subfolders)}
+                                    </div>
+                                </li>
+                            ` : ''}
+                        </ul>
+                    </div>
+                `).join('');
+            }
+
             // Add click handlers for folder toggles
             const folderHeaders = resultsList.querySelectorAll('.folder-group h4');
             folderHeaders.forEach(header => {
                 header.addEventListener('click', () => {
+                    // Toggle expanded class on the header
                     header.classList.toggle('expanded');
+                    
+                    // Toggle expanded class on the bookmarks list
                     const bookmarksList = header.nextElementSibling;
                     bookmarksList.classList.toggle('expanded');
+                    
+                    // Add expanded class to parent folder-group for proper spacing
+                    const folderGroup = header.closest('.folder-group');
+                    if (folderGroup) {
+                        folderGroup.classList.toggle('expanded');
+                    }
+                    
+                    // If expanding, scroll the folder into view with some padding
+                    if (bookmarksList.classList.contains('expanded')) {
+                        setTimeout(() => {
+                            const foldersPreview = header.closest('.folders-preview');
+                            if (foldersPreview) {
+                                const headerRect = header.getBoundingClientRect();
+                                const containerRect = foldersPreview.getBoundingClientRect();
+                                
+                                // Check if header is not fully visible
+                                if (headerRect.top < containerRect.top || headerRect.bottom > containerRect.bottom) {
+                                    header.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                                    // Add some padding to the scroll
+                                    foldersPreview.scrollTop -= 16;
+                                }
+                            }
+                        }, 150); // Small delay to allow for expansion animation
+                    }
                 });
             });
 
