@@ -683,7 +683,6 @@ REQUIRED RESPONSE FORMAT:
                 pendingSection,
                 document.querySelector('.controls'),
                 document.querySelector('.header'),
-                settingsSection
             ],
             executing: [
                 logsSection,
@@ -701,6 +700,11 @@ REQUIRED RESPONSE FORMAT:
                 element.style.display = 'none';
             }
         });
+
+        // Always ensure settings is hidden when changing views
+        if (settingsSection) {
+            settingsSection.style.display = 'none';
+        }
 
         // Show elements based on state
         switch (state) {
