@@ -738,6 +738,102 @@ REQUIRED RESPONSE FORMAT:
         }
     }
 
+    async function processFolder(folder, parentId = '1') {
+        try {
+            // Find or create the current folder
+            let targetFolder;
+            
+            // Helper function to find folder by name and parent
+            async function findFolderByNameAndParent(name, parentId) {
+                const bookmarks = await chrome.bookmarks.getSubTree(parentId);
+                if (!bookmarks || !bookmarks[0] || !bookmarks[0].children) return null;
+                
+                return bookmarks[0].children.find(b => b.title === name && !b.url);
+            }
+            
+            if (folder.isNew) {
+                addLog(`Creating folder "${folder.name}" under parent ${parentId}...`, 'info');
+                targetFolder = await chrome.bookmarks.create({
+                    parentId: parentId,
+                    title: folder.name
+                });
+                addLog(`✓ Folder created with ID: ${targetFolder.id}`, 'success');
+            } else {
+                addLog(`Looking for existing folder "${folder.name}" under parent ${parentId}...`, 'info');
+                // First try to find the folder under the specified parent
+                targetFolder = await findFolderByNameAndParent(folder.name, parentId);
+                
+                if (!targetFolder) {
+                    // If not found under parent, search everywhere
+                    const bookmarks = await chrome.bookmarks.search({ title: folder.name });
+                    targetFolder = bookmarks.find(b => b.title === folder.name && !b.url);
+                    
+                    if (targetFolder) {
+                        // If found elsewhere, move it to the correct parent
+                        addLog(`Moving folder "${folder.name}" to correct parent...`, 'info');
+                        targetFolder = await chrome.bookmarks.move(targetFolder.id, { parentId });
+                    } else {
+                        // If not found anywhere, create it
+                        addLog(`⚠️ Folder "${folder.name}" not found, creating new...`, 'warning');
+                        targetFolder = await chrome.bookmarks.create({
+                            parentId: parentId,
+                            title: folder.name
+                        });
+                    }
+                }
+                addLog(`✓ Folder "${folder.name}" ready with ID: ${targetFolder.id}`, 'success');
+            }
+
+            const folderId = targetFolder.id;
+
+            // Move bookmarks to this folder
+            if (folder.bookmarks && folder.bookmarks.length > 0) {
+                addLog(`Moving ${folder.bookmarks.length} bookmarks to "${folder.name}"...`, 'info');
+                for (const bookmark of folder.bookmarks) {
+                    try {
+                        const existingBookmark = Array.from(pendingBookmarks).find(bm => 
+                            bm.url === bookmark.url && bm.title === bookmark.title
+                        );
+                        
+                        if (!existingBookmark) {
+                            addLog(`⚠️ Bookmark not found: ${bookmark.title}`, 'warning');
+                            continue;
+                        }
+
+                        if (existingBookmark.type === 'new') {
+                            await chrome.bookmarks.create({
+                                parentId: folderId,
+                                title: bookmark.title,
+                                url: bookmark.url
+                            });
+                            addLog(`✓ Created: ${bookmark.title}`, 'success');
+                        } else {
+                            await chrome.bookmarks.move(existingBookmark.id, {
+                                parentId: folderId
+                            });
+                            addLog(`✓ Moved: ${bookmark.title}`, 'success');
+                        }
+                    } catch (error) {
+                        addLog(`❌ Error processing ${bookmark.title}: ${error.message}`, 'error');
+                    }
+                }
+            }
+
+            // Process subfolders recursively
+            if (folder.subfolders && folder.subfolders.length > 0) {
+                addLog(`Processing ${folder.subfolders.length} subfolders of "${folder.name}"...`, 'info');
+                for (const subfolder of folder.subfolders) {
+                    await processFolder(subfolder, folderId);
+                }
+            }
+
+            return targetFolder;
+        } catch (error) {
+            addLog(`❌ Error processing folder ${folder.name}: ${error.message}`, 'error');
+            throw error;
+        }
+    }
+
     organizeBtn.addEventListener('click', async () => {
         try {
             toggleExecutionUI('executing');
@@ -870,61 +966,22 @@ REQUIRED RESPONSE FORMAT:
                     addLog('Starting to apply changes...', 'info');
                     addLog('Structure to be created:', 'info');
                     
-                    suggestion.folders.forEach(folder => {
-                        const status = folder.isNew ? '[New]' : '[Existing]';
-                        addLog(`• ${status} Folder "${folder.name}" with ${folder.bookmarks.length} bookmarks`, 'info');
-                    });
+                    // Log the folder structure
+                    function logFolderStructure(folders, depth = 0) {
+                        folders.forEach(folder => {
+                            const indent = '  '.repeat(depth);
+                            const status = folder.isNew ? '[New]' : '[Existing]';
+                            addLog(`${indent}• ${status} Folder "${folder.name}" with ${folder.bookmarks.length} bookmarks`, 'info');
+                            if (folder.subfolders && folder.subfolders.length > 0) {
+                                logFolderStructure(folder.subfolders, depth + 1);
+                            }
+                        });
+                    }
+                    logFolderStructure(suggestion.folders);
                     
-                    // Apply suggested organization
+                    // Process all root folders
                     for (const folder of suggestion.folders) {
-                        // Find or create folder
-                        let targetFolder;
-                        if (folder.isNew) {
-                            addLog(`Creating folder "${folder.name}"...`, 'info');
-                            targetFolder = await chrome.bookmarks.create({
-                                parentId: '1', // Bookmarks bar
-                                title: folder.name
-                            });
-                            addLog(`✓ Folder created with ID: ${targetFolder.id}`, 'success');
-                        } else {
-                            addLog(`Using existing folder "${folder.name}"...`, 'info');
-                            targetFolder = currentPrompt.folders.find(f => f.title === folder.name);
-                            if (!targetFolder) {
-                                addLog(`❌ Could not find folder: ${folder.name}`, 'error');
-                                continue;
-                            }
-                            addLog(`✓ Folder found with ID: ${targetFolder.id}`, 'success');
-                        }
-
-                        // Move bookmarks to folder
-                        addLog(`Moving ${folder.bookmarks.length} bookmarks to "${folder.name}"...`, 'info');
-                        
-                        for (const bookmark of folder.bookmarks) {
-                            try {
-                                // Find bookmark by ID
-                                const existingBookmark = selectedBookmarks.find(bm => bm.id === bookmark.id);
-                                if (!existingBookmark) {
-                                    addLog(`⚠️ Bookmark not found by ID: ${bookmark.title}`, 'warning');
-                                    continue;
-                                }
-
-                                if (existingBookmark.type === 'new') {
-                                    await chrome.bookmarks.create({
-                                        parentId: targetFolder.id,
-                                        title: bookmark.title,
-                                        url: bookmark.url
-                                    });
-                                    addLog(`✓ Created: ${bookmark.title}`, 'success');
-                                } else {
-                                    await chrome.bookmarks.move(existingBookmark.id, {
-                                        parentId: targetFolder.id
-                                    });
-                                    addLog(`✓ Moved: ${bookmark.title}`, 'success');
-                                }
-                            } catch (error) {
-                                addLog(`❌ Error processing ${bookmark.title}: ${error.message}`, 'error');
-                            }
-                        }
+                        await processFolder(folder);
                     }
 
                     // Update UI
