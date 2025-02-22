@@ -107,7 +107,7 @@ button:disabled {
 .bookmarks-tree {
     border: 1.5px solid var(--border-color);
     border-radius: 16px;
-    padding: 16px;
+    padding: 12px;
     max-height: 400px;
     overflow-y: auto;
     background: var(--background-color);
@@ -116,9 +116,9 @@ button:disabled {
 .bookmark-item {
     display: flex;
     align-items: center;
-    padding: 6px;
-    border-radius: 8px;
-    margin: 3px 0;
+    padding: 4px 6px;
+    border-radius: 6px;
+    margin: 2px 0;
     transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
@@ -357,7 +357,7 @@ input[type="checkbox"] + label {
     color: var(--secondary-color);
     transition: all 0.2s ease;
     display: inline-block;
-    width: 20px;
+    width: 16px;
     text-align: center;
     margin-right: 4px;
     cursor: pointer;
@@ -372,13 +372,17 @@ input[type="checkbox"] + label {
 }
 
 .folder-children {
-    margin-left: 20px;
+    margin-left: 16px;
+    padding-left: 8px;
+    border-left: 1px solid var(--border-color);
+    margin-top: 2px;
+    margin-bottom: 2px;
     transition: all 0.2s ease;
 }
 
 .folder-children .bookmark-item {
-    font-size: 12px;
-    padding: 4px 6px;
+    padding: 3px 4px;
+    margin: 1px 0;
 }
 
 .folder-children .bookmark-name {
