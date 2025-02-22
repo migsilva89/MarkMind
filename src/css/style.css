@@ -409,3 +409,108 @@ input[type="checkbox"] + label {
     color: var(--primary-color);
     background-color: var(--hover-background);
 }
+
+/* Header com botão de configuração */
+.header-top {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.icon-btn {
+    background: none;
+    border: none;
+    font-size: 20px;
+    padding: 8px;
+    cursor: pointer;
+    border-radius: 50%;
+    transition: all 0.2s ease;
+}
+
+.icon-btn:hover {
+    background-color: var(--hover-background);
+    transform: rotate(30deg);
+}
+
+/* Seção de configurações */
+.settings-section {
+    margin-bottom: 24px;
+    padding: 16px;
+    background-color: var(--hover-background);
+    border-radius: 16px;
+    border: 1.5px solid var(--border-color);
+}
+
+.settings-section h2 {
+    font-size: 18px;
+    font-weight: 500;
+    margin-bottom: 16px;
+}
+
+.form-group {
+    margin-bottom: 16px;
+}
+
+.form-group label {
+    display: block;
+    margin-bottom: 8px;
+    font-weight: 500;
+}
+
+.api-key-input {
+    display: flex;
+    gap: 8px;
+}
+
+.api-key-input input {
+    flex: 1;
+    padding: 8px 12px;
+    border: 1.5px solid var(--border-color);
+    border-radius: 8px;
+    font-size: 14px;
+    transition: all 0.2s ease;
+}
+
+.api-key-input input:focus {
+    outline: none;
+    border-color: var(--primary-color);
+}
+
+.help-text {
+    margin-top: 8px;
+    font-size: 12px;
+    color: var(--secondary-color);
+}
+
+.help-text a {
+    color: var(--primary-color);
+    text-decoration: none;
+}
+
+.help-text a:hover {
+    text-decoration: underline;
+}
+
+.test-btn {
+    width: 100%;
+    margin-top: 16px;
+}
+
+.test-result {
+    margin-top: 12px;
+    padding: 12px;
+    border-radius: 8px;
+    font-size: 14px;
+    background-color: var(--background-color);
+    border: 1.5px solid var(--border-color);
+}
+
+.test-result pre {
+    margin-top: 8px;
+    padding: 8px;
+    background-color: var(--hover-background);
+    border-radius: 4px;
+    overflow-x: auto;
+    font-family: monospace;
+    font-size: 12px;
+}

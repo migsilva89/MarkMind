@@ -5,7 +5,8 @@
   "description": "Organize seus bookmarks de forma inteligente",
   "permissions": [
     "bookmarks",
-    "activeTab"
+    "activeTab",
+    "storage"
   ],
   "action": {
     "default_popup": "popup.html"

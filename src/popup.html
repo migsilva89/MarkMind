@@ -8,12 +8,32 @@
 <body>
     <div class="container">
         <div class="header">
-            <h1>Bookmark AI</h1>
+            <div class="header-top">
+                <h1>Bookmark AI</h1>
+                <button id="settings-btn" class="icon-btn" title="Configurações">⚙️</button>
+            </div>
             <button id="add-current-btn" class="primary-btn">
                 <span class="icon">+</span>
                 Adicionar Página
             </button>
             <div id="add-status" class="status-message" style="display: none;"></div>
+        </div>
+
+        <div id="settings-section" class="settings-section" style="display: none;">
+            <h2>Configurações</h2>
+            <div class="settings-form">
+                <div class="form-group">
+                    <label for="api-key">Gemini API Key</label>
+                    <div class="api-key-input">
+                        <input type="password" id="api-key" placeholder="Cole sua API key aqui">
+                        <button id="save-api-key" class="secondary-btn">Salvar</button>
+                    </div>
+                    <div id="settings-status" class="status-message" style="display: none;"></div>
+                    <p class="help-text">Obtenha sua API key em: <a href="https://makersuite.google.com/app/apikey" target="_blank">Google AI Studio</a></p>
+                    <button id="test-api" class="secondary-btn test-btn" style="display: none;">Testar API</button>
+                    <div id="test-result" class="test-result" style="display: none;"></div>
+                </div>
+            </div>
         </div>
 
         <div class="controls">

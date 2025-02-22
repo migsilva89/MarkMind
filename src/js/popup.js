@@ -11,6 +11,14 @@ document.addEventListener('DOMContentLoaded', () => {
     const pendingList = document.getElementById('pending-list');
     const pendingCount = document.getElementById('pending-count');
     
+    // Settings Elements
+    const settingsBtn = document.getElementById('settings-btn');
+    const settingsSection = document.getElementById('settings-section');
+    const apiKeyInput = document.getElementById('api-key');
+    const saveApiKeyBtn = document.getElementById('save-api-key');
+    const testApiBtn = document.getElementById('test-api');
+    const testResult = document.getElementById('test-result');
+    
     // UI Sections
     const progressSection = document.querySelector('.progress-section');
     const resultsSection = document.querySelector('.results-section');
@@ -18,6 +26,185 @@ document.addEventListener('DOMContentLoaded', () => {
     // Application State
     let bookmarksTree = [];
     let pendingBookmarks = new Set();
+
+    // Configurações
+    settingsBtn.addEventListener('click', () => {
+        console.log('Settings button clicked');
+        const isVisible = settingsSection.style.display === 'block';
+        settingsSection.style.display = isVisible ? 'none' : 'block';
+        
+        if (!isVisible) {
+            try {
+                // Verifica se o objeto chrome.storage está disponível
+                if (!chrome || !chrome.storage || !chrome.storage.local) {
+                    throw new Error('Chrome storage API não está disponível');
+                }
+
+                // Carrega a API key
+                chrome.storage.local.get(['geminiApiKey'], (result) => {
+                    if (chrome.runtime.lastError) {
+                        console.error('Error loading API key:', chrome.runtime.lastError);
+                        showStatus('Erro ao carregar API key: ' + chrome.runtime.lastError.message, 'error', true);
+                        return;
+                    }
+                    console.log('Loaded API key:', result.geminiApiKey ? 'exists' : 'not found');
+                    if (result.geminiApiKey) {
+                        apiKeyInput.value = result.geminiApiKey;
+                        testApiBtn.style.display = 'block';
+                    }
+                });
+            } catch (error) {
+                console.error('Error loading API key:', error);
+                showStatus('Erro ao carregar API key: ' + error.message, 'error', true);
+            }
+        }
+    });
+
+    saveApiKeyBtn.addEventListener('click', () => {
+        console.log('Save API key button clicked');
+        const apiKey = apiKeyInput.value.trim();
+        console.log('API key length:', apiKey.length);
+        
+        if (!apiKey) {
+            console.log('API key is empty');
+            showStatus('Por favor, insira uma API key válida.', 'error', true);
+            return;
+        }
+
+        // Validação básica do formato da API key
+        if (!apiKey.match(/^AIza[0-9A-Za-z-_]{35}$/)) {
+            console.log('Invalid API key format');
+            showStatus('API key inválida. Deve começar com "AIza" e ter 39 caracteres.', 'error', true);
+            return;
+        }
+
+        console.log('Saving API key...');
+        try {
+            // Verifica se o objeto chrome.storage está disponível
+            if (!chrome || !chrome.storage || !chrome.storage.local) {
+                throw new Error('Chrome storage API não está disponível');
+            }
+
+            // Salva a API key
+            chrome.storage.local.set(
+                { geminiApiKey: apiKey },
+                () => {
+                    if (chrome.runtime.lastError) {
+                        console.error('Error saving API key:', chrome.runtime.lastError);
+                        showStatus('Erro ao salvar API key: ' + chrome.runtime.lastError.message, 'error', true);
+                        return;
+                    }
+                    console.log('API key saved successfully');
+                    showStatus('API key salva com sucesso!', 'success', true);
+                    testApiBtn.style.display = 'block';
+                }
+            );
+        } catch (error) {
+            console.error('Error saving API key:', error);
+            showStatus('Erro ao salvar API key: ' + error.message, 'error', true);
+        }
+    });
+
+    // Teste da API
+    testApiBtn.addEventListener('click', async () => {
+        testResult.style.display = 'block';
+        testResult.innerHTML = 'Testando API...';
+        
+        try {
+            const testBookmark = {
+                title: 'GitHub - microsoft/TypeScript: TypeScript is a superset of JavaScript that compiles to clean JavaScript output.',
+                url: 'https://github.com/microsoft/TypeScript'
+            };
+
+            const response = await testGeminiAPI(testBookmark);
+            
+            testResult.innerHTML = `
+                <div>✅ API funcionando corretamente!</div>
+                <pre>${JSON.stringify(response, null, 2)}</pre>
+            `;
+        } catch (error) {
+            testResult.innerHTML = `
+                <div>❌ Erro ao testar API:</div>
+                <pre>${error.message}</pre>
+            `;
+        }
+    });
+
+    async function testGeminiAPI(bookmark) {
+        const apiKey = apiKeyInput.value.trim();
+        console.log('Testing API with key length:', apiKey.length);
+        
+        if (!apiKey) {
+            throw new Error('API key não configurada');
+        }
+
+        // Validação básica do formato da API key
+        if (!apiKey.match(/^AIza[0-9A-Za-z-_]{35}$/)) {
+            throw new Error('Formato da API key inválido. Deve começar com "AIza" e ter 39 caracteres.');
+        }
+
+        const prompt = {
+            contents: [{
+                parts: [{
+                    text: `Analise o título e URL do bookmark e sugira a melhor categoria.
+                    
+                    Título: ${bookmark.title}
+                    URL: ${bookmark.url}
+                    
+                    Categorias disponíveis:
+                    Tecnologia, Notícias, Entretenimento, Educação, Finanças, Saúde, Esportes, Viagens, Compras, Social, Desenvolvimento, Produtividade, Outros
+                    
+                    Responda em formato JSON com:
+                    - category: a categoria mais apropriada da lista
+                    - confidence: número de 0 a 1 indicando confiança
+                    - explanation: breve explicação da escolha`
+                }]
+            }]
+        };
+
+        console.log('Sending request to Gemini API...');
+        const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent?key=${apiKey}`;
+        
+        try {
+            const response = await fetch(url, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    contents: prompt.contents,
+                    generationConfig: {
+                        temperature: 0.7,
+                        topK: 40,
+                        topP: 0.95,
+                        maxOutputTokens: 1024,
+                    }
+                })
+            });
+
+            console.log('API Response status:', response.status);
+            const responseText = await response.text();
+            console.log('API Response text:', responseText);
+
+            if (!response.ok) {
+                throw new Error(`Erro na API: ${response.status} - ${responseText}`);
+            }
+
+            const data = JSON.parse(responseText);
+            const text = data.candidates[0].content.parts[0].text;
+            
+            // Tenta encontrar e parsear o JSON na resposta
+            const jsonMatch = text.match(/\{[\s\S]*\}/);
+            if (!jsonMatch) {
+                throw new Error('Resposta não contém JSON válido');
+            }
+
+            return JSON.parse(jsonMatch[0]);
+        } catch (error) {
+            console.error('Error in API call:', error);
+            throw error;
+        }
+    }
 
     // Função para atualizar a lista de bookmarks pendentes
     function updatePendingList() {
@@ -336,14 +523,19 @@ document.addEventListener('DOMContentLoaded', () => {
         progressCount.textContent = `${Math.round(progress)}%`;
     }
 
-    function showStatus(message, type = 'loading') {
-        addStatus.textContent = message;
-        addStatus.className = `status-message ${type}`;
-        addStatus.style.display = 'block';
+    function showStatus(message, type = 'loading', isSettings = false) {
+        console.log('Showing status:', message, type, isSettings ? 'in settings' : 'in main');
+        const statusElement = isSettings ? 
+            document.getElementById('settings-status') : 
+            document.getElementById('add-status');
+
+        statusElement.textContent = message;
+        statusElement.className = `status-message ${type}`;
+        statusElement.style.display = 'block';
         
         if (type !== 'loading') {
             setTimeout(() => {
-                addStatus.style.display = 'none';
+                statusElement.style.display = 'none';
             }, 3000);
         }
     }
