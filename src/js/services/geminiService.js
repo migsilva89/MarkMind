@@ -1,5 +1,40 @@
 import config from '../config.js';
 
+// Chrome native folder constants
+const CHROME_NATIVE_FOLDERS = {
+    BOOKMARKS_BAR: {
+        id: '1',
+        name: 'Bookmarks Bar'
+    },
+    OTHER_BOOKMARKS: {
+        id: '2',
+        name: 'Other Bookmarks'
+    },
+    MOBILE_BOOKMARKS: {
+        id: '3',
+        name: 'Mobile Bookmarks'
+    }
+};
+
+// Helper function to normalize folder names for comparison
+const normalizeFolderName = (name) => {
+    return name.replace(/[\u{1F300}-\u{1F9FF}]|[\u{1F600}-\u{1F64F}]|[\u{2700}-\u{27BF}]|[\u{1F680}-\u{1F6FF}]|[\u{24C2}-\u{1F251}]|[\u{1F900}-\u{1F9FF}]|[\u{1F1E0}-\u{1F1FF}]/gu, '')
+        .trim()
+        .toLowerCase();
+};
+
+// Helper function to identify Chrome native folders
+const getNativeFolderId = (folderName) => {
+    const normalizedName = normalizeFolderName(folderName);
+    
+    for (const nativeFolder of Object.values(CHROME_NATIVE_FOLDERS)) {
+        if (normalizeFolderName(nativeFolder.name) === normalizedName) {
+            return nativeFolder.id;
+        }
+    }
+    return null;
+};
+
 class GeminiService {
     constructor() {
         this.apiKey = config.GEMINI_API_KEY;
@@ -119,7 +154,6 @@ class GeminiService {
             const cleanUrl = (url) => {
                 try {
                     const urlObj = new URL(url);
-                    // Remove query parameters and hash
                     return `${urlObj.protocol}//${urlObj.hostname}${urlObj.pathname}`;
                 } catch (e) {
                     console.error('Error cleaning URL:', e);
@@ -127,7 +161,6 @@ class GeminiService {
                 }
             };
 
-            // Clean URLs before sending to API
             const bookmarksData = bookmarks.map(b => {
                 const cleanedUrl = cleanUrl(b.url);
                 if (cleanedUrl !== b.url && logger) {
@@ -148,17 +181,19 @@ ${bookmarksData}
 Existing folders:
 ${foldersData}
 
-RULES:
-1. Use existing folders when appropriate
-2. Suggest new folders only if necessary
-3. Group related bookmarks into a logical hierarchy
-4. ALL bookmarks must be included
-5. Be concise in descriptions
-6. DO NOT use emoji in folder names
-7. Maximum folder depth is 3 levels
-8. Create subfolders for development-related services (e.g., Vercel, Stripe, Hostinger should be under Development)
-9. Group similar services together (e.g., all cloud services, all payment services)
-10. Keep related tools and services in appropriate subfolders
+CRITICAL RULES:
+1. EACH BOOKMARK MUST BE PLACED IN EXACTLY ONE FOLDER - NO EXCEPTIONS
+2. DO NOT PLACE THE SAME BOOKMARK IN MULTIPLE FOLDERS
+3. If multiple categories fit, choose the SINGLE most appropriate one
+4. Use existing folders when appropriate
+5. Suggest new folders only if necessary
+6. Group related bookmarks
+7. Keep categorization reasons short and objective
+8. Maximum folder depth is 3 levels
+9. Create subfolders for development-related services
+10. Group similar services together
+11. ONLY INCLUDE FOLDERS THAT WILL CONTAIN BOOKMARKS
+12. DO NOT INCLUDE EMPTY FOLDERS IN THE RESPONSE
 
 REQUIRED RESPONSE FORMAT:
 {
@@ -173,73 +208,18 @@ REQUIRED RESPONSE FORMAT:
                     "id": "bookmark id from input"
                 }
             ],
-            "subfolders": [
-                {
-                    "name": "Subfolder Name",
-                    "isNew": true/false,
-                    "bookmarks": [],
-                    "subfolders": []
-                }
-            ]
+            "subfolders": []
         }
     ]
 }
 
-EXAMPLE STRUCTURE:
-{
-    "folders": [
-        {
-            "name": "Development",
-            "isNew": false,
-            "bookmarks": [
-                {
-                    "url": "https://github.com",
-                    "title": "GitHub",
-                    "id": "1"
-                }
-            ],
-            "subfolders": [
-                {
-                    "name": "Cloud Services",
-                    "isNew": true,
-                    "bookmarks": [
-                        {
-                            "url": "https://vercel.com",
-                            "title": "Vercel",
-                            "id": "2"
-                        }
-                    ],
-                    "subfolders": []
-                },
-                {
-                    "name": "Payment Services",
-                    "isNew": true,
-                    "bookmarks": [
-                        {
-                            "url": "https://stripe.com",
-                            "title": "Stripe Dashboard",
-                            "id": "3"
-                        }
-                    ],
-                    "subfolders": []
-                }
-            ]
-        }
-    ]
-}
-
-IMPORTANT:
-- Respond ONLY with JSON
-- No text before or after
-- Ensure JSON is valid
-- Use exact URLs provided
-- Include ALL provided bookmarks with their IDs
-- Keep response minimal
-- For existing folders, use EXACT names from the input list
-- DO NOT use emoji in folder names
-- Maximum depth of 3 levels (folder > subfolder > subfolder)
-- Create subfolders for related services and tools
-- Group similar services together`;
+IMPORTANT VALIDATION RULES:
+- Each URL must appear in EXACTLY ONE folder
+- Each bookmark ID must appear EXACTLY ONCE
+- If unsure about category, use the most general one
+- DO NOT duplicate bookmarks across folders
+- DO NOT include empty folders
+- ONLY return folders that will contain bookmarks`;
 
             const promptTokenCount = promptText.split(/\s+/).length;
             if (logger) {
@@ -300,28 +280,32 @@ IMPORTANT:
                 logger('✨ Validating folder structure...', 'info');
             }
 
-            // Helper function to normalize folder names for comparison
-            const normalizeFolderName = (name) => {
-                // Remove emoji and trim
-                return name.replace(/[\u{1F300}-\u{1F9FF}]|[\u{1F600}-\u{1F64F}]|[\u{2700}-\u{27BF}]|[\u{1F680}-\u{1F6FF}]|[\u{24C2}-\u{1F251}]|[\u{1F900}-\u{1F9FF}]|[\u{1F1E0}-\u{1F1FF}]/gu, '').trim();
-            };
-
             // Helper function to validate folder structure recursively
             function validateFolderStructure(folder, existingFolders, bookmarkIds, depth = 1) {
                 if (!folder.name || typeof folder.name !== 'string') {
                     throw new Error(`Folder at depth ${depth} has no valid name`);
                 }
 
-                // Check if folder exists by comparing normalized names
-                const normalizedFolderName = normalizeFolderName(folder.name);
-                const existingFolder = existingFolders.find(f => 
-                    normalizeFolderName(f.title) === normalizedFolderName
-                );
+                // Check if it's a native folder
+                const nativeFolderId = getNativeFolderId(folder.name);
+                if (nativeFolderId) {
+                    folder.id = nativeFolderId;
+                    folder.isNew = false;
+                    // Use exact name from native folders
+                    folder.name = Object.values(CHROME_NATIVE_FOLDERS).find(f => f.id === nativeFolderId).name;
+                } else {
+                    // Check if folder exists by comparing normalized names
+                    const normalizedFolderName = normalizeFolderName(folder.name);
+                    const existingFolder = existingFolders.find(f => 
+                        normalizeFolderName(f.title) === normalizedFolderName
+                    );
 
-                folder.isNew = !existingFolder;
-                if (!folder.isNew) {
-                    // Use the exact name from existing folders
-                    folder.name = existingFolder.title;
+                    folder.isNew = !existingFolder;
+                    if (!folder.isNew) {
+                        // Use the exact name from existing folders
+                        folder.name = existingFolder.title;
+                        folder.id = existingFolder.id;
+                    }
                 }
 
                 // Validate bookmarks array
@@ -362,27 +346,88 @@ IMPORTANT:
 
             // Check for uncategorized bookmarks
             const processedIds = new Set();
+            const seenBookmarks = new Set(); // Track seen bookmarks to prevent duplicates
+            
             const collectIds = (folder) => {
-                folder.bookmarks.forEach(bm => processedIds.add(bm.id));
+                folder.bookmarks.forEach(bm => {
+                    // Check for duplicates
+                    const bookmarkKey = `${bm.url}|${bm.title}`;
+                    if (seenBookmarks.has(bookmarkKey)) {
+                        // Remove duplicate from this folder
+                        folder.bookmarks = folder.bookmarks.filter(b => 
+                            `${b.url}|${b.title}` !== bookmarkKey
+                        );
+                        if (logger) {
+                            logger(`⚠️ Removed duplicate bookmark: ${bm.title}`, 'warning');
+                        }
+                    } else {
+                        seenBookmarks.add(bookmarkKey);
+                        // For new bookmarks, use the URL as the ID for tracking
+                        const trackingId = bm.id === 'new' ? bm.url : bm.id;
+                        processedIds.add(trackingId);
+                    }
+                });
                 folder.subfolders.forEach(subfolder => collectIds(subfolder));
             };
-            result.folders.forEach(folder => collectIds(folder));
+            
+            // Process folders and remove any empty ones
+            const removeEmptyFolders = (folders) => {
+                return folders.filter(folder => {
+                    // First process subfolders recursively
+                    if (folder.subfolders && folder.subfolders.length > 0) {
+                        folder.subfolders = removeEmptyFolders(folder.subfolders);
+                    }
+                    
+                    // Check if this folder has bookmarks or non-empty subfolders
+                    const hasBookmarks = folder.bookmarks && folder.bookmarks.length > 0;
+                    const hasNonEmptySubfolders = folder.subfolders && folder.subfolders.length > 0;
+                    
+                    return hasBookmarks || hasNonEmptySubfolders;
+                });
+            };
+
+            // Remove empty folders before processing
+            result.folders = removeEmptyFolders(result.folders);
+
+            // Process folders and check for duplicates
+            result.folders = result.folders.filter(folder => {
+                collectIds(folder);
+                return folder.bookmarks.length > 0 || (folder.subfolders && folder.subfolders.some(sf => 
+                    sf.bookmarks.length > 0 || (sf.subfolders && sf.subfolders.length > 0)
+                ));
+            });
 
             // Find bookmarks that weren't included
-            const missingBookmarks = bookmarks.filter(b => !processedIds.has(b.id));
+            const missingBookmarks = bookmarks.filter(b => {
+                const trackingId = b.type === 'new' ? b.url : b.id;
+                return !processedIds.has(trackingId);
+            });
+            
             if (missingBookmarks.length > 0) {
-                console.log('⚠️ Uncategorized bookmarks:', missingBookmarks);
-                const othersFolder = {
-                    name: "Others",
-                    isNew: !existingFolders.some(f => f.title === "Others"),
-                    bookmarks: missingBookmarks.map(b => ({
-                        title: b.title,
-                        url: b.url,
-                        id: b.id
-                    })),
-                    subfolders: []
-                };
-                result.folders.push(othersFolder);
+                if (logger) {
+                    logger(`⚠️ Found ${missingBookmarks.length} uncategorized bookmarks`, 'warning');
+                }
+                
+                // Find or reference the native Other Bookmarks folder
+                let othersFolder = result.folders.find(f => getNativeFolderId(f.name) === CHROME_NATIVE_FOLDERS.OTHER_BOOKMARKS.id);
+                
+                if (!othersFolder) {
+                    othersFolder = {
+                        name: CHROME_NATIVE_FOLDERS.OTHER_BOOKMARKS.name,
+                        id: CHROME_NATIVE_FOLDERS.OTHER_BOOKMARKS.id,
+                        isNew: false,
+                        bookmarks: [],
+                        subfolders: []
+                    };
+                    result.folders.push(othersFolder);
+                }
+
+                // Add missing bookmarks to Other Bookmarks
+                othersFolder.bookmarks.push(...missingBookmarks.map(b => ({
+                    title: b.title,
+                    url: b.url,
+                    id: b.id || 'new'
+                })));
             }
 
             if (!result.summary || typeof result.summary !== 'string') {
@@ -391,6 +436,42 @@ IMPORTANT:
 
             if (logger) {
                 logger('✅ Organization analysis completed', 'success');
+            }
+
+            // Add additional validation after parsing response
+            const validateNoDuplicates = (folders) => {
+                const seen = new Set();
+                const findDuplicates = (folder) => {
+                    folder.bookmarks.forEach((bm, index) => {
+                        const key = `${bm.url}|${bm.id}`;
+                        if (seen.has(key)) {
+                            // Remove duplicate
+                            folder.bookmarks.splice(index, 1);
+                            if (logger) {
+                                logger(`🔄 Removed duplicate bookmark: ${bm.title}`, 'warning');
+                            }
+                        } else {
+                            seen.add(key);
+                        }
+                    });
+                    folder.subfolders?.forEach(findDuplicates);
+                };
+                
+                folders.forEach(findDuplicates);
+                
+                // Remove empty folders after duplicate removal
+                return folders.filter(folder => {
+                    const hasBookmarks = folder.bookmarks.length > 0;
+                    const hasSubfolders = folder.subfolders?.some(sf => 
+                        sf.bookmarks.length > 0 || sf.subfolders?.length > 0
+                    );
+                    return hasBookmarks || hasSubfolders;
+                });
+            };
+
+            // Apply validation after parsing response
+            if (result.folders) {
+                result.folders = validateNoDuplicates(result.folders);
             }
 
             console.log('✅ Processing completed successfully:', result);

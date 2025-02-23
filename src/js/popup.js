@@ -791,6 +791,29 @@ REQUIRED RESPONSE FORMAT:
         }
     }
 
+    // Helper function to render folder structure
+    function renderFolderStructure(folders) {
+        return folders.map(folder => `
+            <div class="folder-group">
+                <h4>${folder.name} ${folder.isNew ? '<span class="new-badge">New</span>' : ''}</h4>
+                <ul>
+                    ${folder.bookmarks.map(bm => `
+                        <li>
+                            <div class="bookmark-title">${bm.title}</div>
+                        </li>
+                    `).join('')}
+                    ${folder.subfolders && folder.subfolders.length > 0 ? `
+                        <li class="subfolders">
+                            <div class="subfolder-list">
+                                ${renderFolderStructure(folder.subfolders)}
+                            </div>
+                        </li>
+                    ` : ''}
+                </ul>
+            </div>
+        `).join('');
+    }
+
     organizeBtn.addEventListener('click', async () => {
         try {
             toggleExecutionUI('executing');
@@ -864,28 +887,6 @@ REQUIRED RESPONSE FORMAT:
                     <button id="cancel-suggestion" class="secondary-btn">Back</button>
                 </div>
             `;
-
-            function renderFolderStructure(folders) {
-                return folders.map(folder => `
-                    <div class="folder-group">
-                        <h4>${folder.name} ${folder.isNew ? '<span class="new-badge">New</span>' : ''}</h4>
-                        <ul>
-                            ${folder.bookmarks.map(bm => `
-                                <li>
-                                    <div class="bookmark-title">${bm.title}</div>
-                                </li>
-                            `).join('')}
-                            ${folder.subfolders && folder.subfolders.length > 0 ? `
-                                <li class="subfolders">
-                                    <div class="subfolder-list">
-                                        ${renderFolderStructure(folder.subfolders)}
-                                    </div>
-                                </li>
-                            ` : ''}
-                        </ul>
-                    </div>
-                `).join('');
-            }
 
             // Add click handlers for folder toggles
             const folderHeaders = resultsList.querySelectorAll('.folder-group h4');
@@ -1002,6 +1003,137 @@ REQUIRED RESPONSE FORMAT:
             if (resultsSection) resultsSection.style.display = 'none';
             if (progressSection) progressSection.style.display = 'none';
             if (logsSection) logsSection.style.display = 'none';
+        }
+    });
+
+    // Add Current Page functionality
+    addCurrentBtn.addEventListener('click', async () => {
+        try {
+            // Get current tab
+            const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
+            if (!tab) {
+                throw new Error('No active tab found');
+            }
+
+            // Show loading state
+            addStatus.textContent = 'Analyzing page...';
+            addStatus.className = 'status-message loading';
+            addStatus.style.display = 'block';
+
+            // Switch to execution view
+            toggleExecutionUI('executing');
+            logsContainer.innerHTML = '';
+            
+            addLog('🔍 Analyzing current page...', 'info');
+            addLog(`📄 Page Title: ${tab.title}`, 'info');
+            addLog(`🔗 URL: ${tab.url}`, 'info');
+
+            // Create bookmark object
+            const bookmark = {
+                type: 'new',
+                title: tab.title,
+                url: tab.url
+            };
+
+            // Add to pending bookmarks
+            pendingBookmarks.clear();
+            pendingBookmarks.add(bookmark);
+            updatePendingList();
+            updatePrompt();
+
+            // Get suggestion from Gemini
+            addLog('🤖 Requesting AI analysis...', 'info');
+            const suggestion = await geminiService.suggestOrganization([bookmark], currentPrompt.folders, addLog);
+
+            if (!suggestion || !suggestion.folders || suggestion.folders.length === 0) {
+                throw new Error('Invalid suggestion received');
+            }
+
+            // Show results UI
+            toggleExecutionUI('results');
+            
+            // Show suggestion to user
+            const resultsList = document.getElementById('results-list');
+            resultsList.innerHTML = `
+                <div class="suggestion-summary">
+                    <h3>Add Page to Bookmarks</h3>
+                    <p>The page will be bookmarked in the following location:</p>
+                </div>
+                <div class="folders-preview">
+                    ${renderFolderStructure(suggestion.folders)}
+                </div>
+                <div class="suggestion-actions">
+                    <button id="apply-suggestion" class="primary-btn">Add Bookmark</button>
+                    <button id="cancel-suggestion" class="secondary-btn">Cancel</button>
+                </div>
+            `;
+
+            // Add click handlers for folder toggles
+            const folderHeaders = resultsList.querySelectorAll('.folder-group h4');
+            folderHeaders.forEach(header => {
+                header.addEventListener('click', () => {
+                    header.classList.toggle('expanded');
+                    const bookmarksList = header.nextElementSibling;
+                    bookmarksList.classList.toggle('expanded');
+                });
+            });
+
+            // Handle suggestion application
+            document.getElementById('apply-suggestion').addEventListener('click', async () => {
+                try {
+                    toggleExecutionUI('executing');
+                    progressSection.style.display = 'block';
+                    progressText.textContent = 'Adding bookmark...';
+                    addLog('📎 Creating bookmark...', 'info');
+
+                    // Process the folder structure
+                    for (const folder of suggestion.folders) {
+                        await processFolder(folder);
+                    }
+
+                    // Update UI
+                    toggleExecutionUI('results');
+                    resultsList.innerHTML = `
+                        <div class="success-message">
+                            <p>✅ Bookmark added successfully!</p>
+                            <button id="view-bookmarks" class="primary-btn">View Bookmarks</button>
+                        </div>
+                    `;
+
+                    document.getElementById('view-bookmarks').addEventListener('click', () => {
+                        toggleExecutionUI('normal');
+                        loadBookmarksTree();
+                    });
+
+                    addLog('✅ Bookmark added successfully!', 'success');
+                } catch (error) {
+                    addLog(`❌ Error adding bookmark: ${error.message}`, 'error');
+                    resultsList.innerHTML = `
+                        <div class="error-message">
+                            <p>❌ Error adding bookmark: ${error.message}</p>
+                            <button id="try-again" class="primary-btn">Try Again</button>
+                        </div>
+                    `;
+
+                    document.getElementById('try-again').addEventListener('click', () => {
+                        toggleExecutionUI('normal');
+                    });
+                }
+            });
+
+            // Handle cancellation
+            document.getElementById('cancel-suggestion').addEventListener('click', () => {
+                toggleExecutionUI('normal');
+                pendingBookmarks.clear();
+                updatePendingList();
+            });
+
+        } catch (error) {
+            console.error('Error adding current page:', error);
+            addLog(`❌ Error: ${error.message}`, 'error');
+            toggleExecutionUI('normal');
+            addStatus.textContent = `Error: ${error.message}`;
+            addStatus.className = 'status-message error';
         }
     });
 
