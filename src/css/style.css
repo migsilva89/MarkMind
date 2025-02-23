@@ -1,4 +1,4 @@
-/* Reset e variáveis */
+/* Reset and variables */
 :root {
     --primary-color: #000000;
     --primary-hover: #333333;
@@ -91,7 +91,7 @@ button:disabled {
     border-color: var(--text-color);
 }
 
-/* Controles com layout moderno */
+/* Modern controls layout */
 .controls {
     display: flex;
     gap: 12px;
@@ -103,7 +103,7 @@ button:disabled {
     flex: 1;
 }
 
-/* Árvore de bookmarks com design minimalista */
+/* Minimalist bookmark tree */
 .bookmarks-tree {
     border: 1.5px solid var(--border-color);
     border-radius: 16px;
@@ -111,6 +111,7 @@ button:disabled {
     max-height: 400px;
     overflow-y: auto;
     background: var(--background-color);
+    margin-bottom: 24px;
 }
 
 .bookmark-item {
@@ -160,7 +161,7 @@ button:disabled {
     font-weight: normal;
 }
 
-/* Status messages com design clean */
+/* Clean status messages */
 .status-message {
     margin-top: 0;
     padding: 12px;
@@ -180,7 +181,7 @@ button:disabled {
     border-color: var(--error-color);
 }
 
-/* Progress bar moderna */
+/* Modern progress bar */
 .progress-section {
     background-color: var(--background-color);
     border-radius: 12px;
@@ -194,6 +195,7 @@ button:disabled {
     border-radius: 4px;
     overflow: hidden;
     margin-bottom: 12px;
+    position: relative;
 }
 
 .progress-indicator {
@@ -201,6 +203,32 @@ button:disabled {
     background-color: var(--primary-color);
     width: 0;
     transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    position: relative;
+}
+
+.progress-indicator::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(
+        90deg,
+        transparent,
+        rgba(255, 255, 255, 0.3),
+        transparent
+    );
+    animation: loading-pulse 1.5s ease-in-out infinite;
+}
+
+@keyframes loading-pulse {
+    0% {
+        transform: translateX(-100%);
+    }
+    100% {
+        transform: translateX(100%);
+    }
 }
 
 .progress-info {
@@ -213,12 +241,30 @@ button:disabled {
     font-size: 14px;
     color: var(--text-color);
     font-weight: 450;
+    position: relative;
+    padding-right: 20px;
+}
+
+.progress-text::after {
+    content: '...';
+    position: absolute;
+    right: 0;
+    animation: dots 1.5s steps(4, end) infinite;
+}
+
+@keyframes dots {
+    0%, 20% { content: ''; }
+    40% { content: '.'; }
+    60% { content: '..'; }
+    80%, 100% { content: '...'; }
 }
 
 .progress-count {
     font-size: 14px;
     color: var(--primary-color);
     font-weight: 500;
+    min-width: 40px;
+    text-align: right;
 }
 
 /* Results section com visual clean */
@@ -228,9 +274,8 @@ button:disabled {
     border: 1.5px solid var(--border-color);
     padding: 16px;
     margin-top: 16px;
-    max-height: 80vh;
-    display: flex;
-    flex-direction: column;
+    height: 80vh;
+    position: relative;
 }
 
 .results-section .error {
@@ -238,10 +283,9 @@ button:disabled {
 }
 
 .results-section #results-list {
-    margin-bottom: 16px;
-    font-weight: 450;
-    flex: 1;
-    overflow: hidden;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
 }
 
 /* Scrollbar moderna */
@@ -355,7 +399,7 @@ input[type="checkbox"] + label {
     text-align: center;
 }
 
-/* Atualizar a árvore de bookmarks */
+/* Update bookmark tree */
 .folder-toggle {
     font-family: monospace;
     font-size: 12px;
@@ -395,7 +439,7 @@ input[type="checkbox"] + label {
     margin-left: 4px;
 }
 
-/* Efeitos de hover mais suaves */
+/* Smooth hover effects */
 .bookmark-item {
     transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
 }
@@ -405,7 +449,7 @@ input[type="checkbox"] + label {
     transform: translateX(4px);
 }
 
-/* Seção de bookmarks pendentes */
+/* Pending bookmarks section */
 .pending-section {
     margin-top: 24px;
     padding: 16px;
@@ -462,7 +506,7 @@ input[type="checkbox"] + label {
     background-color: var(--hover-background);
 }
 
-/* Header com botão de configuração */
+/* Settings header with configuration button */
 .header-top {
     display: flex;
     justify-content: space-between;
@@ -484,7 +528,7 @@ input[type="checkbox"] + label {
     transform: rotate(30deg);
 }
 
-/* Seção de configurações */
+/* Settings section */
 .settings-section {
     margin-bottom: 24px;
     padding: 16px;
@@ -569,7 +613,10 @@ input[type="checkbox"] + label {
 
 /* Sugestão de Organização */
 .suggestion-summary {
+    padding: 0 0 16px 0;
+    border-bottom: 1.5px solid var(--border-color);
     margin-bottom: 16px;
+    flex-shrink: 0;
 }
 
 .suggestion-summary h3 {
@@ -583,13 +630,11 @@ input[type="checkbox"] + label {
 }
 
 .folders-preview {
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
-    margin-bottom: 16px;
-    max-height: 400px;
+    flex: 1;
     overflow-y: auto;
     padding-right: 12px;
+    margin-bottom: 80px; /* Espaço para os botões */
+    height: calc(100% - 200px); /* Ajusta altura considerando summary e botões */
 }
 
 .folder-group {
@@ -677,7 +722,7 @@ input[type="checkbox"] + label {
 
 .folder-group li.subfolders .folder-group h4 {
     font-size: 13px;
-    padding: 6px 10px;
+    padding: 6px 10px 6px 32px;
     background-color: var(--hover-background);
     border-radius: 6px;
     margin-bottom: 4px;
@@ -693,6 +738,10 @@ input[type="checkbox"] + label {
 .folder-group li.subfolders .folder-group li {
     font-size: 12px;
     padding: 3px 6px;
+}
+
+.folder-group li.subfolders .folder-group h4::before {
+    left: 12px;
 }
 
 /* Ensure proper nesting visualization */
@@ -731,10 +780,17 @@ input[type="checkbox"] + label {
 }
 
 .suggestion-actions {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    padding: 16px;
+    background-color: var(--background-color);
+    border-top: 1.5px solid var(--border-color);
     display: flex;
-    gap: 12px;
     justify-content: flex-end;
-    margin-top: 24px;
+    gap: 12px;
+    z-index: 10;
 }
 
 .success-message,
@@ -766,7 +822,7 @@ input[type="checkbox"] + label {
     border-radius: 12px;
     border: 1.5px solid var(--border-color);
     margin-bottom: 16px;
-    margin-top: 24px;
+    margin-top: 12px;
 }
 
 .logs-section h3 {

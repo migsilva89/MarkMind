@@ -1,23 +1,29 @@
 # Bookmark AI
 
-Uma extensão para Chrome que ajuda a organizar seus bookmarks de forma inteligente.
+A Chrome extension that helps you organize your bookmarks intelligently using AI.
 
-## Funcionalidades
+## Features
 
-- Adicionar a página atual aos bookmarks
-- Visualizar e gerenciar bookmarks existentes
-- Organizar bookmarks em pastas
-- Interface moderna e intuitiva
+- Automatically organize bookmarks using AI
+- Create and manage bookmark folders with up to 3 levels of hierarchy
+- Smart categorization of bookmarks based on content
+- Modern and intuitive interface
+- Preview organization before applying changes
+- Detailed logging for transparency
+- Secure API key management
 
-## Estrutura do Projeto
+## Project Structure
 
 ```
 src/
 ├── js/
-│   ├── popup.js
-│   └── background.js
+│   ├── popup.js           # Main UI logic
+│   ├── background.js      # Background service worker
+│   ├── config.js          # Configuration settings
+│   └── services/
+│       └── geminiService.js  # AI service integration
 ├── css/
-│   └── style.css
+│   └── style.css         # Styles for the extension
 ├── assets/
 │   └── icons/
 │       ├── icon16.png
@@ -27,53 +33,92 @@ src/
 └── popup.html
 ```
 
-## Instalação
+## Installation
 
-1. Clone este repositório
-2. Abra o Chrome e vá para `chrome://extensions/`
-3. Ative o "Modo do desenvolvedor"
-4. Clique em "Carregar sem compactação"
-5. Selecione a pasta `src` do projeto
+1. Clone this repository
+2. Open Chrome and go to `chrome://extensions/`
+3. Enable "Developer mode"
+4. Click "Load unpacked"
+5. Select the `src` folder of the project
 
-## Desenvolvimento
+## Development
 
-### Pré-requisitos
+### Prerequisites
 
 - Google Chrome
-- Conhecimento básico de JavaScript, HTML e CSS
+- Basic knowledge of JavaScript, HTML, and CSS
+- Gemini API key (get it at [Google AI Studio](https://makersuite.google.com/app/apikey))
 
-### Configuração do Ambiente
+### Setting Up the Environment
 
-1. Clone o repositório:
+1. Clone the repository:
 ```bash
-git clone https://github.com/seu-usuario/bookmark-ai.git
+git clone https://github.com/migsilva89/bookmark-ai.git
 cd bookmark-ai
 ```
 
-2. Abra o projeto em seu editor favorito
+2. Open the project in your favorite editor
 
-3. Para testar as alterações:
-   - Vá para `chrome://extensions/`
-   - Clique no ícone de recarregar na extensão
-   - As alterações serão aplicadas imediatamente
+3. To test changes:
+   - Go to `chrome://extensions/`
+   - Click the reload icon on the extension
+   - Changes will be applied immediately
+
+### Configuration
+
+1. Get your Gemini API key from [Google AI Studio](https://makersuite.google.com/app/apikey)
+2. Open the extension and click the settings icon
+3. Enter your API key and save
+4. Test the connection using the "Test API" button
+
+## Features in Detail
+
+### Bookmark Organization
+- Select bookmarks to organize
+- AI analyzes content and suggests folder structure
+- Preview suggested organization before applying
+- Support for up to 3 levels of folder hierarchy
+- Smart handling of existing folders
+
+### User Interface
+- Clean and modern design
+- Intuitive folder navigation
+- Real-time feedback with progress indicators
+- Detailed logging of actions
+- Error handling with clear messages
+
+### Security
+- Secure API key storage
+- No data sent to external servers except Google AI
+- All bookmark processing done locally
+
+## Changelog
+
+### v1.0.0-beta
+- Initial beta release
+- Core bookmark organization features
+- AI-powered categorization
+- Folder hierarchy support
+- Modern UI implementation
+- Secure API key management
 
 ## Roadmap
 
-- [x] Estrutura básica da extensão
-- [x] Interface do usuário
-- [x] Gerenciamento de bookmarks
-- [ ] Categorização automática usando IA
-- [ ] Sugestões inteligentes de organização
-- [ ] Sincronização entre dispositivos
+- [ ] Export/Import functionality
+- [ ] Custom folder depth configuration
+- [ ] Additional AI models support
+- [ ] Batch processing improvements
+- [ ] Advanced folder management
+- [ ] Cross-device synchronization
 
-## Contribuição
+## Contributing
 
-1. Fork o projeto
-2. Crie sua Feature Branch (`git checkout -b feature/AmazingFeature`)
-3. Commit suas alterações (`git commit -m 'Add some AmazingFeature'`)
-4. Push para a Branch (`git push origin feature/AmazingFeature`)
-5. Abra um Pull Request
+1. Fork the project
+2. Create your Feature Branch (`git checkout -b feature/AmazingFeature`)
+3. Commit your changes (`git commit -m 'Add some AmazingFeature'`)
+4. Push to the Branch (`git push origin feature/AmazingFeature`)
+5. Open a Pull Request
 
-## Licença
+## License
 
-Este projeto está licenciado sob a Licença MIT - veja o arquivo [LICENSE](LICENSE) para detalhes. 
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details. 

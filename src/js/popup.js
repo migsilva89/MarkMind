@@ -52,7 +52,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    // Carrega a API key inicial
+    // Load initial API key
     chrome.storage.local.get(['geminiApiKey'], (result) => {
         if (result.geminiApiKey) {
             apiKeyInput.value = result.geminiApiKey;
@@ -61,7 +61,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
-    // Configurações
+    // Settings
     settingsBtn.addEventListener('click', () => {
         console.log('Settings button clicked');
         const isVisible = settingsSection.style.display === 'block';
@@ -69,29 +69,28 @@ document.addEventListener('DOMContentLoaded', () => {
         
         if (!isVisible) {
             try {
-                // Verifica se o objeto chrome.storage está disponível
+                // Check if chrome.storage object is available
                 if (!chrome || !chrome.storage || !chrome.storage.local) {
-                    throw new Error('Chrome storage API não está disponível');
+                    throw new Error('Chrome storage API is not available');
                 }
 
-                // Carrega a API key
+                // Load API key
                 chrome.storage.local.get(['geminiApiKey'], (result) => {
                     if (chrome.runtime.lastError) {
                         console.error('Error loading API key:', chrome.runtime.lastError);
-                        showStatus('Erro ao carregar API key: ' + chrome.runtime.lastError.message, 'error', true);
+                        showStatus('Error loading API key: ' + chrome.runtime.lastError.message, 'error', true);
                         return;
                     }
                     console.log('Loaded API key:', result.geminiApiKey ? 'exists' : 'not found');
                     if (result.geminiApiKey) {
                         apiKeyInput.value = result.geminiApiKey;
-                        testApiBtn.style.display = 'block';
-                        // Configura a API key no serviço
+                        // Configure API key in service
                         geminiService.setApiKey(result.geminiApiKey);
                     }
                 });
             } catch (error) {
                 console.error('Error loading API key:', error);
-                showStatus('Erro ao carregar API key: ' + error.message, 'error', true);
+                showStatus('Error loading API key: ' + error.message, 'error', true);
             }
         }
     });
@@ -143,108 +142,55 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
-    // Test API
+    // Test API functionality
     testApiBtn.addEventListener('click', async () => {
         testResult.style.display = 'block';
-        testResult.innerHTML = 'Testing API...';
+        testResult.innerHTML = '<div class="status-message loading">Testing API connection and functionality...</div>';
         
         try {
-            const testBookmark = {
-                title: 'GitHub - microsoft/TypeScript: TypeScript is a superset of JavaScript that compiles to clean JavaScript output.',
-                url: 'https://github.com/microsoft/TypeScript'
+            // Test with a realistic bookmark
+            const response = await geminiService.suggestOrganization([{
+                title: 'MDN Web Docs: Your Guide to Web Development',
+                url: 'https://developer.mozilla.org',
+                id: 'test'
+            }], [], addLog);
+            
+            // Format the response for better readability
+            const formattedResponse = {
+                status: 'Success',
+                suggestedFolders: response.folders.map(f => f.name),
+                organizationSummary: response.summary || 'Organization suggestion received'
             };
-
-            const response = await testGeminiAPI(testBookmark);
             
             testResult.innerHTML = `
-                <div>✅ API working correctly!</div>
-                <pre>${JSON.stringify(response, null, 2)}</pre>
+                <div class="test-result success">
+                    <div>✅ API Connection: <strong>Successful</strong></div>
+                    <div>✅ Authentication: <strong>Valid</strong></div>
+                    <div>✅ Response: <strong>Valid JSON format</strong></div>
+                    <div class="test-details">
+                        <pre>${JSON.stringify(formattedResponse, null, 2)}</pre>
+                    </div>
+                </div>
             `;
         } catch (error) {
             testResult.innerHTML = `
-                <div>❌ Error testing API:</div>
-                <pre>${error.message}</pre>
+                <div class="test-result error">
+                    <div>❌ API Test Failed</div>
+                    <div class="error-details">
+                        <strong>Error Type:</strong> ${error.name}<br>
+                        <strong>Message:</strong> ${error.message}<br>
+                        <strong>Possible Solution:</strong> ${
+                            error.message.includes('API key') ? 
+                            'Please check if your API key is valid and properly configured.' :
+                            'Please try again or check your internet connection.'
+                        }
+                    </div>
+                </div>
             `;
         }
     });
 
-    async function testGeminiAPI(bookmark) {
-        const apiKey = apiKeyInput.value.trim();
-        console.log('Testing API with key length:', apiKey.length);
-        
-        if (!apiKey) {
-            throw new Error('API key not configured');
-        }
-
-        // Basic validation of API key format
-        if (!apiKey.match(/^AIza[0-9A-Za-z-_]{35}$/)) {
-            throw new Error('Invalid API key format. Must start with "AIza" and be 39 characters long.');
-        }
-
-        const prompt = {
-            contents: [{
-                parts: [{
-                    text: `Analyze the bookmark title and URL and suggest the best category.
-                    
-                    Title: ${bookmark.title}
-                    URL: ${bookmark.url}
-                    
-                    Available categories:
-                    Technology, News, Entertainment, Education, Finance, Health, Sports, Travel, Shopping, Social, Development, Productivity, Others
-                    
-                    Respond in JSON format with:
-                    - category: most appropriate category from the list
-                    - confidence: number from 0 to 1 indicating confidence
-                    - explanation: brief explanation for the choice`
-                }]
-            }]
-        };
-
-        console.log('Sending request to Gemini API...');
-        const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent?key=${apiKey}`;
-        
-        try {
-            const response = await fetch(url, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({
-                    contents: prompt.contents,
-                    generationConfig: {
-                        temperature: 0.7,
-                        topK: 40,
-                        topP: 0.95,
-                        maxOutputTokens: 1024,
-                    }
-                })
-            });
-
-            console.log('API Response status:', response.status);
-            const responseText = await response.text();
-            console.log('API Response text:', responseText);
-
-            if (!response.ok) {
-                throw new Error(`API Error: ${response.status} - ${responseText}`);
-            }
-
-            const data = JSON.parse(responseText);
-            const text = data.candidates[0].content.parts[0].text;
-            
-            // Try to find and parse JSON in response
-            const jsonMatch = text.match(/\{[\s\S]*\}/);
-            if (!jsonMatch) {
-                throw new Error('Response does not contain valid JSON');
-            }
-
-            return JSON.parse(jsonMatch[0]);
-        } catch (error) {
-            console.error('Error in API call:', error);
-            throw error;
-        }
-    }
-
-    // Função para atualizar a lista de bookmarks pendentes
+    // Function to update pending bookmarks list
     function updatePendingList() {
         const bookmarks = Array.from(pendingBookmarks);
         pendingCount.textContent = bookmarks.length;
@@ -263,13 +209,13 @@ document.addEventListener('DOMContentLoaded', () => {
             const removeBtn = document.createElement('span');
             removeBtn.className = 'remove-btn';
             removeBtn.innerHTML = '✕';
-            removeBtn.title = 'Remover';
+            removeBtn.title = 'Remove';
             removeBtn.onclick = () => {
                 pendingBookmarks.delete(bookmark);
                 updatePendingList();
                 updateOrganizeButton();
                 
-                // Desmarcar checkbox se existir
+                // Uncheck checkbox if it exists
                 if (bookmark.type === 'existing') {
                     const checkbox = document.querySelector(`input[data-bookmark-id="${bookmark.id}"]`);
                     if (checkbox) checkbox.checked = false;
@@ -376,12 +322,12 @@ REQUIRED RESPONSE FORMAT:
                     title: folderNode.title,
                     url: folderNode.url
                 });
-                addLog(`➕ Bookmark adicionado (pasta): ${folderNode.title}`, 'info');
+                addLog(`➕ Bookmark added (folder): ${folderNode.title}`, 'info');
             } else {
                 for (const item of pendingBookmarks) {
                     if (item.type === 'existing' && item.id === folderNode.id) {
                         pendingBookmarks.delete(item);
-                        addLog(`➖ Bookmark removido (pasta): ${folderNode.title}`, 'info');
+                        addLog(`➖ Bookmark removed (folder): ${folderNode.title}`, 'info');
                         break;
                     }
                 }
@@ -613,7 +559,7 @@ REQUIRED RESPONSE FORMAT:
                         });
                     }
                 } catch (moveError) {
-                    console.error('Erro ao mover/criar bookmark:', moveError);
+                    console.error('Error moving/creating bookmark:', moveError);
                 }
             }
 
@@ -622,7 +568,7 @@ REQUIRED RESPONSE FORMAT:
             
             return bookmarksArray.length;
         } catch (error) {
-            console.error('Erro ao organizar bookmarks:', error);
+            console.error('Error organizing bookmarks:', error);
             throw error;
         }
     }
@@ -633,7 +579,7 @@ REQUIRED RESPONSE FORMAT:
         const progressCount = document.getElementById('progress-count');
         
         progressIndicator.style.width = `${progress}%`;
-        progressText.textContent = `Processando ${current} de ${total}`;
+        progressText.textContent = `Processing ${current} of ${total}`;
         progressCount.textContent = `${Math.round(progress)}%`;
     }
 
@@ -664,7 +610,7 @@ REQUIRED RESPONSE FORMAT:
             tree[0].children.forEach(node => toggleFolderBookmarks(node, true));
             updateOrganizeButton();
         } catch (error) {
-            console.error('Erro ao selecionar todos:', error);
+            console.error('Error selecting all:', error);
         }
     });
 
@@ -1025,6 +971,6 @@ REQUIRED RESPONSE FORMAT:
         }
     });
 
-    // Carrega a árvore inicial de bookmarks
+    // Load initial bookmarks tree
     loadBookmarksTree();
 });

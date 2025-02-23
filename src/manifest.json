@@ -1,8 +1,8 @@
 {
   "manifest_version": 3,
   "name": "Bookmark AI",
-  "version": "1.0",
-  "description": "Organize seus bookmarks de forma inteligente",
+  "version": "1.0.0.0",
+  "description": "Organize your bookmarks intelligently using AI",
   "permissions": [
     "bookmarks",
     "activeTab",

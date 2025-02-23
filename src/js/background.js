@@ -1,6 +1,6 @@
-// Estrutura de categorias
+// Category structure
 const CATEGORIES = {
-    "Coding": {
+    "Development": {
         icon: "💻",
         subcategories: {
             "Frontend": ["JavaScript", "TypeScript", "React", "Vue", "CSS", "HTML"],
@@ -146,7 +146,7 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
         (async () => {
             try {
                 const category = {
-                    mainCategory: "Não Categorizado",
+                    mainCategory: "Uncategorized",
                     subCategory: "",
                     tags: [],
                     confidence: 1.0
@@ -159,7 +159,7 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
                     bookmark: bookmark
                 });
             } catch (error) {
-                console.error('Erro ao adicionar página:', error);
+                console.error('Error adding page:', error);
                 sendResponse({
                     success: false,
                     error: error.message
