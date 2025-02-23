@@ -643,10 +643,19 @@ REQUIRED RESPONSE FORMAT:
     });
 
     deselectAllBtn.addEventListener('click', () => {
+        // Clear all checkboxes
         const checkboxes = bookmarksContainer.querySelectorAll('input[type="checkbox"]');
         checkboxes.forEach(cb => cb.checked = false);
+        
+        // Clear pending bookmarks
         pendingBookmarks.clear();
+        
+        // Update UI elements
         updateOrganizeButton();
+        updatePendingList();
+        
+        // Hide pending section when clearing
+        pendingSection.style.display = 'none';
     });
 
     function toggleExecutionUI(state) {
@@ -851,10 +860,56 @@ REQUIRED RESPONSE FORMAT:
         `).join('');
     }
 
+    function simulateProgress() {
+        let progress = 0;
+        const progressIndicator = document.getElementById('progress-indicator');
+        const progressCount = document.getElementById('progress-count');
+        const progressText = document.getElementById('progress-text');
+        
+        // Reset progress
+        progressIndicator.style.width = '0%';
+        progressCount.textContent = '0%';
+        
+        const interval = setInterval(() => {
+            if (progress >= 90) {
+                clearInterval(interval);
+                return;
+            }
+            
+            // Non-linear increment for more natural feel
+            const increment = Math.max(1, (90 - progress) / 10);
+            progress += increment;
+            
+            progressIndicator.style.width = `${progress}%`;
+            progressCount.textContent = `${Math.round(progress)}%`;
+            
+            // Update text based on progress
+            if (progress < 30) {
+                progressText.textContent = 'Analyzing bookmarks...';
+            } else if (progress < 60) {
+                progressText.textContent = 'Processing structure...';
+            } else {
+                progressText.textContent = 'Finalizing organization...';
+            }
+        }, 100);
+        
+        return {
+            complete: () => {
+                clearInterval(interval);
+                progressIndicator.style.width = '100%';
+                progressCount.textContent = '100%';
+                progressText.textContent = 'Completed!';
+            }
+        };
+    }
+
     organizeBtn.addEventListener('click', async () => {
         try {
             toggleExecutionUI('executing');
             logsContainer.innerHTML = '';
+            
+            // Iniciar simulação de progresso
+            const progress = simulateProgress();
             
             // Show process explanation
             showProcessExplanation();
@@ -889,6 +944,9 @@ REQUIRED RESPONSE FORMAT:
             try {
                 suggestion = await geminiService.suggestOrganization(selectedBookmarks, currentPrompt.folders, addLog);
                 
+                // Completar progresso quando receber a resposta
+                progress.complete();
+                
                 addLog('✅ AI Analysis Complete', 'success');
                 addLog('📋 Organization Summary:', 'info', `
                     <ul>
@@ -902,6 +960,7 @@ REQUIRED RESPONSE FORMAT:
                     throw new Error('Invalid response format from AI');
                 }
             } catch (error) {
+                progress.complete();
                 addLog(`❌ Error during AI analysis: ${error.message}`, 'error');
                 throw error;
             }
@@ -1091,9 +1150,15 @@ REQUIRED RESPONSE FORMAT:
             updatePendingList();
             updatePrompt();
 
+            // Iniciar simulação de progresso
+            const progress = simulateProgress();
+            
             // Get suggestion from Gemini
             addLog('🤖 Requesting AI analysis...', 'info');
             const suggestion = await geminiService.suggestOrganization([bookmark], currentPrompt.folders, addLog);
+            
+            // Completar progresso
+            progress.complete();
 
             if (!suggestion || !suggestion.folders || suggestion.folders.length === 0) {
                 throw new Error('Invalid suggestion received');
@@ -1194,5 +1259,6 @@ REQUIRED RESPONSE FORMAT:
     collapseBtn.addEventListener('click', () => {
         collapseBtn.classList.toggle('collapsed');
         logsContainer.classList.toggle('collapsed');
+        document.querySelector('.logs-header').classList.toggle('collapsed');
     });
 });

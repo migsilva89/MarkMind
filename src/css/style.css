@@ -897,6 +897,7 @@ input[type="checkbox"] + label {
     border-radius: 12px;
     border: 1.5px solid var(--border-color);
     margin: 12px 0;
+    overflow: hidden;
 }
 
 .logs-header {
@@ -905,6 +906,11 @@ input[type="checkbox"] + label {
     align-items: center;
     padding: 8px 12px;
     border-bottom: 1.5px solid var(--border-color);
+    transition: border-bottom 0.1s ease;
+}
+
+.logs-header.collapsed {
+    border-bottom: none;
 }
 
 .logs-header h3 {
@@ -922,6 +928,7 @@ input[type="checkbox"] + label {
     cursor: pointer;
     transition: transform 0.1s ease;
     color: var(--secondary-color);
+    transform: rotate(90deg);
 }
 
 .collapse-btn.collapsed {
@@ -944,6 +951,10 @@ input[type="checkbox"] + label {
     opacity: 0;
     visibility: hidden;
     position: absolute;
+    height: 0;
+    padding: 0;
+    margin: 0;
+    border: none;
 }
 
 .log-entry {
