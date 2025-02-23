@@ -35,6 +35,9 @@ document.addEventListener('DOMContentLoaded', () => {
     const logsSection = document.querySelector('.logs-section');
     const logsContainer = document.getElementById('logs-container');
     
+    // Logs collapse functionality
+    const collapseBtn = document.getElementById('collapse-logs');
+    
     // Application State
     let bookmarksTree = [];
     let pendingBookmarks = new Set();
@@ -58,10 +61,17 @@ document.addEventListener('DOMContentLoaded', () => {
         
         logEntry.innerHTML = logContent;
         logsContainer.appendChild(logEntry);
-        logsContainer.scrollTop = logsContainer.scrollHeight;
+        
+        // Only auto-scroll if logs are not collapsed
+        if (!logsContainer.classList.contains('collapsed')) {
+            logsContainer.scrollTop = logsContainer.scrollHeight;
+        }
         
         if (logsSection.style.display === 'none') {
             logsSection.style.display = 'block';
+            // Ensure logs are expanded when first shown
+            collapseBtn.classList.remove('collapsed');
+            logsContainer.classList.remove('collapsed');
         }
     }
 
@@ -1179,4 +1189,10 @@ REQUIRED RESPONSE FORMAT:
 
     // Load initial bookmarks tree
     loadBookmarksTree();
+
+    // Logs collapse functionality
+    collapseBtn.addEventListener('click', () => {
+        collapseBtn.classList.toggle('collapsed');
+        logsContainer.classList.toggle('collapsed');
+    });
 });

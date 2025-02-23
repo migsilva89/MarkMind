@@ -64,7 +64,9 @@
         <div id="bookmarks-container" class="bookmarks-tree"></div>
 
         <div id="pending-bookmarks" class="pending-section" style="display: none;">
-            <h2>Selected Links (<span id="pending-count">0</span>)</h2>
+            <div class="pending-header">
+                Selected Links <span id="pending-count" class="pending-count">0</span>
+            </div>
             <div id="pending-list" class="pending-list"></div>
         </div>
 
@@ -79,7 +81,10 @@
         </div>
 
         <div class="logs-section" style="display: none;">
-            <h3>Process Logs</h3>
+            <div class="logs-header">
+                <h3>Process Logs</h3>
+                <button class="collapse-btn" id="collapse-logs" title="Toggle Logs">›</button>
+            </div>
             <div id="logs-container" class="logs-container"></div>
         </div>
 
