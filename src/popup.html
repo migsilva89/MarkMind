@@ -20,7 +20,10 @@
         </div>
 
         <div id="settings-section" class="settings-section" style="display: none;">
-            <h2>Settings</h2>
+            <h2>
+                Settings
+                <button class="settings-close" id="settings-close">×</button>
+            </h2>
             <div class="settings-form">
                 <div class="form-group">
                     <label for="api-key">Gemini API Key</label>
@@ -29,16 +32,16 @@
                         <button id="save-api-key" class="secondary-btn">Save</button>
                     </div>
                     <div id="settings-status" class="status-message" style="display: none;"></div>
-                    <div class="settings-actions">
-                        <button id="remove-api-key" class="secondary-btn warning-btn" style="display: none;">Remove API Key</button>
-                        <a href="PRIVACY.md" target="_blank" class="privacy-link">Privacy Policy</a>
-                    </div>
                     <p class="help-text">
                         Get your API key at: <a href="https://makersuite.google.com/app/apikey" target="_blank">Google AI Studio</a><br>
                         <small>Your API key is stored locally and only used to communicate with Google's Gemini AI service.</small>
                     </p>
                     <button id="test-api" class="secondary-btn test-btn" style="display: none;">Test API</button>
+                    <button id="remove-api-key" class="secondary-btn warning-btn" style="display: none;">Remove API Key</button>
                     <div id="test-result" class="test-result" style="display: none;"></div>
+                    <div class="settings-actions">
+                        <a href="PRIVACY.md" target="_blank" class="privacy-link">Privacy Policy</a>
+                    </div>
                 </div>
             </div>
         </div>

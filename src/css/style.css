@@ -530,17 +530,44 @@ input[type="checkbox"] + label {
 
 /* Settings section */
 .settings-section {
-    margin-bottom: 24px;
-    padding: 16px;
-    background-color: var(--hover-background);
-    border-radius: 16px;
-    border: 1.5px solid var(--border-color);
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: var(--background-color);
+    z-index: 1000;
+    padding: 24px;
+    display: none;
 }
 
 .settings-section h2 {
     font-size: 18px;
     font-weight: 500;
-    margin-bottom: 16px;
+    margin-bottom: 24px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.settings-close {
+    cursor: pointer;
+    padding: 8px;
+    border-radius: 50%;
+    width: 32px;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: var(--hover-background);
+    border: none;
+    font-size: 18px;
+    transition: all 0.2s ease;
+}
+
+.settings-close:hover {
+    background-color: var(--border-color);
+    transform: rotate(90deg);
 }
 
 .form-group {
@@ -573,23 +600,38 @@ input[type="checkbox"] + label {
 }
 
 .help-text {
-    margin-top: 8px;
+    margin-top: 24px;
+    margin-bottom: 24px;
     font-size: 12px;
     color: var(--secondary-color);
+    padding: 16px;
+    background-color: var(--hover-background);
+    border-radius: 8px;
+    border: 1px solid var(--border-color);
 }
 
 .help-text a {
     color: var(--primary-color);
     text-decoration: none;
+    font-weight: 500;
 }
 
 .help-text a:hover {
     text-decoration: underline;
 }
 
+.help-text small {
+    display: block;
+    margin-top: 8px;
+    color: var(--secondary-color);
+    font-size: 12px;
+    line-height: 1.5;
+}
+
 .test-btn {
     width: 100%;
     margin-top: 16px;
+    margin-bottom: 8px;
 }
 
 .test-result {
@@ -962,6 +1004,8 @@ input[type="checkbox"] + label {
 }
 
 .warning-btn {
+    width: 100%;
+    margin-bottom: 16px;
     color: #d93025;
     border-color: #d93025;
 }
@@ -979,11 +1023,4 @@ input[type="checkbox"] + label {
 .privacy-link:hover {
     color: var(--primary-color);
     text-decoration: underline;
-}
-
-.help-text small {
-    display: block;
-    margin-top: 4px;
-    color: var(--secondary-color);
-    font-size: 12px;
 }

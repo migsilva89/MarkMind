@@ -15,6 +15,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // Settings Elements
     const settingsBtn = document.getElementById('settings-btn');
     const settingsSection = document.getElementById('settings-section');
+    const settingsCloseBtn = document.getElementById('settings-close');
     const apiKeyInput = document.getElementById('api-key');
     const saveApiKeyBtn = document.getElementById('save-api-key');
     const removeApiKeyBtn = document.getElementById('remove-api-key');
@@ -995,15 +996,28 @@ REQUIRED RESPONSE FORMAT:
 
     // Add settings button click handler
     settingsBtn.addEventListener('click', () => {
-        const isVisible = settingsSection.style.display === 'block';
-        settingsSection.style.display = isVisible ? 'none' : 'block';
-        
-        // Hide other sections when settings is shown
-        if (!isVisible) {
-            if (resultsSection) resultsSection.style.display = 'none';
-            if (progressSection) progressSection.style.display = 'none';
-            if (logsSection) logsSection.style.display = 'none';
-        }
+        settingsSection.style.display = 'block';
+        // Hide all other sections
+        const mainSections = document.querySelectorAll('.container > *:not(#settings-section)');
+        mainSections.forEach(section => {
+            if (section !== settingsSection) {
+                section.style.display = 'none';
+            }
+        });
+    });
+
+    // Add settings close button handler
+    settingsCloseBtn.addEventListener('click', () => {
+        settingsSection.style.display = 'none';
+        // Show main sections again
+        const mainSections = document.querySelectorAll('.container > *:not(#settings-section)');
+        mainSections.forEach(section => {
+            if (section.classList.contains('header') || 
+                section.classList.contains('controls') || 
+                section.id === 'bookmarks-container') {
+                section.style.display = '';
+            }
+        });
     });
 
     // Add Current Page functionality
