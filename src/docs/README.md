@@ -59,11 +59,11 @@ MarkMind is a Chrome extension that helps you organize your bookmarks intelligen
 If you encounter any issues or have questions:
 - Check the [Privacy Policy](PRIVACY.md)
 - Open an issue on GitHub
-- Contact: [Your Contact Info]
+- Contact: miguel.silva.v1@hotmail.com
 
 ## 📜 License
 
-[License Type] - See [LICENSE](LICENSE) file for details.
+MIT License - See [LICENSE](LICENSE) file for details.
 
 ---
 
@@ -110,8 +110,8 @@ src/
 
 1. Clone the repository:
 ```bash
-git clone https://github.com/migsilva89/markmind.git
-cd markmind
+git clone https://github.com/migsilva89/bookmark-ai.git
+cd bookmark-ai
 ```
 
 2. Open the project in your favorite editor
