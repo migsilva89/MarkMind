@@ -48,6 +48,7 @@ body {
     display: flex;
     justify-content: space-between;
     align-items: center;
+    gap: 12px;
     padding: 4px 0;
 }
 
@@ -537,12 +538,6 @@ input[type="checkbox"] + label {
 }
 
 /* Settings header with configuration button */
-.header-top {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-}
-
 .icon-btn {
     background: none;
     border: none;
@@ -552,6 +547,7 @@ input[type="checkbox"] + label {
     border-radius: 50%;
     transition: all 0.2s ease;
     opacity: 0.8;
+    margin-left: auto;
 }
 
 .icon-btn:hover {
@@ -1184,4 +1180,36 @@ input[type="checkbox"] + label {
     border-radius: 4px;
     transition: all 0.2s ease;
     font-size: 12px;
+}
+
+.github-footer {
+    display: flex;
+    align-items: center;
+    margin: 0;
+}
+
+.github-footer a {
+    color: var(--primary-color);
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 6px 12px;
+    border-radius: 20px;
+    background-color: var(--hover-background);
+    border: 1.5px solid var(--border-color);
+    transition: all 0.2s ease;
+    font-size: 13px;
+    white-space: nowrap;
+}
+
+.github-footer a:hover {
+    background-color: var(--background-color);
+    transform: translateY(-1px);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+}
+
+.github-footer img {
+    width: 16px;
+    height: 16px;
 }
