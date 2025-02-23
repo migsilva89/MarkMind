@@ -1,4 +1,23 @@
-# MarkMind - AI-Powered Bookmark Organization
+# MarkMind
+
+<div align="center">
+  <img src="../assets/icons/icon128.png" alt="MarkMind Logo" width="128" height="128">
+  <h1>MarkMind</h1>
+  <p><strong>AI-Powered Bookmark Organization</strong></p>
+  <p>
+    <a href="https://github.com/migsilva89/MarkMind/blob/main/src/docs/LICENSE">
+      <img src="https://img.shields.io/github/license/migsilva89/MarkMind" alt="License">
+    </a>
+   <!--  <a href="https://github.com/migsilva89/MarkMind/releases">
+      <img src="https://img.shields.io/github/v/release/migsilva89/MarkMind" alt="Version">
+    </a> -->
+    <a href="https://github.com/migsilva89/MarkMind/issues">
+      <img src="https://img.shields.io/github/issues/migsilva89/MarkMind" alt="Issues">
+    </a>
+  </p>
+</div>
+
+---
 
 MarkMind is a Chrome extension that helps you organize your bookmarks intelligently using AI. It analyzes your bookmarks and suggests an organized folder structure based on content and patterns.
 

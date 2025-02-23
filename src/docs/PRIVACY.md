@@ -42,9 +42,9 @@ MarkMind is a Chrome extension designed to help you organize your bookmarks usin
 
 ## Contact
 If you have any questions about our privacy practices, please open an issue on our GitHub repository:
-https://github.com/migsilva89/bookmark-ai
+https://github.com/migsilva89/markmind
 
 ## Updates
 This privacy policy may be updated from time to time. Please refer to the GitHub repository for the most current version.
 
-Last updated: March 2024 
+Last updated: February 2025 
