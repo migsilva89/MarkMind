@@ -22,6 +22,10 @@ document.addEventListener('DOMContentLoaded', () => {
     const testApiBtn = document.getElementById('test-api');
     const testResult = document.getElementById('test-result');
     
+    // API Key Warning Elements
+    const apiKeyWarning = document.getElementById('api-key-warning');
+    const configureApiKeyBtn = document.getElementById('configure-api-key');
+    
     // UI Sections
     const progressSection = document.querySelector('.progress-section');
     const progressIndicator = document.getElementById('progress-indicator');
@@ -80,31 +84,38 @@ document.addEventListener('DOMContentLoaded', () => {
         addLog('ℹ️ Organization Process:', 'info', explanation);
     }
 
-    // Load initial API key
-    chrome.storage.local.get(['geminiApiKey'], (result) => {
-        if (result.geminiApiKey) {
-            apiKeyInput.value = result.geminiApiKey;
-            testApiBtn.style.display = 'block';
-            removeApiKeyBtn.style.display = 'block';
-            geminiService.setApiKey(result.geminiApiKey);
-        }
-    });
-
-    // Remove API key
-    removeApiKeyBtn.addEventListener('click', () => {
-        if (confirm('Are you sure you want to remove your API key? This will disable the AI organization feature.')) {
-            chrome.storage.local.remove(['geminiApiKey'], () => {
-                if (chrome.runtime.lastError) {
-                    showStatus('Error removing API key: ' + chrome.runtime.lastError.message, 'error', true);
-                    return;
-                }
+    // Function to check API key and update UI
+    function checkApiKeyAndUpdateUI() {
+        chrome.storage.local.get(['geminiApiKey'], (result) => {
+            const hasApiKey = result.geminiApiKey && result.geminiApiKey.trim() !== '';
+            
+            // Show/hide API key warning
+            apiKeyWarning.style.display = hasApiKey ? 'none' : 'block';
+            
+            // Enable/disable buttons
+            addCurrentBtn.disabled = !hasApiKey;
+            organizeBtn.disabled = !hasApiKey || pendingBookmarks.size === 0;
+            selectAllBtn.disabled = !hasApiKey;
+            deselectAllBtn.disabled = !hasApiKey;
+            
+            // Update API key related elements
+            if (hasApiKey) {
+                apiKeyInput.value = result.geminiApiKey;
+                testApiBtn.style.display = 'block';
+                removeApiKeyBtn.style.display = 'block';
+                geminiService.setApiKey(result.geminiApiKey);
+            } else {
                 apiKeyInput.value = '';
                 testApiBtn.style.display = 'none';
                 removeApiKeyBtn.style.display = 'none';
-                geminiService.setApiKey('');
-                showStatus('API key removed successfully', 'success', true);
-            });
-        }
+            }
+        });
+    }
+
+    // Configure API Key button click handler
+    configureApiKeyBtn.addEventListener('click', () => {
+        settingsSection.style.display = 'block';
+        apiKeyInput.focus();
     });
 
     // Save API key
@@ -128,11 +139,26 @@ document.addEventListener('DOMContentLoaded', () => {
                 return;
             }
             showStatus('API key saved successfully!', 'success', true);
-            testApiBtn.style.display = 'block';
-            removeApiKeyBtn.style.display = 'block';
-            geminiService.setApiKey(apiKey);
+            checkApiKeyAndUpdateUI();
         });
     });
+
+    // Remove API key
+    removeApiKeyBtn.addEventListener('click', () => {
+        if (confirm('Are you sure you want to remove your API key? This will disable the AI organization feature.')) {
+            chrome.storage.local.remove(['geminiApiKey'], () => {
+                if (chrome.runtime.lastError) {
+                    showStatus('Error removing API key: ' + chrome.runtime.lastError.message, 'error', true);
+                    return;
+                }
+                checkApiKeyAndUpdateUI();
+                showStatus('API key removed successfully', 'success', true);
+            });
+        }
+    });
+
+    // Initial check for API key
+    checkApiKeyAndUpdateUI();
 
     // Test API functionality
     testApiBtn.addEventListener('click', async () => {
