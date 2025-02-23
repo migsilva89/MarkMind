@@ -44,11 +44,39 @@ body {
     gap: 16px;
 }
 
+.header-top {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 4px 0;
+}
+
+.logo-container {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.logo {
+    width: 38px;
+    height: 38px;
+    object-fit: contain;
+    border-radius: 6px;
+}
+
+.logo-title {
+    font-size: 22px;
+    font-weight: 400;
+    letter-spacing: -0.5px;
+    color: var(--primary-color);
+}
+
 .header h1 {
-    font-size: 28px;
+    font-size: 20px;
     font-weight: 600;
     letter-spacing: -0.5px;
     margin: 0;
+    color: var(--primary-color);
 }
 
 /* Botões modernos e minimalistas */
@@ -521,11 +549,13 @@ input[type="checkbox"] + label {
     cursor: pointer;
     border-radius: 50%;
     transition: all 0.2s ease;
+    opacity: 0.8;
 }
 
 .icon-btn:hover {
     background-color: var(--hover-background);
     transform: rotate(30deg);
+    opacity: 1;
 }
 
 /* Settings section */
@@ -1023,4 +1053,31 @@ input[type="checkbox"] + label {
 .privacy-link:hover {
     color: var(--primary-color);
     text-decoration: underline;
+}
+
+.api-key-warning {
+    background-color: #fff8e6;
+    border: 1.5px solid #ffc107;
+    border-radius: 12px;
+    padding: 16px;
+    text-align: center;
+    margin-bottom: 24px;
+}
+
+.api-key-warning p:first-child {
+    font-size: 16px;
+    font-weight: 500;
+    margin-bottom: 8px;
+    color: var(--text-color);
+}
+
+.api-key-warning .warning-description {
+    font-size: 14px;
+    color: var(--secondary-color);
+    margin-bottom: 16px;
+}
+
+.api-key-warning .secondary-btn {
+    margin: 0 auto;
+    padding: 8px 16px;
 }

@@ -59,7 +59,7 @@ MarkMind is a Chrome extension that helps you organize your bookmarks intelligen
 If you encounter any issues or have questions:
 - Check the [Privacy Policy](PRIVACY.md)
 - Open an issue on GitHub
-- Contact: miguel.silva.v1@hotmail.com
+- Contact: themarkmind@gmail.com
 
 ## 📜 License
 
