@@ -301,10 +301,10 @@ button:disabled {
     border: 1.5px solid var(--border-color);
     padding: 16px;
     margin-top: 16px;
-    min-height: 200px;
-    max-height: 80vh;
-    height: auto;
+    height: 600px;
     position: relative;
+    display: flex;
+    flex-direction: column;
 }
 
 .results-section .error {
@@ -690,7 +690,6 @@ input[type="checkbox"] + label {
     border-bottom: 1.5px solid var(--border-color);
     margin-bottom: 16px;
     flex-shrink: 0;
-    min-height: 60px;
 }
 
 .suggestion-summary h3 {
@@ -708,9 +707,7 @@ input[type="checkbox"] + label {
     overflow-y: auto;
     padding-right: 12px;
     margin-bottom: 80px;
-    min-height: 100px;
-    max-height: 400px;
-    height: auto;
+    height: calc(100% - 180px);
 }
 
 .folder-group {
@@ -866,6 +863,7 @@ input[type="checkbox"] + label {
     justify-content: flex-end;
     gap: 12px;
     z-index: 10;
+    background-color: var(--background-color);
 }
 
 .success-message,
