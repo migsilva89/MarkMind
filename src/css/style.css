@@ -902,3 +902,38 @@ input[type="checkbox"] + label {
 .folder-group h4::before {
     transition: all 0.3s ease;
 }
+
+/* Settings section additions */
+.settings-actions {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin: 12px 0;
+}
+
+.warning-btn {
+    color: #d93025;
+    border-color: #d93025;
+}
+
+.warning-btn:hover {
+    background-color: #fce8e6;
+}
+
+.privacy-link {
+    color: var(--secondary-color);
+    text-decoration: none;
+    font-size: 14px;
+}
+
+.privacy-link:hover {
+    color: var(--primary-color);
+    text-decoration: underline;
+}
+
+.help-text small {
+    display: block;
+    margin-top: 4px;
+    color: var(--secondary-color);
+    font-size: 12px;
+}

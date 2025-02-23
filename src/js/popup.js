@@ -17,6 +17,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const settingsSection = document.getElementById('settings-section');
     const apiKeyInput = document.getElementById('api-key');
     const saveApiKeyBtn = document.getElementById('save-api-key');
+    const removeApiKeyBtn = document.getElementById('remove-api-key');
     const testApiBtn = document.getElementById('test-api');
     const testResult = document.getElementById('test-result');
     
@@ -57,89 +58,53 @@ document.addEventListener('DOMContentLoaded', () => {
         if (result.geminiApiKey) {
             apiKeyInput.value = result.geminiApiKey;
             testApiBtn.style.display = 'block';
+            removeApiKeyBtn.style.display = 'block';
             geminiService.setApiKey(result.geminiApiKey);
         }
     });
 
-    // Settings
-    settingsBtn.addEventListener('click', () => {
-        console.log('Settings button clicked');
-        const isVisible = settingsSection.style.display === 'block';
-        settingsSection.style.display = isVisible ? 'none' : 'block';
-        
-        if (!isVisible) {
-            try {
-                // Check if chrome.storage object is available
-                if (!chrome || !chrome.storage || !chrome.storage.local) {
-                    throw new Error('Chrome storage API is not available');
+    // Remove API key
+    removeApiKeyBtn.addEventListener('click', () => {
+        if (confirm('Are you sure you want to remove your API key? This will disable the AI organization feature.')) {
+            chrome.storage.local.remove(['geminiApiKey'], () => {
+                if (chrome.runtime.lastError) {
+                    showStatus('Error removing API key: ' + chrome.runtime.lastError.message, 'error', true);
+                    return;
                 }
-
-                // Load API key
-                chrome.storage.local.get(['geminiApiKey'], (result) => {
-                    if (chrome.runtime.lastError) {
-                        console.error('Error loading API key:', chrome.runtime.lastError);
-                        showStatus('Error loading API key: ' + chrome.runtime.lastError.message, 'error', true);
-                        return;
-                    }
-                    console.log('Loaded API key:', result.geminiApiKey ? 'exists' : 'not found');
-                    if (result.geminiApiKey) {
-                        apiKeyInput.value = result.geminiApiKey;
-                        // Configure API key in service
-                        geminiService.setApiKey(result.geminiApiKey);
-                    }
-                });
-            } catch (error) {
-                console.error('Error loading API key:', error);
-                showStatus('Error loading API key: ' + error.message, 'error', true);
-            }
+                apiKeyInput.value = '';
+                testApiBtn.style.display = 'none';
+                removeApiKeyBtn.style.display = 'none';
+                geminiService.setApiKey('');
+                showStatus('API key removed successfully', 'success', true);
+            });
         }
     });
 
+    // Save API key
     saveApiKeyBtn.addEventListener('click', () => {
-        console.log('Save API key button clicked');
         const apiKey = apiKeyInput.value.trim();
-        console.log('API key length:', apiKey.length);
         
         if (!apiKey) {
-            console.log('API key is empty');
             showStatus('Please enter a valid API key.', 'error', true);
             return;
         }
 
         // Basic validation of API key format
         if (!apiKey.match(/^AIza[0-9A-Za-z-_]{35}$/)) {
-            console.log('Invalid API key format');
-            showStatus('Invalid API key. Must start with "AIza" and be 39 characters long.', 'error', true);
+            showStatus('Invalid API key format. Must start with "AIza" and be 39 characters long.', 'error', true);
             return;
         }
 
-        console.log('Saving API key...');
-        try {
-            // Check if chrome.storage object is available
-            if (!chrome || !chrome.storage || !chrome.storage.local) {
-                throw new Error('Chrome storage API is not available');
+        chrome.storage.local.set({ geminiApiKey: apiKey }, () => {
+            if (chrome.runtime.lastError) {
+                showStatus('Error saving API key: ' + chrome.runtime.lastError.message, 'error', true);
+                return;
             }
-
-            // Save the API key
-            chrome.storage.local.set(
-                { geminiApiKey: apiKey },
-                () => {
-                    if (chrome.runtime.lastError) {
-                        console.error('Error saving API key:', chrome.runtime.lastError);
-                        showStatus('Error saving API key: ' + chrome.runtime.lastError.message, 'error', true);
-                        return;
-                    }
-                    console.log('API key saved successfully');
-                    showStatus('API key saved successfully!', 'success', true);
-                    testApiBtn.style.display = 'block';
-                    // Configure API key in service after saving
-                    geminiService.setApiKey(apiKey);
-                }
-            );
-        } catch (error) {
-            console.error('Error saving API key:', error);
-            showStatus('Error saving API key: ' + error.message, 'error', true);
-        }
+            showStatus('API key saved successfully!', 'success', true);
+            testApiBtn.style.display = 'block';
+            removeApiKeyBtn.style.display = 'block';
+            geminiService.setApiKey(apiKey);
+        });
     });
 
     // Test API functionality
@@ -988,6 +953,19 @@ REQUIRED RESPONSE FORMAT:
         } catch (error) {
             addLog(`❌ Error: ${error.message}`, 'error');
             toggleExecutionUI('normal');
+        }
+    });
+
+    // Add settings button click handler
+    settingsBtn.addEventListener('click', () => {
+        const isVisible = settingsSection.style.display === 'block';
+        settingsSection.style.display = isVisible ? 'none' : 'block';
+        
+        // Hide other sections when settings is shown
+        if (!isVisible) {
+            if (resultsSection) resultsSection.style.display = 'none';
+            if (progressSection) progressSection.style.display = 'none';
+            if (logsSection) logsSection.style.display = 'none';
         }
     });
 
