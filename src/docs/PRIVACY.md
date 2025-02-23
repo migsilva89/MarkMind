@@ -47,4 +47,4 @@ https://github.com/migsilva89/markmind
 ## Updates
 This privacy policy may be updated from time to time. Please refer to the GitHub repository for the most current version.
 
-Last updated: February 2025 
+Last updated: February 2025  

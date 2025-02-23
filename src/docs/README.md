@@ -5,9 +5,9 @@
   <h1>MarkMind</h1>
   <p><strong>AI-Powered Bookmark Organization</strong></p>
   <p>
-    <a href="https://github.com/migsilva89/MarkMind/blob/main/src/docs/LICENSE">
-      <img src="https://img.shields.io/github/license/migsilva89/MarkMind" alt="License">
-    </a>
+<!--     <a href="https://github.com/migsilva89/MarkMind/blob/main/src/docs/LICENSE">
+      <img src="https://img.shields.io/github/license//migsilva89/MarkMind" alt="License">
+    </a> -->
    <!--  <a href="https://github.com/migsilva89/MarkMind/releases">
       <img src="https://img.shields.io/github/v/release/migsilva89/MarkMind" alt="Version">
     </a> -->
