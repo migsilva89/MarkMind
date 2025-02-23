@@ -1,7 +1,7 @@
 # MarkMind
 
 <div align="center">
-  <img src="../assets/icons/icon128.png" alt="MarkMind Logo" width="128" height="128">
+  <img src="./src/assets/icons/icon128.png" alt="MarkMind Logo" width="128" height="128">
   <h1>MarkMind</h1>
   <p><strong>AI-Powered Bookmark Organization</strong></p>
   <p>
