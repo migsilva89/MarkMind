@@ -684,6 +684,18 @@ REQUIRED RESPONSE FORMAT:
         }
     }
 
+    // Helper function to clean URLs
+    function cleanUrl(url) {
+        try {
+            const urlObj = new URL(url);
+            // Remove query parameters and hash
+            return `${urlObj.protocol}//${urlObj.hostname}${urlObj.pathname}`;
+        } catch (e) {
+            console.error('Error cleaning URL:', e);
+            return url;
+        }
+    }
+
     async function processFolder(folder, parentId = '1') {
         try {
             // Find or create the current folder
@@ -737,30 +749,38 @@ REQUIRED RESPONSE FORMAT:
                 addLog(`Moving ${folder.bookmarks.length} bookmarks to "${folder.name}"...`, 'info');
                 for (const bookmark of folder.bookmarks) {
                     try {
-                        const existingBookmark = Array.from(pendingBookmarks).find(bm => 
-                            bm.url === bookmark.url && bm.title === bookmark.title
-                        );
+                        // Clean URLs before comparison
+                        const cleanedSuggestedUrl = cleanUrl(bookmark.url);
+                        const existingBookmark = Array.from(pendingBookmarks).find(bm => {
+                            const cleanedExistingUrl = cleanUrl(bm.url);
+                            return cleanedExistingUrl === cleanedSuggestedUrl && bm.title === bookmark.title;
+                        });
                         
                         if (!existingBookmark) {
-                            addLog(`⚠️ Bookmark not found: ${bookmark.title}`, 'warning');
+                            addLog(`⚠️ Bookmark not found: ${bookmark.title} (${bookmark.url})`, 'warning');
                             continue;
                         }
 
                         if (existingBookmark.type === 'new') {
-                            await chrome.bookmarks.create({
+                            const created = await chrome.bookmarks.create({
                                 parentId: folderId,
                                 title: bookmark.title,
                                 url: bookmark.url
                             });
-                            addLog(`✓ Created: ${bookmark.title}`, 'success');
+                            addLog(`✓ Created: ${bookmark.title} in "${folder.name}"`, 'success');
+                            addLog(`  URL: ${bookmark.url}`, 'info');
+                            addLog(`  ID: ${created.id}`, 'info');
                         } else {
                             await chrome.bookmarks.move(existingBookmark.id, {
                                 parentId: folderId
                             });
-                            addLog(`✓ Moved: ${bookmark.title}`, 'success');
+                            addLog(`✓ Moved: ${bookmark.title} to "${folder.name}"`, 'success');
+                            addLog(`  From: ${existingBookmark.url}`, 'info');
+                            addLog(`  ID: ${existingBookmark.id}`, 'info');
                         }
                     } catch (error) {
                         addLog(`❌ Error processing ${bookmark.title}: ${error.message}`, 'error');
+                        addLog(`  URL: ${bookmark.url}`, 'error');
                     }
                 }
             }
