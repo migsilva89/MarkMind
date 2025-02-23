@@ -40,17 +40,43 @@ document.addEventListener('DOMContentLoaded', () => {
     };
 
     // Function to add logs
-    function addLog(message, type = 'info') {
+    function addLog(message, type = 'info', details = null) {
         const timestamp = new Date().toLocaleTimeString();
         const logEntry = document.createElement('div');
         logEntry.className = `log-entry ${type}`;
-        logEntry.innerHTML = `<span class="log-timestamp">[${timestamp}]</span> ${message}`;
+        
+        let logContent = `<span class="log-timestamp">[${timestamp}]</span> ${message}`;
+        
+        if (details) {
+            logContent += `<div class="log-details">${details}</div>`;
+        }
+        
+        logEntry.innerHTML = logContent;
         logsContainer.appendChild(logEntry);
         logsContainer.scrollTop = logsContainer.scrollHeight;
         
         if (logsSection.style.display === 'none') {
             logsSection.style.display = 'block';
         }
+    }
+
+    // Function to show process explanation
+    function showProcessExplanation() {
+        const explanation = `
+            <div class="process-explanation">
+                <h4>How MarkMind Organizes Your Bookmarks</h4>
+                <ol>
+                    <li>Analyzes bookmark titles and URLs</li>
+                    <li>Groups similar content together</li>
+                    <li>Uses existing folders when appropriate</li>
+                    <li>Creates new folders only when needed</li>
+                    <li>Maintains a clean hierarchy (max 3 levels)</li>
+                </ol>
+                <p class="ai-disclosure">Uses Google's Gemini AI for intelligent categorization</p>
+            </div>
+        `;
+        
+        addLog('ℹ️ Organization Process:', 'info', explanation);
     }
 
     // Load initial API key
@@ -770,43 +796,53 @@ REQUIRED RESPONSE FORMAT:
             toggleExecutionUI('executing');
             logsContainer.innerHTML = '';
             
+            // Show process explanation
+            showProcessExplanation();
+            
             const selectedBookmarks = Array.from(pendingBookmarks);
             if (selectedBookmarks.length === 0) {
                 throw new Error('No bookmarks selected');
             }
             
             addLog(`🚀 Starting organization of ${selectedBookmarks.length} bookmarks`, 'info');
-            addLog(`• ${selectedBookmarks.length} bookmarks to analyze`, 'info');
-            addLog(`• ${currentPrompt.folders.length} existing folders`, 'info');
+            addLog('📊 Current Statistics:', 'info', `
+                <ul>
+                    <li>Bookmarks to organize: ${selectedBookmarks.length}</li>
+                    <li>Existing folders: ${currentPrompt.folders.length}</li>
+                    <li>Maximum folder depth: 3 levels</li>
+                </ul>
+            `);
 
             // Show progress section
             progressSection.style.display = 'block';
-            progressText.textContent = 'Sending for analysis...';
+            progressText.textContent = 'Analyzing bookmarks...';
+            progressIndicator.style.width = '30%';
+            
+            addLog('🔍 Phase 1: Analyzing bookmark patterns...', 'info');
+            await new Promise(resolve => setTimeout(resolve, 1000));
             progressIndicator.style.width = '50%';
             
-            // Get suggestion from Gemini using prepared prompt
+            addLog('🤖 Phase 2: Generating organization suggestions...', 'info');
+            
+            // Get suggestion from Gemini
             let suggestion;
             try {
                 suggestion = await geminiService.suggestOrganization(selectedBookmarks, currentPrompt.folders, addLog);
                 
-                addLog('✅ Response received from Gemini', 'success');
+                addLog('✅ AI Analysis Complete', 'success');
+                addLog('📋 Organization Summary:', 'info', `
+                    <ul>
+                        <li>New folders to create: ${suggestion.folders.filter(f => f.isNew).length}</li>
+                        <li>Existing folders to use: ${suggestion.folders.filter(f => !f.isNew).length}</li>
+                        <li>Total folders in structure: ${suggestion.folders.length}</li>
+                    </ul>
+                `);
                 
                 if (!suggestion || typeof suggestion !== 'object') {
-                    throw new Error('Invalid response from Gemini');
+                    throw new Error('Invalid response format from AI');
                 }
-                
-                if (!suggestion.folders || !Array.isArray(suggestion.folders)) {
-                    throw new Error('Invalid response format: folders not found or not an array');
-                }
-                
-                addLog('✨ Organization suggestion received successfully', 'success');
-                addLog(`📂 Total suggested folders: ${suggestion.folders.length}`, 'info');
             } catch (error) {
-                addLog(`❌ Error processing Gemini response: ${error.message}`, 'error');
-                if (suggestion) {
-                    addLog('⚠️ Response content:', 'warning');
-                    addLog(JSON.stringify(suggestion, null, 2), 'info');
-                }
+                addLog(`❌ Error during AI analysis: ${error.message}`, 'error');
                 throw error;
             }
 

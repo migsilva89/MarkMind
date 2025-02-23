@@ -1,16 +1,73 @@
-# MarkMind
+# MarkMind - AI-Powered Bookmark Organization
 
-A Chrome extension that helps you organize your bookmarks intelligently using AI.
+MarkMind is a Chrome extension that helps you organize your bookmarks intelligently using AI. It analyzes your bookmarks and suggests an organized folder structure based on content and patterns.
 
-## Features
+## 🌟 Key Features
 
-- Automatically organize bookmarks using AI
-- Create and manage bookmark folders with up to 3 levels of hierarchy
-- Smart categorization of bookmarks based on content
-- Modern and intuitive interface
-- Preview organization before applying changes
-- Detailed logging for transparency
-- Secure API key management
+- **Smart Organization**: Uses AI to analyze and categorize your bookmarks
+- **Bulk Processing**: Organize multiple bookmarks at once
+- **Existing Structure Respect**: Works with your current folder organization
+- **Privacy First**: All bookmark processing happens locally
+- **Full Control**: Review and approve all suggested changes
+- **Clear Feedback**: Detailed logs of all actions taken
+
+## 🔍 How It Works
+
+1. **Selection**: Choose the bookmarks you want to organize
+2. **Analysis**: AI analyzes the content and patterns
+3. **Suggestion**: Receives intelligent folder structure suggestions
+4. **Review**: You review and approve the suggested organization
+5. **Application**: Changes are applied to your Chrome bookmarks
+
+## 🛠️ Technical Details
+
+- Uses Google's Gemini AI for intelligent categorization
+- Requires a Google AI API key (free tier available)
+- Processes bookmarks locally for privacy
+- Minimal permissions required:
+  - `bookmarks`: To read and organize your bookmarks
+  - `activeTab`: To add current page as bookmark
+  - `storage`: To save your settings locally
+
+## 📝 Usage Guide
+
+1. **Initial Setup**:
+   - Install the extension
+   - Add your Google AI API key in settings
+   - Click the extension icon to start
+
+2. **Organizing Bookmarks**:
+   - Select bookmarks to organize
+   - Click "Organize Selected"
+   - Review the suggested structure
+   - Approve to apply changes
+
+3. **Adding Current Page**:
+   - Click "Add Current Page"
+   - The page will be bookmarked and organized
+
+## 🔒 Privacy & Security
+
+- Your bookmarks never leave your browser
+- Only bookmark titles and URLs are sent to AI
+- API key is stored securely in local storage
+- No personal data is collected or stored
+- No tracking or analytics
+
+## 🤝 Support
+
+If you encounter any issues or have questions:
+- Check the [Privacy Policy](PRIVACY.md)
+- Open an issue on GitHub
+- Contact: [Your Contact Info]
+
+## 📜 License
+
+[License Type] - See [LICENSE](LICENSE) file for details.
+
+---
+
+Made with ❤️ for better bookmark organization
 
 ## Project Structure
 
@@ -121,4 +178,22 @@ cd markmind
 
 ## License
 
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details. 
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+
+## 📸 Screenshots
+
+### Main Interface
+![Main Interface](screenshots/main-interface.png)
+*The main interface showing bookmark selection and organization options*
+
+### Organization Process
+![Organization Process](screenshots/organization-process.png)
+*Detailed logs showing the AI-powered organization process*
+
+### Settings Panel
+![Settings Panel](screenshots/settings-panel.png)
+*API key management and privacy settings*
+
+### Results View
+![Results View](screenshots/results-view.png)
+*Preview of suggested bookmark organization* 
