@@ -984,7 +984,6 @@ document.addEventListener('DOMContentLoaded', () => {
             toggleExecutionUI('executing');
             logsContainer.innerHTML = '';
             
-            // Iniciar simulação de progresso
             const progress = simulateProgress();
             
             // Show process explanation
@@ -995,31 +994,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 throw new Error('No bookmarks selected');
             }
 
-            // Get existing folders with hierarchy
-            const existingFolders = [];
-            function collectFolders(node) {
-                if (!node.url) {
-                    const folder = {
-                        id: node.id,
-                        title: node.title,
-                        children: []
-                    };
-                    
-                    if (node.children) {
-                        node.children.forEach(child => {
-                            if (!child.url) {
-                                folder.children.push(collectFolders(child));
-                            }
-                        });
-                    }
-                    
-                    if (node.id !== '0') { // Don't add root node
-                        existingFolders.push(folder);
-                    }
-                    return folder;
-                }
-            }
-            bookmarksTree[0].children.forEach(collectFolders);
+            // Use the existing folders hierarchy that we already have
+            const existingFolders = JSON.parse(window.existingFoldersHierarchy);
             
             addLog(`🚀 Starting organization of ${selectedBookmarks.length} bookmarks`, 'info');
             addLog('📊 Current Statistics:', 'info', `
@@ -1051,10 +1027,7 @@ document.addEventListener('DOMContentLoaded', () => {
                         url: b.url,
                         id: b.id
                     })),
-                    existingFolders: existingFolders.map(f => ({
-                        title: f.title,
-                        id: f.id
-                    })),
+                    existingFolders: existingFolders,
                     isSingleBookmark: false
                 });
                 suggestion = await geminiService.suggestOrganization(selectedBookmarks, existingFolders, addLog, false);
