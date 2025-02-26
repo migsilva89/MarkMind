@@ -966,11 +966,11 @@ REQUIRED RESPONSE FORMAT:
             
             // Update text based on progress
             if (progress < 30) {
-                progressText.textContent = 'Analyzing bookmarks...';
+                progressText.textContent = 'Analyzing bookmarks';
             } else if (progress < 60) {
-                progressText.textContent = 'Processing structure...';
+                progressText.textContent = 'Processing structure';
             } else {
-                progressText.textContent = 'Finalizing organization...';
+                progressText.textContent = 'Finalizing organization';
             }
         }, 100);
         
@@ -1115,9 +1115,9 @@ REQUIRED RESPONSE FORMAT:
                             <p><strong>Possible cause:</strong> ${errorGuidance || 'An unexpected error occurred during the AI analysis.'}</p>
                             <p><strong>Suggestions:</strong></p>
                             <ul>
-                                ${selectedBookmarks.length > 80 ? '<li>Try organizing fewer bookmarks at once (under 80 is recommended)</li>' : ''}
+                                ${selectedBookmarks.length > 80 ? '<li>Try organizing fewer bookmarks at once (under 90 is recommended) for free API keys. </li>' : ''}
                                 <li>Check your internet connection</li>
-                                <li>Verify your API key is valid and has sufficient quota</li>
+                                <li>If you have a paid API key, verify if it is valid and has sufficient quota</li>
                                 <li>Try again in a few minutes</li>
                             </ul>
                         </div>
@@ -1130,17 +1130,7 @@ REQUIRED RESPONSE FORMAT:
                 document.getElementById('try-again').addEventListener('click', () => {
                     toggleExecutionUI('normal');
                 });
-                
-                if (selectedBookmarks.length > 10) {
-                    document.getElementById('try-smaller-batch').addEventListener('click', () => {
-                        // Keep only the first 10 bookmarks
-                        const firstTen = Array.from(pendingBookmarks).slice(0, 10);
-                        pendingBookmarks.clear();
-                        firstTen.forEach(bm => pendingBookmarks.add(bm));
-                        updatePendingList();
-                        toggleExecutionUI('normal');
-                    });
-                }
+        
                 
                 return; // Exit the function to prevent further execution
             }
