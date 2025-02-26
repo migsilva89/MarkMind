@@ -730,6 +730,14 @@ document.addEventListener('DOMContentLoaded', () => {
             warningElement.style.display = 'none';
         }
 
+        // Reset add status message when returning to normal state
+        const addStatus = document.getElementById('add-status');
+        if (addStatus && state === 'normal') {
+            addStatus.style.display = 'none';
+            addStatus.textContent = '';
+            addStatus.className = 'status-message';
+        }
+
         // Show elements based on state
         switch (state) {
             case 'normal':
