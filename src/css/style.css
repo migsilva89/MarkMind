@@ -307,6 +307,7 @@ button:disabled {
     position: relative;
     display: flex;
     flex-direction: column;
+    overflow-y: auto;
 }
 
 .results-section .error {
@@ -703,7 +704,7 @@ input[type="checkbox"] + label {
     flex: 1;
     overflow-y: auto;
     padding-right: 12px;
-    margin-bottom: 80px;
+    margin-bottom: 16px;
     min-height: 100px;
 }
 
@@ -850,10 +851,8 @@ input[type="checkbox"] + label {
 }
 
 .suggestion-actions {
-    position: fixed;
-    bottom: 24px;
-    left: 24px;
-    right: 24px;
+    position: sticky;
+    bottom: 0;
     padding: 16px;
     border-radius: 12px;
     border: 1.5px solid var(--border-color);
@@ -863,6 +862,7 @@ input[type="checkbox"] + label {
     z-index: 10;
     background-color: var(--background-color);
     box-shadow: 0 -4px 12px rgba(0, 0, 0, 0.05);
+    margin-top: 16px;
 }
 
 .success-message,

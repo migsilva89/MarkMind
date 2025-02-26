@@ -180,9 +180,6 @@ class GeminiService {
 
             const bookmarksData = bookmarks.map(b => {
                 const cleanedUrl = cleanUrl(b.url);
-                if (cleanedUrl !== b.url && logger) {
-                    logger(`🧹 Cleaned URL: ${b.url} -> ${cleanedUrl}`, 'info');
-                }
                 return `- ${b.title}\n  URL: ${cleanedUrl}\n  ID: ${b.id || 'new'}`;
             }).join('\n');
 
@@ -240,7 +237,6 @@ IMPORTANT VALIDATION RULES:
 
             const promptTokenCount = promptText.split(/\s+/).length;
             if (logger) {
-                logger(`📊 Estimated prompt tokens: ${promptTokenCount}`, 'info');
                 logger('🤔 Analyzing bookmark patterns...', 'info');
             }
 
