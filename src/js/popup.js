@@ -738,95 +738,140 @@ REQUIRED RESPONSE FORMAT:
             // Find or create the current folder
             let targetFolder;
             
-            // Helper function to find folder by name and parent
-            async function findFolderByNameAndParent(name, parentId) {
-                const bookmarks = await chrome.bookmarks.getSubTree(parentId);
-                if (!bookmarks || !bookmarks[0] || !bookmarks[0].children) return null;
-                
-                return bookmarks[0].children.find(b => b.title === name && !b.url);
-            }
+            // Check if this is a native Chrome folder (like "Other Bookmarks")
+            const isNativeFolder = folder.id === '1' || folder.id === '2' || folder.id === '3';
             
-            if (folder.isNew) {
-                addLog(`Creating folder "${folder.name}" under parent ${parentId}...`, 'info');
-                targetFolder = await chrome.bookmarks.create({
-                    parentId: parentId,
-                    title: folder.name
-                });
-                addLog(`✓ Folder created with ID: ${targetFolder.id}`, 'success');
-            } else {
-                addLog(`Looking for existing folder "${folder.name}" under parent ${parentId}...`, 'info');
-                // First try to find the folder under the specified parent
-                targetFolder = await findFolderByNameAndParent(folder.name, parentId);
-                
-                if (!targetFolder) {
-                    // If not found under parent, search everywhere
-                    const bookmarks = await chrome.bookmarks.search({ title: folder.name });
-                    targetFolder = bookmarks.find(b => b.title === folder.name && !b.url);
-                    
-                    if (targetFolder) {
-                        // If found elsewhere, move it to the correct parent
-                        addLog(`Moving folder "${folder.name}" to correct parent...`, 'info');
-                        targetFolder = await chrome.bookmarks.move(targetFolder.id, { parentId });
+            if (isNativeFolder) {
+                // For native folders, get them directly by ID
+                addLog(`Using native Chrome folder "${folder.name}" (ID: ${folder.id})...`, 'info');
+                try {
+                    const nativeFolder = await chrome.bookmarks.getSubTree(folder.id);
+                    if (nativeFolder && nativeFolder[0]) {
+                        targetFolder = nativeFolder[0];
+                        addLog(`✓ Native folder "${folder.name}" found with ID: ${targetFolder.id}`, 'success');
                     } else {
-                        // If not found anywhere, create it
-                        addLog(`⚠️ Folder "${folder.name}" not found, creating new...`, 'warning');
-                        targetFolder = await chrome.bookmarks.create({
-                            parentId: parentId,
-                            title: folder.name
-                        });
+                        throw new Error(`Native folder with ID ${folder.id} not found`);
                     }
+                } catch (error) {
+                    addLog(`❌ Error accessing native folder: ${error.message}`, 'error');
+                    throw error;
                 }
-                addLog(`✓ Folder "${folder.name}" ready with ID: ${targetFolder.id}`, 'success');
+            } else {
+                // Helper function to find folder by name and parent
+                async function findFolderByNameAndParent(name, parentId) {
+                    const bookmarks = await chrome.bookmarks.getSubTree(parentId);
+                    if (!bookmarks || !bookmarks[0] || !bookmarks[0].children) return null;
+                    
+                    return bookmarks[0].children.find(b => b.title === name && !b.url);
+                }
+                
+                if (folder.isNew) {
+                    addLog(`Creating folder "${folder.name}" under parent ${parentId}...`, 'info');
+                    targetFolder = await chrome.bookmarks.create({
+                        parentId: parentId,
+                        title: folder.name
+                    });
+                    addLog(`✓ Folder created with ID: ${targetFolder.id}`, 'success');
+                } else {
+                    addLog(`Looking for existing folder "${folder.name}" under parent ${parentId}...`, 'info');
+                    // First try to find the folder under the specified parent
+                    targetFolder = await findFolderByNameAndParent(folder.name, parentId);
+                    
+                    if (!targetFolder) {
+                        // If not found under parent, search everywhere
+                        const bookmarks = await chrome.bookmarks.search({ title: folder.name });
+                        targetFolder = bookmarks.find(b => b.title === folder.name && !b.url);
+                        
+                        if (targetFolder) {
+                            // If found elsewhere, move it to the correct parent
+                            addLog(`Moving folder "${folder.name}" to correct parent...`, 'info');
+                            targetFolder = await chrome.bookmarks.move(targetFolder.id, { parentId });
+                        } else {
+                            // If not found anywhere, create it
+                            addLog(`⚠️ Folder "${folder.name}" not found, creating new...`, 'warning');
+                            targetFolder = await chrome.bookmarks.create({
+                                parentId: parentId,
+                                title: folder.name
+                            });
+                        }
+                    }
+                    addLog(`✓ Folder "${folder.name}" ready with ID: ${targetFolder.id}`, 'success');
+                }
             }
 
             const folderId = targetFolder.id;
 
             // Move bookmarks to this folder
             if (folder.bookmarks && folder.bookmarks.length > 0) {
-                addLog(`Moving ${folder.bookmarks.length} bookmarks to "${folder.name}"...`, 'info');
-                for (const bookmark of folder.bookmarks) {
-                    try {
-                        // Clean URLs before comparison
-                        const cleanedSuggestedUrl = cleanUrl(bookmark.url);
-                        const existingBookmark = Array.from(pendingBookmarks).find(bm => {
-                            const cleanedExistingUrl = cleanUrl(bm.url);
-                            return cleanedExistingUrl === cleanedSuggestedUrl && bm.title === bookmark.title;
+                if (isSingleBookmark) {
+                    // For single bookmark addition, only process the first bookmark
+                    const bookmark = folder.bookmarks[0];
+                    const existingBookmark = Array.from(pendingBookmarks)[0];
+                    
+                    if (existingBookmark.type === 'new') {
+                        const created = await chrome.bookmarks.create({
+                            parentId: folderId,
+                            title: bookmark.title,
+                            url: bookmark.url
                         });
-                        
-                        if (!existingBookmark) {
-                            addLog(`⚠️ Bookmark not found: ${bookmark.title} (${bookmark.url})`, 'warning');
-                            continue;
-                        }
+                        addLog(`✓ Created: ${bookmark.title} in "${folder.name}"`, 'success');
+                        addLog(`  URL: ${bookmark.url}`, 'info');
+                        addLog(`  ID: ${created.id}`, 'info');
+                    } else {
+                        // Move existing bookmark to the new folder
+                        await chrome.bookmarks.move(existingBookmark.id, {
+                            parentId: folderId
+                        });
+                        addLog(`✓ Moved: ${bookmark.title} to "${folder.name}"`, 'success');
+                        addLog(`  From: ${existingBookmark.url}`, 'info');
+                        addLog(`  ID: ${existingBookmark.id}`, 'info');
+                    }
+                } else {
+                    // For bulk organization, process all bookmarks
+                    addLog(`Moving ${folder.bookmarks.length} bookmarks to "${folder.name}"...`, 'info');
+                    for (const bookmark of folder.bookmarks) {
+                        try {
+                            const cleanedSuggestedUrl = cleanUrl(bookmark.url);
+                            const existingBookmark = Array.from(pendingBookmarks).find(bm => {
+                                const cleanedExistingUrl = cleanUrl(bm.url);
+                                return cleanedExistingUrl === cleanedSuggestedUrl && bm.title === bookmark.title;
+                            });
+                            
+                            if (!existingBookmark) {
+                                addLog(`⚠️ Bookmark not found: ${bookmark.title} (${bookmark.url})`, 'warning');
+                                continue;
+                            }
 
-                        if (existingBookmark.type === 'new') {
-                            const created = await chrome.bookmarks.create({
-                                parentId: folderId,
-                                title: bookmark.title,
-                                url: bookmark.url
-                            });
-                            addLog(`✓ Created: ${bookmark.title} in "${folder.name}"`, 'success');
-                            addLog(`  URL: ${bookmark.url}`, 'info');
-                            addLog(`  ID: ${created.id}`, 'info');
-                        } else {
-                            await chrome.bookmarks.move(existingBookmark.id, {
-                                parentId: folderId
-                            });
-                            addLog(`✓ Moved: ${bookmark.title} to "${folder.name}"`, 'success');
-                            addLog(`  From: ${existingBookmark.url}`, 'info');
-                            addLog(`  ID: ${existingBookmark.id}`, 'info');
+                            if (existingBookmark.type === 'new') {
+                                const created = await chrome.bookmarks.create({
+                                    parentId: folderId,
+                                    title: bookmark.title,
+                                    url: bookmark.url
+                                });
+                                addLog(`✓ Created: ${bookmark.title} in "${folder.name}"`, 'success');
+                                addLog(`  URL: ${bookmark.url}`, 'info');
+                                addLog(`  ID: ${created.id}`, 'info');
+                            } else {
+                                await chrome.bookmarks.move(existingBookmark.id, {
+                                    parentId: folderId
+                                });
+                                addLog(`✓ Moved: ${bookmark.title} to "${folder.name}"`, 'success');
+                                addLog(`  From: ${existingBookmark.url}`, 'info');
+                                addLog(`  ID: ${existingBookmark.id}`, 'info');
+                            }
+                        } catch (error) {
+                            addLog(`❌ Error processing ${bookmark.title}: ${error.message}`, 'error');
+                            addLog(`  URL: ${bookmark.url}`, 'error');
                         }
-                    } catch (error) {
-                        addLog(`❌ Error processing ${bookmark.title}: ${error.message}`, 'error');
-                        addLog(`  URL: ${bookmark.url}`, 'error');
                     }
                 }
             }
 
             // Process subfolders recursively
-            if (folder.subfolders && folder.subfolders.length > 0) {
+            if (!isSingleBookmark && folder.subfolders && folder.subfolders.length > 0) {
                 addLog(`Processing ${folder.subfolders.length} subfolders of "${folder.name}"...`, 'info');
                 for (const subfolder of folder.subfolders) {
-                    await processFolder(subfolder, folderId);
+                    await processFolder(subfolder, folderId, false);
                 }
             }
 
@@ -1129,6 +1174,49 @@ REQUIRED RESPONSE FORMAT:
             addStatus.className = 'status-message loading';
             addStatus.style.display = 'block';
 
+            // Check if the URL is already bookmarked
+            const existingBookmarks = await chrome.bookmarks.search({ url: tab.url });
+            let bookmarkObj;
+            
+            if (existingBookmarks && existingBookmarks.length > 0) {
+                // Use the existing bookmark
+                const existingBookmark = existingBookmarks[0];
+                
+                // Get parent folder information
+                let parentFolder = null;
+                try {
+                    const parentNode = await chrome.bookmarks.get(existingBookmark.parentId);
+                    if (parentNode && parentNode.length > 0) {
+                        parentFolder = parentNode[0];
+                    }
+                } catch (error) {
+                    console.error('Error getting parent folder:', error);
+                }
+                
+                addLog(`📌 Found existing bookmark: "${existingBookmark.title}" (ID: ${existingBookmark.id})`, 'info');
+                if (parentFolder) {
+                    addLog(`📂 Currently in folder: "${parentFolder.title}"`, 'info');
+                }
+                
+                bookmarkObj = {
+                    type: 'existing',
+                    id: existingBookmark.id,
+                    title: existingBookmark.title,
+                    url: existingBookmark.url,
+                    parentId: existingBookmark.parentId,
+                    parentTitle: parentFolder ? parentFolder.title : 'Unknown Folder'
+                };
+            } else {
+                // Create a new bookmark object
+                bookmarkObj = {
+                    type: 'new',
+                    id: 'temp-' + Date.now(), // Add a temporary ID
+                    title: tab.title,
+                    url: tab.url
+                };
+                addLog(`🆕 Creating new bookmark for: "${tab.title}"`, 'info');
+            }
+
             // Switch to execution view
             toggleExecutionUI('executing');
             logsContainer.innerHTML = '';
@@ -1137,17 +1225,9 @@ REQUIRED RESPONSE FORMAT:
             addLog(`📄 Page Title: ${tab.title}`, 'info');
             addLog(`🔗 URL: ${tab.url}`, 'info');
 
-            // Create bookmark object
-            const bookmark = {
-                type: 'new',
-                id: 'temp-' + Date.now(), // Add a temporary ID
-                title: tab.title,
-                url: tab.url
-            };
-
             // Add to pending bookmarks
             pendingBookmarks.clear();
-            pendingBookmarks.add(bookmark);
+            pendingBookmarks.add(bookmarkObj);
             updatePendingList();
             updatePrompt();
 
@@ -1156,7 +1236,7 @@ REQUIRED RESPONSE FORMAT:
             
             // Get suggestion from Gemini
             addLog('🤖 Requesting AI analysis...', 'info');
-            const suggestion = await geminiService.suggestOrganization([bookmark], currentPrompt.folders, addLog, true);
+            const suggestion = await geminiService.suggestOrganization([bookmarkObj], currentPrompt.folders, addLog, true);
             
             // Completar progresso
             progress.complete();
@@ -1170,20 +1250,179 @@ REQUIRED RESPONSE FORMAT:
             
             // Show suggestion to user
             const resultsList = document.getElementById('results-list');
-            resultsList.innerHTML = `
-                <div class="suggestion-summary">
-                    <h3>Add Page to Bookmarks</h3>
-                    <p>The page will be bookmarked in the following location:</p>
-                </div>
-                <div class="folders-preview">
-                    ${renderFolderStructure(suggestion.folders)}
-                </div>
-                <div class="suggestion-actions">
-                    <button id="apply-suggestion" class="primary-btn">Add Bookmark</button>
-                    <button id="cancel-suggestion" class="secondary-btn">Cancel</button>
-                </div>
-            `;
-
+            
+            // If it's an existing bookmark, show different options
+            if (bookmarkObj.type === 'existing') {
+                const targetFolder = suggestion.folders[0].name;
+                
+                // Check if bookmark is already in the suggested folder
+                if (bookmarkObj.parentTitle === targetFolder) {
+                    resultsList.innerHTML = `
+                        <div class="suggestion-summary">
+                            <h3>Bookmark Already Organized</h3>
+                            <p>This page is already bookmarked in the "${targetFolder}" folder.</p>
+                        </div>
+                        <div class="suggestion-actions">
+                            <button id="view-bookmarks" class="primary-btn">View Bookmarks</button>
+                        </div>
+                    `;
+                    
+                    document.getElementById('view-bookmarks').addEventListener('click', () => {
+                        toggleExecutionUI('normal');
+                        loadBookmarksTree();
+                    });
+                    
+                    return;
+                }
+                
+                resultsList.innerHTML = `
+                    <div class="suggestion-summary">
+                        <h3>Bookmark Already Exists</h3>
+                        <p>This page is already bookmarked in the "${bookmarkObj.parentTitle}" folder.</p>
+                        <p>Would you like to:</p>
+                    </div>
+                    <div class="folders-preview">
+                        ${renderFolderStructure(suggestion.folders)}
+                    </div>
+                    <div class="suggestion-actions">
+                        <button id="move-bookmark" class="primary-btn">Move to "${targetFolder}"</button>
+                        <button id="duplicate-bookmark" class="secondary-btn">Keep Both</button>
+                        <button id="cancel-suggestion" class="secondary-btn">Cancel</button>
+                    </div>
+                `;
+                
+                // Add event listeners for the buttons
+                document.getElementById('move-bookmark').addEventListener('click', async () => {
+                    try {
+                        toggleExecutionUI('executing');
+                        progressSection.style.display = 'block';
+                        progressText.textContent = 'Moving bookmark...';
+                        addLog(`🔄 Moving bookmark from "${bookmarkObj.parentTitle}" to "${targetFolder}"...`, 'info');
+                        
+                        // Process the folder structure with isSingleBookmark=true
+                        for (const folder of suggestion.folders) {
+                            await processFolder(folder, '1', true);
+                        }
+                        
+                        // Update UI
+                        toggleExecutionUI('results');
+                        resultsList.innerHTML = `
+                            <div class="success-message">
+                                <p>✅ Bookmark moved successfully!</p>
+                                <button id="view-bookmarks" class="primary-btn">View Bookmarks</button>
+                            </div>
+                        `;
+                        
+                        document.getElementById('view-bookmarks').addEventListener('click', () => {
+                            toggleExecutionUI('normal');
+                            loadBookmarksTree();
+                        });
+                        
+                        addLog(`✅ Bookmark moved successfully!`, 'success');
+                    } catch (error) {
+                        handleProcessingError(error, 'moving', resultsList);
+                    }
+                });
+                
+                document.getElementById('duplicate-bookmark').addEventListener('click', async () => {
+                    try {
+                        toggleExecutionUI('executing');
+                        progressSection.style.display = 'block';
+                        progressText.textContent = 'Creating duplicate bookmark...';
+                        addLog(`📎 Creating duplicate bookmark in "${targetFolder}"...`, 'info');
+                        
+                        // Change bookmark type to 'new' to force creation instead of moving
+                        bookmarkObj.type = 'new';
+                        pendingBookmarks.clear();
+                        pendingBookmarks.add(bookmarkObj);
+                        
+                        // Process the folder structure with isSingleBookmark=true
+                        for (const folder of suggestion.folders) {
+                            await processFolder(folder, '1', true);
+                        }
+                        
+                        // Update UI
+                        toggleExecutionUI('results');
+                        resultsList.innerHTML = `
+                            <div class="success-message">
+                                <p>✅ Duplicate bookmark created successfully!</p>
+                                <button id="view-bookmarks" class="primary-btn">View Bookmarks</button>
+                            </div>
+                        `;
+                        
+                        document.getElementById('view-bookmarks').addEventListener('click', () => {
+                            toggleExecutionUI('normal');
+                            loadBookmarksTree();
+                        });
+                        
+                        addLog(`✅ Duplicate bookmark created successfully!`, 'success');
+                    } catch (error) {
+                        handleProcessingError(error, 'duplicating', resultsList);
+                    }
+                });
+                
+                document.getElementById('cancel-suggestion').addEventListener('click', () => {
+                    toggleExecutionUI('normal');
+                    pendingBookmarks.clear();
+                    updatePendingList();
+                });
+            } else {
+                // For new bookmarks, show the original UI
+                resultsList.innerHTML = `
+                    <div class="suggestion-summary">
+                        <h3>Add Page to Bookmarks</h3>
+                        <p>The page will be bookmarked in the following location:</p>
+                    </div>
+                    <div class="folders-preview">
+                        ${renderFolderStructure(suggestion.folders)}
+                    </div>
+                    <div class="suggestion-actions">
+                        <button id="apply-suggestion" class="primary-btn">Add Bookmark</button>
+                        <button id="cancel-suggestion" class="secondary-btn">Cancel</button>
+                    </div>
+                `;
+                
+                // Handle suggestion application
+                document.getElementById('apply-suggestion').addEventListener('click', async () => {
+                    try {
+                        toggleExecutionUI('executing');
+                        progressSection.style.display = 'block';
+                        progressText.textContent = 'Adding bookmark...';
+                        addLog('📎 Creating bookmark...', 'info');
+                        
+                        // Process the folder structure with isSingleBookmark=true
+                        for (const folder of suggestion.folders) {
+                            await processFolder(folder, '1', true);
+                        }
+                        
+                        // Update UI
+                        toggleExecutionUI('results');
+                        resultsList.innerHTML = `
+                            <div class="success-message">
+                                <p>✅ Bookmark added successfully!</p>
+                                <button id="view-bookmarks" class="primary-btn">View Bookmarks</button>
+                            </div>
+                        `;
+                        
+                        document.getElementById('view-bookmarks').addEventListener('click', () => {
+                            toggleExecutionUI('normal');
+                            loadBookmarksTree();
+                        });
+                        
+                        addLog(`✅ Bookmark added successfully!`, 'success');
+                    } catch (error) {
+                        handleProcessingError(error, 'adding', resultsList);
+                    }
+                });
+                
+                // Handle cancellation
+                document.getElementById('cancel-suggestion').addEventListener('click', () => {
+                    toggleExecutionUI('normal');
+                    pendingBookmarks.clear();
+                    updatePendingList();
+                });
+            }
+            
             // Add click handlers for folder toggles
             const folderHeaders = resultsList.querySelectorAll('.folder-group h4');
             folderHeaders.forEach(header => {
@@ -1194,56 +1433,6 @@ REQUIRED RESPONSE FORMAT:
                 });
             });
 
-            // Handle suggestion application
-            document.getElementById('apply-suggestion').addEventListener('click', async () => {
-                try {
-                    toggleExecutionUI('executing');
-                    progressSection.style.display = 'block';
-                    progressText.textContent = 'Adding bookmark...';
-                    addLog('📎 Creating bookmark...', 'info');
-
-                    // Process the folder structure with isSingleBookmark=true
-                    for (const folder of suggestion.folders) {
-                        await processFolder(folder, '1', true);
-                    }
-
-                    // Update UI
-                    toggleExecutionUI('results');
-                    resultsList.innerHTML = `
-                        <div class="success-message">
-                            <p>✅ Bookmark added successfully!</p>
-                            <button id="view-bookmarks" class="primary-btn">View Bookmarks</button>
-                        </div>
-                    `;
-
-                    document.getElementById('view-bookmarks').addEventListener('click', () => {
-                        toggleExecutionUI('normal');
-                        loadBookmarksTree();
-                    });
-
-                    addLog('✅ Bookmark added successfully!', 'success');
-                } catch (error) {
-                    addLog(`❌ Error adding bookmark: ${error.message}`, 'error');
-                    resultsList.innerHTML = `
-                        <div class="error-message">
-                            <p>❌ Error adding bookmark: ${error.message}</p>
-                            <button id="try-again" class="primary-btn">Try Again</button>
-                        </div>
-                    `;
-
-                    document.getElementById('try-again').addEventListener('click', () => {
-                        toggleExecutionUI('normal');
-                    });
-                }
-            });
-
-            // Handle cancellation
-            document.getElementById('cancel-suggestion').addEventListener('click', () => {
-                toggleExecutionUI('normal');
-                pendingBookmarks.clear();
-                updatePendingList();
-            });
-
         } catch (error) {
             console.error('Error adding current page:', error);
             addLog(`❌ Error: ${error.message}`, 'error');
@@ -1252,6 +1441,21 @@ REQUIRED RESPONSE FORMAT:
             addStatus.className = 'status-message error';
         }
     });
+
+    // Helper function for handling errors in bookmark processing
+    function handleProcessingError(error, action, resultsList) {
+        addLog(`❌ Error ${action} bookmark: ${error.message}`, 'error');
+        resultsList.innerHTML = `
+            <div class="error-message">
+                <p>❌ Error ${action} bookmark: ${error.message}</p>
+                <button id="try-again" class="primary-btn">Try Again</button>
+            </div>
+        `;
+        
+        document.getElementById('try-again').addEventListener('click', () => {
+            toggleExecutionUI('normal');
+        });
+    }
 
     // Load initial bookmarks tree
     loadBookmarksTree();

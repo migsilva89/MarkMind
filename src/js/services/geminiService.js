@@ -25,13 +25,30 @@ const normalizeFolderName = (name) => {
 
 // Helper function to identify Chrome native folders
 const getNativeFolderId = (folderName) => {
+    if (!folderName) return null;
+    
     const normalizedName = normalizeFolderName(folderName);
     
+    // Direct ID check for common variations
+    if (/^(bookmarks\s*bar|favorites\s*bar)$/.test(normalizedName)) {
+        return CHROME_NATIVE_FOLDERS.BOOKMARKS_BAR.id;
+    }
+    
+    if (/^(other\s*bookmarks|unsorted\s*bookmarks)$/.test(normalizedName)) {
+        return CHROME_NATIVE_FOLDERS.OTHER_BOOKMARKS.id;
+    }
+    
+    if (/^(mobile\s*bookmarks)$/.test(normalizedName)) {
+        return CHROME_NATIVE_FOLDERS.MOBILE_BOOKMARKS.id;
+    }
+    
+    // Fallback to exact match
     for (const nativeFolder of Object.values(CHROME_NATIVE_FOLDERS)) {
         if (normalizeFolderName(nativeFolder.name) === normalizedName) {
             return nativeFolder.id;
         }
     }
+    
     return null;
 };
 
@@ -293,18 +310,38 @@ IMPORTANT VALIDATION RULES:
                     folder.isNew = false;
                     // Use exact name from native folders
                     folder.name = Object.values(CHROME_NATIVE_FOLDERS).find(f => f.id === nativeFolderId).name;
+                    
+                    // Log that we're using a native folder
+                    console.log(`Using native Chrome folder: ${folder.name} (ID: ${folder.id})`);
                 } else {
                     // Check if folder exists by comparing normalized names
                     const normalizedFolderName = normalizeFolderName(folder.name);
-                    const existingFolder = existingFolders.find(f => 
-                        normalizeFolderName(f.title) === normalizedFolderName
-                    );
+                    
+                    // First check if this might be a native folder with a slightly different name
+                    for (const nativeFolder of Object.values(CHROME_NATIVE_FOLDERS)) {
+                        const nativeName = normalizeFolderName(nativeFolder.name);
+                        // If names are similar enough (e.g., "Other Bookmarks" vs "Other bookmarks")
+                        if (normalizedFolderName.includes(nativeName) || nativeName.includes(normalizedFolderName)) {
+                            folder.id = nativeFolder.id;
+                            folder.isNew = false;
+                            folder.name = nativeFolder.name;
+                            console.log(`Matched to native Chrome folder: ${folder.name} (ID: ${folder.id})`);
+                            break;
+                        }
+                    }
+                    
+                    // If not a native folder, check against existing folders
+                    if (!folder.id) {
+                        const existingFolder = existingFolders.find(f => 
+                            normalizeFolderName(f.title) === normalizedFolderName
+                        );
 
-                    folder.isNew = !existingFolder;
-                    if (!folder.isNew) {
-                        // Use the exact name from existing folders
-                        folder.name = existingFolder.title;
-                        folder.id = existingFolder.id;
+                        folder.isNew = !existingFolder;
+                        if (!folder.isNew) {
+                            // Use the exact name from existing folders
+                            folder.name = existingFolder.title;
+                            folder.id = existingFolder.id;
+                        }
                     }
                 }
 
@@ -410,7 +447,7 @@ IMPORTANT VALIDATION RULES:
                     }
                     
                     // Find or reference the native Other Bookmarks folder
-                    let othersFolder = result.folders.find(f => getNativeFolderId(f.name) === CHROME_NATIVE_FOLDERS.OTHER_BOOKMARKS.id);
+                    let othersFolder = result.folders.find(f => f.id === CHROME_NATIVE_FOLDERS.OTHER_BOOKMARKS.id);
                     
                     if (!othersFolder) {
                         othersFolder = {
