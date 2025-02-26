@@ -295,18 +295,26 @@ document.addEventListener('DOMContentLoaded', () => {
             
             // Collect existing folders with hierarchy
             const existingFolders = [];
-            function collectFolders(node) {
+            const folderMap = new Map();
+            
+            function collectFolders(node, parentId = null) {
                 if (!node.url) {
                     const folder = {
                         id: node.id,
                         title: node.title,
-                        children: []
+                        children: [],
+                        parentId: parentId
                     };
+                    
+                    folderMap.set(node.id, folder);
                     
                     if (node.children) {
                         node.children.forEach(child => {
                             if (!child.url) {
-                                folder.children.push(collectFolders(child));
+                                const childFolder = collectFolders(child, node.id);
+                                if (childFolder) {
+                                    folder.children.push(childFolder);
+                                }
                             }
                         });
                     }
@@ -316,8 +324,30 @@ document.addEventListener('DOMContentLoaded', () => {
                     }
                     return folder;
                 }
+                return null;
             }
-            tree[0].children.forEach(collectFolders);
+            
+            // First pass: collect all folders
+            tree[0].children.forEach(node => collectFolders(node));
+            
+            // Function to build folder hierarchy string
+            function buildFolderHierarchyJSON(folders) {
+                const rootFolders = folders.filter(f => !f.parentId || f.parentId === '0' || f.parentId === '1' || f.parentId === '2');
+                
+                function formatFolder(folder) {
+                    return {
+                        name: folder.title,
+                        id: folder.id,
+                        children: folder.children.map(child => formatFolder(child))
+                    };
+                }
+                
+                return JSON.stringify(rootFolders.map(folder => formatFolder(folder)), null, 2);
+            }
+            
+            // Store the hierarchical structure for use in API calls
+            window.existingFoldersHierarchy = buildFolderHierarchyJSON(existingFolders);
+            
             addLog(`📂 Existing folders loaded: ${existingFolders.length}`, 'info');
             
             renderBookmarksTree(tree[0], bookmarksContainer);
@@ -793,6 +823,14 @@ document.addEventListener('DOMContentLoaded', () => {
 
             const folderId = targetFolder.id;
 
+            // Process subfolders first to ensure the complete hierarchy exists
+            if (folder.subfolders && folder.subfolders.length > 0) {
+                addLog(`Processing ${folder.subfolders.length} subfolders of "${folder.name}"...`, 'info');
+                for (const subfolder of folder.subfolders) {
+                    await processFolder(subfolder, folderId, isSingleBookmark);
+                }
+            }
+
             // Move bookmarks to this folder
             if (folder.bookmarks && folder.bookmarks.length > 0) {
                 if (isSingleBookmark) {
@@ -800,21 +838,30 @@ document.addEventListener('DOMContentLoaded', () => {
                     const bookmark = folder.bookmarks[0];
                     const existingBookmark = Array.from(pendingBookmarks)[0];
                     
+                    // Find the deepest folder in the hierarchy that should contain this bookmark
+                    let deepestFolder = folder;
+                    while (deepestFolder.subfolders && deepestFolder.subfolders.length > 0 && deepestFolder.subfolders[0].bookmarks.length > 0) {
+                        deepestFolder = deepestFolder.subfolders[0];
+                    }
+                    
+                    // Get the ID of the deepest folder
+                    const finalFolderId = deepestFolder === folder ? folderId : (await findFolderByNameAndParent(deepestFolder.name, folderId)).id;
+                    
                     if (existingBookmark.type === 'new') {
                         const created = await chrome.bookmarks.create({
-                            parentId: folderId,
+                            parentId: finalFolderId,
                             title: bookmark.title,
                             url: bookmark.url
                         });
-                        addLog(`✓ Created: ${bookmark.title} in "${folder.name}"`, 'success');
+                        addLog(`✓ Created: ${bookmark.title} in "${deepestFolder.name}"`, 'success');
                         addLog(`  URL: ${bookmark.url}`, 'info');
                         addLog(`  ID: ${created.id}`, 'info');
                     } else {
                         // Move existing bookmark to the new folder
                         await chrome.bookmarks.move(existingBookmark.id, {
-                            parentId: folderId
+                            parentId: finalFolderId
                         });
-                        addLog(`✓ Moved: ${bookmark.title} to "${folder.name}"`, 'success');
+                        addLog(`✓ Moved: ${bookmark.title} to "${deepestFolder.name}"`, 'success');
                         addLog(`  From: ${existingBookmark.url}`, 'info');
                         addLog(`  ID: ${existingBookmark.id}`, 'info');
                     }
@@ -856,14 +903,6 @@ document.addEventListener('DOMContentLoaded', () => {
                             addLog(`  URL: ${bookmark.url}`, 'error');
                         }
                     }
-                }
-            }
-
-            // Process subfolders recursively
-            if (!isSingleBookmark && folder.subfolders && folder.subfolders.length > 0) {
-                addLog(`Processing ${folder.subfolders.length} subfolders of "${folder.name}"...`, 'info');
-                for (const subfolder of folder.subfolders) {
-                    await processFolder(subfolder, folderId, false);
                 }
             }
 
@@ -1393,13 +1432,10 @@ document.addEventListener('DOMContentLoaded', () => {
             addLog('🤖 Requesting AI analysis...', 'info');
             console.log('📝 Sending to Gemini:', {
                 bookmarks: [bookmarkObj],
-                existingFolders: existingFolders.map(f => ({
-                    title: f.title,
-                    id: f.id
-                })),
+                existingFolders: window.existingFoldersHierarchy, // Now sending the hierarchical JSON
                 isSingleBookmark: true
             });
-            const suggestion = await geminiService.suggestOrganization([bookmarkObj], existingFolders, addLog, true);
+            const suggestion = await geminiService.suggestOrganization([bookmarkObj], JSON.parse(window.existingFoldersHierarchy), addLog, true);
             
             // Completar progresso
             progress.complete();

@@ -184,32 +184,19 @@ class GeminiService {
             }).join('\n');
 
             // Format folders data with hierarchy
-            let foldersData = '';
-            const processedFolders = new Set();
-
-            function formatFolderHierarchy(folder, depth = 0) {
-                if (processedFolders.has(folder.id)) return '';
-                processedFolders.add(folder.id);
-
+            let foldersData = 'Existing folder structure (with hierarchy):\n';
+            const formatFolderHierarchy = (folder, depth = 0) => {
                 const indent = '  '.repeat(depth);
-                let result = `${indent}- ${folder.title} (ID: ${folder.id})\n`;
-
-                if (folder.children) {
+                let result = `${indent}- ${folder.name} (ID: ${folder.id})\n`;
+                if (folder.children && folder.children.length > 0) {
                     folder.children.forEach(child => {
-                        if (!child.url) { // Only process folders, not bookmarks
-                            result += formatFolderHierarchy(child, depth + 1);
-                        }
+                        result += formatFolderHierarchy(child, depth + 1);
                     });
                 }
                 return result;
-            }
+            };
 
-            // Process root folders first
-            existingFolders.forEach(folder => {
-                if (!processedFolders.has(folder.id)) {
-                    foldersData += formatFolderHierarchy(folder);
-                }
-            });
+            foldersData += existingFolders.map(folder => formatFolderHierarchy(folder)).join('');
 
             const promptText = `You are an AI assistant specialized in organizing bookmarks into folders.
 Your task is to ONLY return a valid JSON, with no additional text.
@@ -218,7 +205,6 @@ INPUT:
 Bookmarks to organize:
 ${bookmarksData}
 
-Existing folder structure (with hierarchy):
 ${foldersData}
 
 CRITICAL RULES:
@@ -234,7 +220,7 @@ CRITICAL RULES:
 10. Group similar services together
 11. ONLY INCLUDE FOLDERS THAT WILL CONTAIN BOOKMARKS
 12. DO NOT INCLUDE EMPTY FOLDERS IN THE RESPONSE
-13. RESPECT EXISTING FOLDER HIERARCHIES (e.g., if "Online" is a subfolder of "Shopping", use that structure)
+13. RESPECT EXISTING FOLDER HIERARCHIES (e.g., if "Fashion" is a child of "Shopping", use that structure)
 
 REQUIRED RESPONSE FORMAT:
 {
@@ -357,14 +343,26 @@ IMPORTANT VALIDATION RULES:
                     
                     // If not a native folder, check against existing folders
                     if (!folder.id) {
-                        const existingFolder = existingFolders.find(f => 
-                            normalizeFolderName(f.title) === normalizedFolderName
-                        );
+                        // Helper function to search recursively through folders
+                        const findFolderRecursively = (folders, targetName) => {
+                            for (const f of folders) {
+                                if (normalizeFolderName(f.name) === targetName) {
+                                    return f;
+                                }
+                                if (f.children && f.children.length > 0) {
+                                    const found = findFolderRecursively(f.children, targetName);
+                                    if (found) return found;
+                                }
+                            }
+                            return null;
+                        };
+
+                        const existingFolder = findFolderRecursively(existingFolders, normalizedFolderName);
 
                         folder.isNew = !existingFolder;
                         if (!folder.isNew) {
                             // Use the exact name from existing folders
-                            folder.name = existingFolder.title;
+                            folder.name = existingFolder.name;
                             folder.id = existingFolder.id;
                         }
                     }
