@@ -139,7 +139,7 @@ class GeminiService {
         }
     }
 
-    async suggestOrganization(bookmarks, existingFolders, logger) {
+    async suggestOrganization(bookmarks, existingFolders, logger, isSingleBookmark = false) {
         try {
             if (!this.apiKey) {
                 throw new Error('API key not configured');
@@ -344,90 +344,92 @@ IMPORTANT VALIDATION RULES:
                 validateFolderStructure(folder, existingFolders, new Set());
             });
 
-            // Check for uncategorized bookmarks
-            const processedIds = new Set();
-            const seenBookmarks = new Set(); // Track seen bookmarks to prevent duplicates
-            
-            const collectIds = (folder) => {
-                folder.bookmarks.forEach(bm => {
-                    // Check for duplicates
-                    const bookmarkKey = `${bm.url}|${bm.title}`;
-                    if (seenBookmarks.has(bookmarkKey)) {
-                        // Remove duplicate from this folder
-                        folder.bookmarks = folder.bookmarks.filter(b => 
-                            `${b.url}|${b.title}` !== bookmarkKey
-                        );
-                        if (logger) {
-                            logger(`⚠️ Removed duplicate bookmark: ${bm.title}`, 'warning');
+            // Check for uncategorized bookmarks - skip this for single bookmark additions
+            if (!isSingleBookmark) {
+                const processedIds = new Set();
+                const seenBookmarks = new Set(); // Track seen bookmarks to prevent duplicates
+                
+                const collectIds = (folder) => {
+                    folder.bookmarks.forEach(bm => {
+                        // Check for duplicates
+                        const bookmarkKey = `${bm.url}|${bm.title}`;
+                        if (seenBookmarks.has(bookmarkKey)) {
+                            // Remove duplicate from this folder
+                            folder.bookmarks = folder.bookmarks.filter(b => 
+                                `${b.url}|${b.title}` !== bookmarkKey
+                            );
+                            if (logger) {
+                                logger(`⚠️ Removed duplicate bookmark: ${bm.title}`, 'warning');
+                            }
+                        } else {
+                            seenBookmarks.add(bookmarkKey);
+                            // For new bookmarks, use the URL as the ID for tracking
+                            const trackingId = bm.id === 'new' ? bm.url : bm.id;
+                            processedIds.add(trackingId);
                         }
-                    } else {
-                        seenBookmarks.add(bookmarkKey);
-                        // For new bookmarks, use the URL as the ID for tracking
-                        const trackingId = bm.id === 'new' ? bm.url : bm.id;
-                        processedIds.add(trackingId);
-                    }
+                    });
+                    folder.subfolders.forEach(subfolder => collectIds(subfolder));
+                };
+                
+                // Process folders and remove any empty ones
+                const removeEmptyFolders = (folders) => {
+                    return folders.filter(folder => {
+                        // First process subfolders recursively
+                        if (folder.subfolders && folder.subfolders.length > 0) {
+                            folder.subfolders = removeEmptyFolders(folder.subfolders);
+                        }
+                        
+                        // Check if this folder has bookmarks or non-empty subfolders
+                        const hasBookmarks = folder.bookmarks && folder.bookmarks.length > 0;
+                        const hasNonEmptySubfolders = folder.subfolders && folder.subfolders.length > 0;
+                        
+                        return hasBookmarks || hasNonEmptySubfolders;
+                    });
+                };
+
+                // Remove empty folders before processing
+                result.folders = removeEmptyFolders(result.folders);
+
+                // Process folders and check for duplicates
+                result.folders = result.folders.filter(folder => {
+                    collectIds(folder);
+                    return folder.bookmarks.length > 0 || (folder.subfolders && folder.subfolders.some(sf => 
+                        sf.bookmarks.length > 0 || (sf.subfolders && sf.subfolders.length > 0)
+                    ));
                 });
-                folder.subfolders.forEach(subfolder => collectIds(subfolder));
-            };
-            
-            // Process folders and remove any empty ones
-            const removeEmptyFolders = (folders) => {
-                return folders.filter(folder => {
-                    // First process subfolders recursively
-                    if (folder.subfolders && folder.subfolders.length > 0) {
-                        folder.subfolders = removeEmptyFolders(folder.subfolders);
+
+                // Find bookmarks that weren't included
+                const missingBookmarks = bookmarks.filter(b => {
+                    const trackingId = b.type === 'new' ? b.url : b.id;
+                    return !processedIds.has(trackingId);
+                });
+                
+                if (missingBookmarks.length > 0) {
+                    if (logger) {
+                        logger(`⚠️ Found ${missingBookmarks.length} uncategorized bookmarks`, 'warning');
                     }
                     
-                    // Check if this folder has bookmarks or non-empty subfolders
-                    const hasBookmarks = folder.bookmarks && folder.bookmarks.length > 0;
-                    const hasNonEmptySubfolders = folder.subfolders && folder.subfolders.length > 0;
+                    // Find or reference the native Other Bookmarks folder
+                    let othersFolder = result.folders.find(f => getNativeFolderId(f.name) === CHROME_NATIVE_FOLDERS.OTHER_BOOKMARKS.id);
                     
-                    return hasBookmarks || hasNonEmptySubfolders;
-                });
-            };
+                    if (!othersFolder) {
+                        othersFolder = {
+                            name: CHROME_NATIVE_FOLDERS.OTHER_BOOKMARKS.name,
+                            id: CHROME_NATIVE_FOLDERS.OTHER_BOOKMARKS.id,
+                            isNew: false,
+                            bookmarks: [],
+                            subfolders: []
+                        };
+                        result.folders.push(othersFolder);
+                    }
 
-            // Remove empty folders before processing
-            result.folders = removeEmptyFolders(result.folders);
-
-            // Process folders and check for duplicates
-            result.folders = result.folders.filter(folder => {
-                collectIds(folder);
-                return folder.bookmarks.length > 0 || (folder.subfolders && folder.subfolders.some(sf => 
-                    sf.bookmarks.length > 0 || (sf.subfolders && sf.subfolders.length > 0)
-                ));
-            });
-
-            // Find bookmarks that weren't included
-            const missingBookmarks = bookmarks.filter(b => {
-                const trackingId = b.type === 'new' ? b.url : b.id;
-                return !processedIds.has(trackingId);
-            });
-            
-            if (missingBookmarks.length > 0) {
-                if (logger) {
-                    logger(`⚠️ Found ${missingBookmarks.length} uncategorized bookmarks`, 'warning');
+                    // Add missing bookmarks to Other Bookmarks
+                    othersFolder.bookmarks.push(...missingBookmarks.map(b => ({
+                        title: b.title,
+                        url: b.url,
+                        id: b.id || 'new'
+                    })));
                 }
-                
-                // Find or reference the native Other Bookmarks folder
-                let othersFolder = result.folders.find(f => getNativeFolderId(f.name) === CHROME_NATIVE_FOLDERS.OTHER_BOOKMARKS.id);
-                
-                if (!othersFolder) {
-                    othersFolder = {
-                        name: CHROME_NATIVE_FOLDERS.OTHER_BOOKMARKS.name,
-                        id: CHROME_NATIVE_FOLDERS.OTHER_BOOKMARKS.id,
-                        isNew: false,
-                        bookmarks: [],
-                        subfolders: []
-                    };
-                    result.folders.push(othersFolder);
-                }
-
-                // Add missing bookmarks to Other Bookmarks
-                othersFolder.bookmarks.push(...missingBookmarks.map(b => ({
-                    title: b.title,
-                    url: b.url,
-                    id: b.id || 'new'
-                })));
             }
 
             if (!result.summary || typeof result.summary !== 'string') {

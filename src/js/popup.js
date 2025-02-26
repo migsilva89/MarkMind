@@ -733,7 +733,7 @@ REQUIRED RESPONSE FORMAT:
         }
     }
 
-    async function processFolder(folder, parentId = '1') {
+    async function processFolder(folder, parentId = '1', isSingleBookmark = false) {
         try {
             // Find or create the current folder
             let targetFolder;
@@ -942,7 +942,7 @@ REQUIRED RESPONSE FORMAT:
             // Get suggestion from Gemini
             let suggestion;
             try {
-                suggestion = await geminiService.suggestOrganization(selectedBookmarks, currentPrompt.folders, addLog);
+                suggestion = await geminiService.suggestOrganization(selectedBookmarks, currentPrompt.folders, addLog, false);
                 
                 // Completar progresso quando receber a resposta
                 progress.complete();
@@ -1140,6 +1140,7 @@ REQUIRED RESPONSE FORMAT:
             // Create bookmark object
             const bookmark = {
                 type: 'new',
+                id: 'temp-' + Date.now(), // Add a temporary ID
                 title: tab.title,
                 url: tab.url
             };
@@ -1155,7 +1156,7 @@ REQUIRED RESPONSE FORMAT:
             
             // Get suggestion from Gemini
             addLog('🤖 Requesting AI analysis...', 'info');
-            const suggestion = await geminiService.suggestOrganization([bookmark], currentPrompt.folders, addLog);
+            const suggestion = await geminiService.suggestOrganization([bookmark], currentPrompt.folders, addLog, true);
             
             // Completar progresso
             progress.complete();
@@ -1201,9 +1202,9 @@ REQUIRED RESPONSE FORMAT:
                     progressText.textContent = 'Adding bookmark...';
                     addLog('📎 Creating bookmark...', 'info');
 
-                    // Process the folder structure
+                    // Process the folder structure with isSingleBookmark=true
                     for (const folder of suggestion.folders) {
-                        await processFolder(folder);
+                        await processFolder(folder, '1', true);
                     }
 
                     // Update UI
