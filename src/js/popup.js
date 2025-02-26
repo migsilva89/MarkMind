@@ -1038,6 +1038,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 addLog('✅ AI Analysis Complete', 'success');
                 addLog('📋 Organization Summary:', 'info', `
                     <ul>
+                        <li>Bookmarks organized: ${countTotalBookmarks(suggestion.folders)}</li>
                         <li>New folders to create: ${suggestion.folders.filter(f => f.isNew).length}</li>
                         <li>Existing folders to use: ${suggestion.folders.filter(f => !f.isNew).length}</li>
                         <li>Total folders in structure: ${suggestion.folders.length}</li>
@@ -1053,19 +1054,37 @@ document.addEventListener('DOMContentLoaded', () => {
                     throw new Error('AI response is missing folder structure');
                 }
                 
-                // Check if all bookmarks are included in the response
-                const includedBookmarkUrls = new Set();
-                suggestion.folders.forEach(folder => {
-                    if (folder.bookmarks && Array.isArray(folder.bookmarks)) {
-                        folder.bookmarks.forEach(bm => {
-                            if (bm.url) includedBookmarkUrls.add(cleanUrl(bm.url));
+                // Find bookmarks that weren't included
+                const missingBookmarks = selectedBookmarks.filter(bookmark => {
+                    // For existing bookmarks, check by ID
+                    if (bookmark.type === 'existing') {
+                        return !suggestion.folders.some(folder => {
+                            // Check in main folder
+                            if (folder.bookmarks.some(bm => bm.id === bookmark.id)) {
+                                return true;
+                            }
+                            // Check in subfolders
+                            return folder.subfolders?.some(subfolder => 
+                                subfolder.bookmarks.some(bm => bm.id === bookmark.id)
+                            );
                         });
                     }
+                    // For new bookmarks, check by cleaned URL
+                    const cleanedBookmarkUrl = cleanUrl(bookmark.url);
+                    return !suggestion.folders.some(folder => {
+                        // Check in main folder
+                        if (folder.bookmarks.some(bm => cleanUrl(bm.url) === cleanedBookmarkUrl)) {
+                            return true;
+                        }
+                        // Check in subfolders
+                        return folder.subfolders?.some(subfolder => 
+                            subfolder.bookmarks.some(bm => cleanUrl(bm.url) === cleanedBookmarkUrl)
+                        );
+                    });
                 });
                 
-                const missingBookmarks = selectedBookmarks.filter(bm => !includedBookmarkUrls.has(cleanUrl(bm.url)));
                 if (missingBookmarks.length > 0) {
-                    addLog(`⚠️ Warning: ${missingBookmarks.length} bookmarks were not included in the AI response`, 'warning');
+                    addLog(`⚠️ Found ${missingBookmarks.length} uncategorized bookmarks`, 'warning');
                     // Add missing bookmarks to an "Uncategorized" folder
                     const uncategorizedFolder = suggestion.folders.find(f => f.name === 'Uncategorized');
                     if (uncategorizedFolder) {
@@ -1156,7 +1175,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     ${renderFolderStructure(suggestion.folders)}
                 </div>
                 <div class="suggestion-actions">
-                    <button id="apply-suggestion" class="primary-btn">Apply Organization</button>
+                    <button id="apply-suggestion" class="primary-btn">Apply Suggestion</button>
                     <button id="cancel-suggestion" class="secondary-btn">Back</button>
                 </div>
             `;
@@ -1662,4 +1681,13 @@ document.addEventListener('DOMContentLoaded', () => {
         logsContainer.classList.toggle('collapsed');
         document.querySelector('.logs-header').classList.toggle('collapsed');
     });
+
+    // Helper function to count total bookmarks in folders structure
+    function countTotalBookmarks(folders) {
+        return folders.reduce((total, folder) => {
+            const bookmarksInFolder = folder.bookmarks.length;
+            const bookmarksInSubfolders = folder.subfolders ? countTotalBookmarks(folder.subfolders) : 0;
+            return total + bookmarksInFolder + bookmarksInSubfolders;
+        }, 0);
+    }
 });

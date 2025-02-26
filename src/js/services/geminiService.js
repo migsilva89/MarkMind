@@ -412,21 +412,20 @@ IMPORTANT VALIDATION RULES:
                 
                 const collectIds = (folder) => {
                     folder.bookmarks.forEach(bm => {
-                        // Check for duplicates
-                        const bookmarkKey = `${bm.url}|${bm.title}`;
+                        // Check for duplicates using ID for existing bookmarks, URL for new ones
+                        const bookmarkKey = bm.id === 'new' ? `url:${cleanUrl(bm.url)}` : `id:${bm.id}`;
                         if (seenBookmarks.has(bookmarkKey)) {
                             // Remove duplicate from this folder
-                            folder.bookmarks = folder.bookmarks.filter(b => 
-                                `${b.url}|${b.title}` !== bookmarkKey
-                            );
+                            folder.bookmarks = folder.bookmarks.filter(b => {
+                                const currentKey = b.id === 'new' ? `url:${cleanUrl(b.url)}` : `id:${b.id}`;
+                                return currentKey !== bookmarkKey;
+                            });
                             if (logger) {
                                 logger(`⚠️ Removed duplicate bookmark: ${bm.title}`, 'warning');
                             }
                         } else {
                             seenBookmarks.add(bookmarkKey);
-                            // For new bookmarks, use the URL as the ID for tracking
-                            const trackingId = bm.id === 'new' ? bm.url : bm.id;
-                            processedIds.add(trackingId);
+                            processedIds.add(bookmarkKey);
                         }
                     });
                     folder.subfolders.forEach(subfolder => collectIds(subfolder));
@@ -461,8 +460,8 @@ IMPORTANT VALIDATION RULES:
 
                 // Find bookmarks that weren't included
                 const missingBookmarks = bookmarks.filter(b => {
-                    const trackingId = b.type === 'new' ? b.url : b.id;
-                    return !processedIds.has(trackingId);
+                    const bookmarkKey = b.type === 'new' ? `url:${cleanUrl(b.url)}` : `id:${b.id}`;
+                    return !processedIds.has(bookmarkKey);
                 });
                 
                 if (missingBookmarks.length > 0) {

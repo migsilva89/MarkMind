@@ -13,7 +13,7 @@ MarkMind is a Chrome extension designed to help you organize your bookmarks usin
 ### How We Use Your Data
 1. **Bookmark Organization**
    - We read your bookmarks to display them in the extension
-   - We only modify bookmarks when you explicitly click "Apply Organization"
+   - We only modify bookmarks when you explicitly click "Apply Suggestion"
    - All bookmark processing happens locally in your browser
 
 2. **AI Analysis**
