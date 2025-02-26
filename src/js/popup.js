@@ -218,11 +218,46 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
+    // Function to show bookmark limit warning
+    function showBookmarkLimitWarning(count) {
+        const warningThreshold = 90;
+        const warningElement = document.getElementById('bookmark-limit-warning') || createBookmarkLimitWarning();
+        
+        if (count > warningThreshold) {
+            warningElement.style.display = 'block';
+            warningElement.innerHTML = `
+                <div class="warning-icon">⚠️</div>
+                <div class="warning-text">
+                    <strong>Large Selection Warning:</strong> You've selected ${count} bookmarks.
+                    <p>Free API keys may have limitations with large requests. For best results, consider organizing in smaller batches (under ${warningThreshold}). Is up to you to decide if you want to proceed.</p>
+                </div>
+            `;
+        } else {
+            warningElement.style.display = 'none';
+        }
+    }
+
+    // Helper function to create the warning element if it doesn't exist
+    function createBookmarkLimitWarning() {
+        const warningElement = document.createElement('div');
+        warningElement.id = 'bookmark-limit-warning';
+        warningElement.className = 'warning-message';
+        
+        // Insert between the buttons and the bookmarks container
+        const bookmarksContainer = document.getElementById('bookmarks-container');
+        bookmarksContainer.parentNode.insertBefore(warningElement, bookmarksContainer);
+        
+        return warningElement;
+    }
+
     // Function to update pending bookmarks list
     function updatePendingList() {
         const bookmarks = Array.from(pendingBookmarks);
         pendingCount.textContent = bookmarks.length;
         pendingSection.style.display = bookmarks.length > 0 ? 'block' : 'none';
+        
+        // Show or hide bookmark limit warning
+        showBookmarkLimitWarning(bookmarks.length);
         
         pendingList.innerHTML = '';
         bookmarks.forEach(bookmark => {
@@ -300,11 +335,6 @@ REQUIRED RESPONSE FORMAT:
     ],
     "summary": "Brief organization explanation"
 }`;
-
-        addLog(`📝 Prompt updated: ${bookmarks.length} bookmarks`, 'info');
-        addLog(`📊 Prompt size: ${currentPrompt.text.length} characters`, 'info');
-        const tokenEstimate = currentPrompt.text.split(/\s+/).length;
-        addLog(`🔤 Estimated tokens: ${tokenEstimate}`, 'info');
     }
 
     // Core Functions
@@ -688,6 +718,12 @@ REQUIRED RESPONSE FORMAT:
         if (settingsSection) {
             settingsSection.style.display = 'none';
         }
+        
+        // Hide bookmark limit warning only in results state, not during execution
+        const warningElement = document.getElementById('bookmark-limit-warning');
+        if (warningElement && state === 'results') {
+            warningElement.style.display = 'none';
+        }
 
         // Show elements based on state
         switch (state) {
@@ -1004,10 +1040,109 @@ REQUIRED RESPONSE FORMAT:
                 if (!suggestion || typeof suggestion !== 'object') {
                     throw new Error('Invalid response format from AI');
                 }
+                
+                // Validate the response structure
+                if (!suggestion.folders || !Array.isArray(suggestion.folders) || suggestion.folders.length === 0) {
+                    throw new Error('AI response is missing folder structure');
+                }
+                
+                // Check if all bookmarks are included in the response
+                const includedBookmarkUrls = new Set();
+                suggestion.folders.forEach(folder => {
+                    if (folder.bookmarks && Array.isArray(folder.bookmarks)) {
+                        folder.bookmarks.forEach(bm => {
+                            if (bm.url) includedBookmarkUrls.add(cleanUrl(bm.url));
+                        });
+                    }
+                });
+                
+                const missingBookmarks = selectedBookmarks.filter(bm => !includedBookmarkUrls.has(cleanUrl(bm.url)));
+                if (missingBookmarks.length > 0) {
+                    addLog(`⚠️ Warning: ${missingBookmarks.length} bookmarks were not included in the AI response`, 'warning');
+                    // Add missing bookmarks to an "Uncategorized" folder
+                    const uncategorizedFolder = suggestion.folders.find(f => f.name === 'Uncategorized');
+                    if (uncategorizedFolder) {
+                        uncategorizedFolder.bookmarks = [...uncategorizedFolder.bookmarks, ...missingBookmarks.map(bm => ({
+                            title: bm.title,
+                            url: bm.url,
+                            reason: "Not categorized by AI"
+                        }))];
+                    } else {
+                        suggestion.folders.push({
+                            name: 'Uncategorized',
+                            isNew: true,
+                            icon: '📁',
+                            bookmarks: missingBookmarks.map(bm => ({
+                                title: bm.title,
+                                url: bm.url,
+                                reason: "Not categorized by AI"
+                            }))
+                        });
+                    }
+                    addLog('✓ Added missing bookmarks to "Uncategorized" folder', 'success');
+                }
             } catch (error) {
                 progress.complete();
                 addLog(`❌ Error during AI analysis: ${error.message}`, 'error');
-                throw error;
+                
+                // Show detailed error information and recovery options
+                toggleExecutionUI('results');
+                const resultsList = document.getElementById('results-list');
+                
+                // Determine error type and provide appropriate guidance
+                let errorType = 'unknown';
+                let errorGuidance = '';
+                
+                if (error.message.includes('quota') || error.message.includes('rate limit') || error.message.includes('exceeded')) {
+                    errorType = 'quota';
+                    errorGuidance = 'You have exceeded your API quota or rate limit. Try again later or use a different API key.';
+                } else if (error.message.includes('Invalid response') || error.message.includes('JSON') || error.message.includes('parse')) {
+                    errorType = 'format';
+                    errorGuidance = 'The AI returned an invalid response format. This can happen with very large requests.';
+                } else if (error.message.includes('timeout') || error.message.includes('timed out')) {
+                    errorType = 'timeout';
+                    errorGuidance = 'The request timed out. This usually happens with very large bookmark sets.';
+                } else if (error.message.includes('network') || error.message.includes('connection')) {
+                    errorType = 'network';
+                    errorGuidance = 'There was a network error. Please check your internet connection and try again.';
+                }
+                
+                resultsList.innerHTML = `
+                    <div class="error-message">
+                        <h3>❌ Organization Error</h3>
+                        <p>${error.message}</p>
+                        <div class="error-guidance">
+                            <p><strong>Possible cause:</strong> ${errorGuidance || 'An unexpected error occurred during the AI analysis.'}</p>
+                            <p><strong>Suggestions:</strong></p>
+                            <ul>
+                                ${selectedBookmarks.length > 80 ? '<li>Try organizing fewer bookmarks at once (under 80 is recommended)</li>' : ''}
+                                <li>Check your internet connection</li>
+                                <li>Verify your API key is valid and has sufficient quota</li>
+                                <li>Try again in a few minutes</li>
+                            </ul>
+                        </div>
+                        <div class="error-actions">
+                            <button id="try-again" class="primary-btn">Try Again</button>
+                        </div>
+                    </div>
+                `;
+                
+                document.getElementById('try-again').addEventListener('click', () => {
+                    toggleExecutionUI('normal');
+                });
+                
+                if (selectedBookmarks.length > 10) {
+                    document.getElementById('try-smaller-batch').addEventListener('click', () => {
+                        // Keep only the first 10 bookmarks
+                        const firstTen = Array.from(pendingBookmarks).slice(0, 10);
+                        pendingBookmarks.clear();
+                        firstTen.forEach(bm => pendingBookmarks.add(bm));
+                        updatePendingList();
+                        toggleExecutionUI('normal');
+                    });
+                }
+                
+                return; // Exit the function to prevent further execution
             }
 
             // After receiving suggestion, show only results
@@ -1093,6 +1228,10 @@ REQUIRED RESPONSE FORMAT:
                         await processFolder(folder);
                     }
 
+                    // Clear pending bookmarks after successful organization
+                    pendingBookmarks.clear();
+                    updatePendingList();
+
                     // Update UI
                     toggleExecutionUI('results');
                     resultsList.innerHTML = `
@@ -1105,6 +1244,12 @@ REQUIRED RESPONSE FORMAT:
                     document.getElementById('view-bookmarks').addEventListener('click', () => {
                         toggleExecutionUI('normal');
                         loadBookmarksTree();
+                        
+                        // Ensure the warning is hidden since there are no pending bookmarks
+                        const warningElement = document.getElementById('bookmark-limit-warning');
+                        if (warningElement) {
+                            warningElement.style.display = 'none';
+                        }
                     });
 
                     addLog('Organization completed successfully!', 'success');
@@ -1270,6 +1415,12 @@ REQUIRED RESPONSE FORMAT:
                     document.getElementById('view-bookmarks').addEventListener('click', () => {
                         toggleExecutionUI('normal');
                         loadBookmarksTree();
+                        
+                        // Ensure the warning is hidden since there are no pending bookmarks
+                        const warningElement = document.getElementById('bookmark-limit-warning');
+                        if (warningElement) {
+                            warningElement.style.display = 'none';
+                        }
                     });
                     
                     return;
@@ -1316,6 +1467,12 @@ REQUIRED RESPONSE FORMAT:
                         document.getElementById('view-bookmarks').addEventListener('click', () => {
                             toggleExecutionUI('normal');
                             loadBookmarksTree();
+                            
+                            // Ensure the warning is hidden since there are no pending bookmarks
+                            const warningElement = document.getElementById('bookmark-limit-warning');
+                            if (warningElement) {
+                                warningElement.style.display = 'none';
+                            }
                         });
                         
                         addLog(`✅ Bookmark moved successfully!`, 'success');
@@ -1353,6 +1510,12 @@ REQUIRED RESPONSE FORMAT:
                         document.getElementById('view-bookmarks').addEventListener('click', () => {
                             toggleExecutionUI('normal');
                             loadBookmarksTree();
+                            
+                            // Ensure the warning is hidden since there are no pending bookmarks
+                            const warningElement = document.getElementById('bookmark-limit-warning');
+                            if (warningElement) {
+                                warningElement.style.display = 'none';
+                            }
                         });
                         
                         addLog(`✅ Duplicate bookmark created successfully!`, 'success');
@@ -1407,6 +1570,12 @@ REQUIRED RESPONSE FORMAT:
                         document.getElementById('view-bookmarks').addEventListener('click', () => {
                             toggleExecutionUI('normal');
                             loadBookmarksTree();
+                            
+                            // Ensure the warning is hidden since there are no pending bookmarks
+                            const warningElement = document.getElementById('bookmark-limit-warning');
+                            if (warningElement) {
+                                warningElement.style.display = 'none';
+                            }
                         });
                         
                         addLog(`✅ Bookmark added successfully!`, 'success');

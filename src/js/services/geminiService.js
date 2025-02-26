@@ -257,7 +257,6 @@ IMPORTANT VALIDATION RULES:
             
             const responseTokenCount = responseText.split(/\s+/).length;
             if (logger) {
-                logger(`📊 Estimated response tokens: ${responseTokenCount}`, 'info');
                 logger('🔍 Processing AI response...', 'info');
             }
 
