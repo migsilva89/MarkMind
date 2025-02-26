@@ -41,11 +41,6 @@ document.addEventListener('DOMContentLoaded', () => {
     // Application State
     let bookmarksTree = [];
     let pendingBookmarks = new Set();
-    let currentPrompt = {
-        bookmarks: [],
-        folders: [],
-        text: ''
-    };
 
     // Function to add logs
     function addLog(message, type = 'info', details = null) {
@@ -291,52 +286,6 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    // Function to update prompt
-    function updatePrompt() {
-        const bookmarks = Array.from(pendingBookmarks);
-        currentPrompt.bookmarks = bookmarks;
-        
-        // Update prompt text
-        const bookmarksText = bookmarks.map(b => `- ${b.title}\n  URL: ${b.url}`).join('\n');
-        const foldersText = currentPrompt.folders.map(f => `- ${f.title}`).join('\n');
-        
-        currentPrompt.text = `You are an AI assistant specialized in organizing bookmarks into folders.
-Your task is to ONLY return a valid JSON, with no additional text.
-
-INPUT:
-Bookmarks to organize:
-${bookmarksText}
-
-Existing folders:
-${foldersText}
-
-RULES:
-1. Use existing folders when appropriate
-2. Suggest new folders only if necessary
-3. Group related bookmarks
-4. ALL bookmarks must be included in a folder
-5. Keep categorization reasons short and objective
-
-REQUIRED RESPONSE FORMAT:
-{
-    "folders": [
-        {
-            "name": "Folder Name",
-            "isNew": true/false,
-            "icon": "appropriate emoji",
-            "bookmarks": [
-                {
-                    "title": "exact bookmark title",
-                    "url": "exact bookmark url",
-                    "reason": "short reason"
-                }
-            ]
-        }
-    ],
-    "summary": "Brief organization explanation"
-}`;
-    }
-
     // Core Functions
     async function loadBookmarksTree() {
         try {
@@ -344,27 +293,36 @@ REQUIRED RESPONSE FORMAT:
             const tree = await chrome.bookmarks.getTree();
             bookmarksTree = tree;
             
-            // Collect existing folders for prompt
+            // Collect existing folders with hierarchy
             const existingFolders = [];
             function collectFolders(node) {
-                if (!node.url && node.title) {
-                    existingFolders.push({
+                if (!node.url) {
+                    const folder = {
                         id: node.id,
-                        title: node.title
-                    });
-                }
-                if (node.children) {
-                    node.children.forEach(collectFolders);
+                        title: node.title,
+                        children: []
+                    };
+                    
+                    if (node.children) {
+                        node.children.forEach(child => {
+                            if (!child.url) {
+                                folder.children.push(collectFolders(child));
+                            }
+                        });
+                    }
+                    
+                    if (node.id !== '0') { // Don't add root node
+                        existingFolders.push(folder);
+                    }
+                    return folder;
                 }
             }
             tree[0].children.forEach(collectFolders);
-            currentPrompt.folders = existingFolders;
             addLog(`📂 Existing folders loaded: ${existingFolders.length}`, 'info');
             
             renderBookmarksTree(tree[0], bookmarksContainer);
             updateOrganizeButton();
             updatePendingList();
-            updatePrompt();
         } catch (error) {
             console.error('Error loading bookmarks:', error);
             showStatus('Error updating bookmarks list.', 'error');
@@ -395,7 +353,6 @@ REQUIRED RESPONSE FORMAT:
             folderNode.children.forEach(child => toggleFolderBookmarks(child, checked));
         }
         updatePendingList();
-        updatePrompt();
     }
 
     function renderBookmarksTree(node, container, level = 0) {
@@ -559,7 +516,6 @@ REQUIRED RESPONSE FORMAT:
         }
         updateOrganizeButton();
         updatePendingList();
-        updatePrompt();
     }
 
     async function findOrCreateUncategorizedFolder() {
@@ -999,12 +955,38 @@ REQUIRED RESPONSE FORMAT:
             if (selectedBookmarks.length === 0) {
                 throw new Error('No bookmarks selected');
             }
+
+            // Get existing folders with hierarchy
+            const existingFolders = [];
+            function collectFolders(node) {
+                if (!node.url) {
+                    const folder = {
+                        id: node.id,
+                        title: node.title,
+                        children: []
+                    };
+                    
+                    if (node.children) {
+                        node.children.forEach(child => {
+                            if (!child.url) {
+                                folder.children.push(collectFolders(child));
+                            }
+                        });
+                    }
+                    
+                    if (node.id !== '0') { // Don't add root node
+                        existingFolders.push(folder);
+                    }
+                    return folder;
+                }
+            }
+            bookmarksTree[0].children.forEach(collectFolders);
             
             addLog(`🚀 Starting organization of ${selectedBookmarks.length} bookmarks`, 'info');
             addLog('📊 Current Statistics:', 'info', `
                 <ul>
                     <li>Bookmarks to organize: ${selectedBookmarks.length}</li>
-                    <li>Existing folders: ${currentPrompt.folders.length}</li>
+                    <li>Existing folders: ${existingFolders.length}</li>
                     <li>Maximum folder depth: 3 levels</li>
                 </ul>
             `);
@@ -1023,7 +1005,20 @@ REQUIRED RESPONSE FORMAT:
             // Get suggestion from Gemini
             let suggestion;
             try {
-                suggestion = await geminiService.suggestOrganization(selectedBookmarks, currentPrompt.folders, addLog, false);
+                addLog('🔍 Sending request to Gemini...', 'info');
+                console.log('📝 Sending to Gemini:', {
+                    bookmarks: selectedBookmarks.map(b => ({
+                        title: b.title,
+                        url: b.url,
+                        id: b.id
+                    })),
+                    existingFolders: existingFolders.map(f => ({
+                        title: f.title,
+                        id: f.id
+                    })),
+                    isSingleBookmark: false
+                });
+                suggestion = await geminiService.suggestOrganization(selectedBookmarks, existingFolders, addLog, false);
                 
                 // Completar progresso quando receber a resposta
                 progress.complete();
@@ -1364,14 +1359,47 @@ REQUIRED RESPONSE FORMAT:
             pendingBookmarks.clear();
             pendingBookmarks.add(bookmarkObj);
             updatePendingList();
-            updatePrompt();
+
+            // Get existing folders with hierarchy
+            const existingFolders = [];
+            function collectFolders(node) {
+                if (!node.url) {
+                    const folder = {
+                        id: node.id,
+                        title: node.title,
+                        children: []
+                    };
+                    
+                    if (node.children) {
+                        node.children.forEach(child => {
+                            if (!child.url) {
+                                folder.children.push(collectFolders(child));
+                            }
+                        });
+                    }
+                    
+                    if (node.id !== '0') { // Don't add root node
+                        existingFolders.push(folder);
+                    }
+                    return folder;
+                }
+            }
+            bookmarksTree[0].children.forEach(collectFolders);
 
             // Iniciar simulação de progresso
             const progress = simulateProgress();
             
             // Get suggestion from Gemini
             addLog('🤖 Requesting AI analysis...', 'info');
-            const suggestion = await geminiService.suggestOrganization([bookmarkObj], currentPrompt.folders, addLog, true);
+            console.log('📝 Sending to Gemini:', {
+                bookmarks: [bookmarkObj],
+                existingFolders: existingFolders.map(f => ({
+                    title: f.title,
+                    id: f.id
+                })),
+                isSingleBookmark: true
+            });
+            const suggestion = await geminiService.suggestOrganization([bookmarkObj], existingFolders, addLog, true);
             
             // Completar progresso
             progress.complete();

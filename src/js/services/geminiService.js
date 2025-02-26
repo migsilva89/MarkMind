@@ -183,7 +183,33 @@ class GeminiService {
                 return `- ${b.title}\n  URL: ${cleanedUrl}\n  ID: ${b.id || 'new'}`;
             }).join('\n');
 
-            const foldersData = existingFolders.map(f => `- ${f.title}`).join('\n');
+            // Format folders data with hierarchy
+            let foldersData = '';
+            const processedFolders = new Set();
+
+            function formatFolderHierarchy(folder, depth = 0) {
+                if (processedFolders.has(folder.id)) return '';
+                processedFolders.add(folder.id);
+
+                const indent = '  '.repeat(depth);
+                let result = `${indent}- ${folder.title} (ID: ${folder.id})\n`;
+
+                if (folder.children) {
+                    folder.children.forEach(child => {
+                        if (!child.url) { // Only process folders, not bookmarks
+                            result += formatFolderHierarchy(child, depth + 1);
+                        }
+                    });
+                }
+                return result;
+            }
+
+            // Process root folders first
+            existingFolders.forEach(folder => {
+                if (!processedFolders.has(folder.id)) {
+                    foldersData += formatFolderHierarchy(folder);
+                }
+            });
 
             const promptText = `You are an AI assistant specialized in organizing bookmarks into folders.
 Your task is to ONLY return a valid JSON, with no additional text.
@@ -192,14 +218,14 @@ INPUT:
 Bookmarks to organize:
 ${bookmarksData}
 
-Existing folders:
+Existing folder structure (with hierarchy):
 ${foldersData}
 
 CRITICAL RULES:
 1. EACH BOOKMARK MUST BE PLACED IN EXACTLY ONE FOLDER - NO EXCEPTIONS
 2. DO NOT PLACE THE SAME BOOKMARK IN MULTIPLE FOLDERS
 3. If multiple categories fit, choose the SINGLE most appropriate one
-4. Use existing folders when appropriate
+4. Use existing folders when appropriate, respecting their hierarchy
 5. Suggest new folders only if necessary
 6. Group related bookmarks
 7. Keep categorization reasons short and objective
@@ -208,6 +234,7 @@ CRITICAL RULES:
 10. Group similar services together
 11. ONLY INCLUDE FOLDERS THAT WILL CONTAIN BOOKMARKS
 12. DO NOT INCLUDE EMPTY FOLDERS IN THE RESPONSE
+13. RESPECT EXISTING FOLDER HIERARCHIES (e.g., if "Online" is a subfolder of "Shopping", use that structure)
 
 REQUIRED RESPONSE FORMAT:
 {
@@ -233,12 +260,15 @@ IMPORTANT VALIDATION RULES:
 - If unsure about category, use the most general one
 - DO NOT duplicate bookmarks across folders
 - DO NOT include empty folders
-- ONLY return folders that will contain bookmarks`;
+- ONLY return folders that will contain bookmarks
+- RESPECT the existing folder hierarchy when organizing bookmarks`;
 
             const promptTokenCount = promptText.split(/\s+/).length;
             if (logger) {
                 logger('🤔 Analyzing bookmark patterns...', 'info');
             }
+
+            console.log(promptText);
 
             const prompt = {
                 contents: [{
