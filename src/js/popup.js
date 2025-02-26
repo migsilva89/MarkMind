@@ -143,10 +143,24 @@ document.addEventListener('DOMContentLoaded', () => {
                 showStatus('Error saving API key: ' + chrome.runtime.lastError.message, 'error', true);
                 return;
             }
+            
+            // Add classes to style the buttons
+            saveApiKeyBtn.classList.add('primary-btn');
+            testApiBtn.classList.add('primary-btn');
+            
             showStatus('API key saved successfully!', 'success', true);
             checkApiKeyAndUpdateUI();
         });
     });
+
+    // Add Report Bug button to settings
+    const reportBugBtn = document.createElement('button');
+    reportBugBtn.innerHTML = '🐛 Report a Bug';
+    reportBugBtn.className = 'secondary-btn report-bug-btn';
+    reportBugBtn.addEventListener('click', () => {
+        window.open('https://github.com/migsilva89/MarkMind/issues/new', '_blank');
+    });
+    settingsSection.appendChild(reportBugBtn);
 
     // Remove API key
     removeApiKeyBtn.addEventListener('click', () => {
@@ -637,6 +651,11 @@ document.addEventListener('DOMContentLoaded', () => {
         statusElement.className = `status-message ${type}`;
         statusElement.style.display = 'block';
         
+        // Add margin-top to settings status
+        if (isSettings) {
+            statusElement.style.marginTop = '16px';
+        }
+        
         if (type !== 'loading') {
             setTimeout(() => {
                 statusElement.style.display = 'none';
@@ -733,6 +752,12 @@ document.addEventListener('DOMContentLoaded', () => {
                         element.style.display = 'block';
                     }
                 });
+                // Auto-collapse logs when showing results
+                if (collapseBtn && logsContainer) {
+                    collapseBtn.classList.add('collapsed');
+                    logsContainer.classList.add('collapsed');
+                    document.querySelector('.logs-header').classList.add('collapsed');
+                }
                 break;
         }
 
