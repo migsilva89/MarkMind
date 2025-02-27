@@ -157,6 +157,41 @@ class GeminiService {
         }
     }
 
+    /**
+     * Recursively removes empty folders from the AI response
+     * - Keeps folders that have bookmarks
+     * - Keeps folders that have non-empty subfolders
+     * - Removes completely empty folders
+     * 
+     * @param {Object} folder The folder to clean
+     * @returns {Object|null} The cleaned folder or null if empty
+     */
+    cleanEmptyFolders(folder) {
+        // Base case: if folder has bookmarks, keep it
+        if (folder.bookmarks && folder.bookmarks.length > 0) {
+            return folder;
+        }
+
+        // Recursively clean subfolders
+        if (folder.subfolders && folder.subfolders.length > 0) {
+            const cleanedSubfolders = folder.subfolders
+                .map(subfolder => this.cleanEmptyFolders(subfolder))
+                .filter(subfolder => subfolder !== null);
+
+            // If we have clean subfolders, keep this folder
+            if (cleanedSubfolders.length > 0) {
+                return {
+                    ...folder,
+                    subfolders: cleanedSubfolders,
+                    bookmarks: folder.bookmarks || [] // Ensure bookmarks array exists
+                };
+            }
+        }
+
+        // If no bookmarks and no clean subfolders, remove folder
+        return null;
+    }
+
     async suggestOrganization(bookmarks, existingFolders, logger, isSingleBookmark = false) {
         try {
             if (!this.apiKey) {
@@ -573,6 +608,10 @@ IMPORTANT VALIDATION RULES:
             // Apply validation after parsing response
             if (result.folders) {
                 result.folders = validateNoDuplicates(result.folders);
+                // Clean empty folders before returning
+                result.folders = result.folders
+                    .map(folder => this.cleanEmptyFolders(folder))
+                    .filter(folder => folder !== null);
             }
 
             console.log('✅ Processing completed successfully:', result);
