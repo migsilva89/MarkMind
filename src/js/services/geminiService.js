@@ -262,7 +262,6 @@ CRITICAL RULES:
 11. ONLY INCLUDE FOLDERS THAT WILL CONTAIN BOOKMARKS
 12. DO NOT INCLUDE EMPTY FOLDERS IN THE RESPONSE
 13. RESPECT EXISTING FOLDER HIERARCHIES (e.g., if "Fashion" is a child of "Shopping", use that structure)
-14. The 'Other Bookmarks' folder should be used ONLY as an absolute last resort, when a bookmark cannot be meaningfully categorized in any other way
 
 REQUIRED RESPONSE FORMAT:
 {
@@ -288,8 +287,7 @@ IMPORTANT VALIDATION RULES:
 - If unsure about category, use the most general one
 - DO NOT duplicate bookmarks across folders
 - DO NOT include empty folders
-- ONLY return folders that will contain bookmarks
-- RESPECT the existing folder hierarchy when organizing bookmarks`;
+- ONLY return folders that will contain bookmarks`;
 
             const promptTokenCount = promptText.split(/\s+/).length;
             if (logger) {
