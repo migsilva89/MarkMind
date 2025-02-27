@@ -461,7 +461,39 @@ IMPORTANT VALIDATION RULES:
                 // Find bookmarks that weren't included
                 const missingBookmarks = bookmarks.filter(b => {
                     const bookmarkKey = b.type === 'new' ? `url:${cleanUrl(b.url)}` : `id:${b.id}`;
-                    return !processedIds.has(bookmarkKey);
+                    
+                    // Check if this bookmark is already processed
+                    if (processedIds.has(bookmarkKey)) {
+                        return false;
+                    }
+                    
+                    // Double-check by searching through all folders manually
+                    // This is a fallback in case the processedIds tracking missed something
+                    const isIncluded = result.folders.some(folder => {
+                        // Check in main folder
+                        if (folder.bookmarks.some(bm => {
+                            if (b.type === 'new') {
+                                return cleanUrl(bm.url) === cleanUrl(b.url);
+                            } else {
+                                return bm.id === b.id;
+                            }
+                        })) {
+                            return true;
+                        }
+                        
+                        // Check in subfolders
+                        return folder.subfolders?.some(subfolder => 
+                            subfolder.bookmarks.some(bm => {
+                                if (b.type === 'new') {
+                                    return cleanUrl(bm.url) === cleanUrl(b.url);
+                                } else {
+                                    return bm.id === b.id;
+                                }
+                            })
+                        );
+                    });
+                    
+                    return !isIncluded;
                 });
                 
                 if (missingBookmarks.length > 0) {
@@ -489,6 +521,13 @@ IMPORTANT VALIDATION RULES:
                         url: b.url,
                         id: b.id || 'new'
                     })));
+                    
+                    if (logger) {
+                        logger(`✓ Added ${missingBookmarks.length} bookmarks to "${CHROME_NATIVE_FOLDERS.OTHER_BOOKMARKS.name}" folder`, 'success');
+                        missingBookmarks.forEach(b => {
+                            logger(`  - ${b.title}`, 'info');
+                        });
+                    }
                 }
             }
 

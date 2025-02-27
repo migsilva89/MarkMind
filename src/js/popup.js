@@ -1087,59 +1087,18 @@ document.addEventListener('DOMContentLoaded', () => {
                     throw new Error('AI response is missing folder structure');
                 }
                 
-                // Find bookmarks that weren't included
-                const missingBookmarks = selectedBookmarks.filter(bookmark => {
-                    // For existing bookmarks, check by ID
-                    if (bookmark.type === 'existing') {
-                        return !suggestion.folders.some(folder => {
-                            // Check in main folder
-                            if (folder.bookmarks.some(bm => bm.id === bookmark.id)) {
-                                return true;
-                            }
-                            // Check in subfolders
-                            return folder.subfolders?.some(subfolder => 
-                                subfolder.bookmarks.some(bm => bm.id === bookmark.id)
-                            );
-                        });
-                    }
-                    // For new bookmarks, check by cleaned URL
-                    const cleanedBookmarkUrl = cleanUrl(bookmark.url);
-                    return !suggestion.folders.some(folder => {
-                        // Check in main folder
-                        if (folder.bookmarks.some(bm => cleanUrl(bm.url) === cleanedBookmarkUrl)) {
-                            return true;
-                        }
-                        // Check in subfolders
-                        return folder.subfolders?.some(subfolder => 
-                            subfolder.bookmarks.some(bm => cleanUrl(bm.url) === cleanedBookmarkUrl)
-                        );
-                    });
-                });
+                // Log the total number of bookmarks organized
+                const totalBookmarksOrganized = countTotalBookmarks(suggestion.folders);
+                addLog('📋 Organization Summary:', 'info', `
+                    <ul>
+                        <li>Bookmarks organized: ${totalBookmarksOrganized}</li>
+                        <li>New folders to create: ${suggestion.folders.filter(f => f.isNew).length}</li>
+                        <li>Existing folders to use: ${suggestion.folders.filter(f => !f.isNew).length}</li>
+                        <li>Total folders in structure: ${suggestion.folders.length}</li>
+                    </ul>
+                `);
                 
-                if (missingBookmarks.length > 0) {
-                    addLog(`⚠️ Found ${missingBookmarks.length} uncategorized bookmarks`, 'warning');
-                    // Add missing bookmarks to an "Uncategorized" folder
-                    const uncategorizedFolder = suggestion.folders.find(f => f.name === 'Uncategorized');
-                    if (uncategorizedFolder) {
-                        uncategorizedFolder.bookmarks = [...uncategorizedFolder.bookmarks, ...missingBookmarks.map(bm => ({
-                            title: bm.title,
-                            url: bm.url,
-                            reason: "Not categorized by AI"
-                        }))];
-                    } else {
-                        suggestion.folders.push({
-                            name: 'Uncategorized',
-                            isNew: true,
-                            icon: '📁',
-                            bookmarks: missingBookmarks.map(bm => ({
-                                title: bm.title,
-                                url: bm.url,
-                                reason: "Not categorized by AI"
-                            }))
-                        });
-                    }
-                    addLog('✓ Added missing bookmarks to "Uncategorized" folder', 'success');
-                }
+                // Note: Uncategorized bookmarks are already handled in geminiService.js
             } catch (error) {
                 progress.complete();
                 addLog(`❌ Error during AI analysis: ${error.message}`, 'error');
