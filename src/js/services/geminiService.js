@@ -232,7 +232,12 @@ class GeminiService {
                 return result;
             };
 
-            foldersData += existingFolders.map(folder => formatFolderHierarchy(folder)).join('');
+            // Filter to only include Bookmarks Bar and Other Bookmarks
+            const rootFolders = existingFolders.filter(folder => 
+                folder.id === CHROME_NATIVE_FOLDERS.BOOKMARKS_BAR.id || 
+                folder.id === CHROME_NATIVE_FOLDERS.OTHER_BOOKMARKS.id
+            );
+            foldersData += rootFolders.map(folder => formatFolderHierarchy(folder)).join('');
 
             const promptText = `You are an AI assistant specialized in organizing bookmarks into folders.
 Your task is to ONLY return a valid JSON, with no additional text.
@@ -246,17 +251,18 @@ ${foldersData}
 CRITICAL RULES:
 1. EACH BOOKMARK MUST BE PLACED IN EXACTLY ONE FOLDER - NO EXCEPTIONS
 2. DO NOT PLACE THE SAME BOOKMARK IN MULTIPLE FOLDERS
-3. If multiple categories fit, choose the SINGLE most appropriate one
+3. If multiple categories fit, choose the SINGLE most appropriate one. Only use 'Other Bookmarks' if the bookmark truly doesn't fit ANY existing category or subcategory. When in doubt, prefer creating a new relevant subfolder within an existing category over using 'Other Bookmarks'.
 4. Use existing folders when appropriate, respecting their hierarchy
 5. Suggest new folders only if necessary
 6. Group related bookmarks
 7. Keep categorization reasons short and objective
 8. Maximum folder depth is 3 levels
-9. Create subfolders for development-related services
+9. Create subfolders for related services/topics WITHIN existing main folders first
 10. Group similar services together
 11. ONLY INCLUDE FOLDERS THAT WILL CONTAIN BOOKMARKS
 12. DO NOT INCLUDE EMPTY FOLDERS IN THE RESPONSE
 13. RESPECT EXISTING FOLDER HIERARCHIES (e.g., if "Fashion" is a child of "Shopping", use that structure)
+14. The 'Other Bookmarks' folder should be used ONLY as an absolute last resort, when a bookmark cannot be meaningfully categorized in any other way
 
 REQUIRED RESPONSE FORMAT:
 {
