@@ -229,7 +229,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Function to show bookmark limit warning
     function showBookmarkLimitWarning(count) {
-        const warningThreshold = 90;
+        const warningThreshold = 70;
         const warningElement = document.getElementById('bookmark-limit-warning') || createBookmarkLimitWarning();
         
         if (count > warningThreshold) {
@@ -238,7 +238,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 <div class="warning-icon">⚠️</div>
                 <div class="warning-text">
                     <strong>Large Selection Warning:</strong> You've selected ${count} bookmarks.
-                    <p>Free API keys may have limitations with large requests. For best results, consider organizing in smaller batches (under ${warningThreshold}). Is up to you to decide if you want to proceed.</p>
+                    <p>Free API keys may have limitations with large requests. For best and precise results, consider organizing in smaller batches like 15 or 20 bookmarks at a time. Is up to you to decide if you want to proceed.</p>
                 </div>
             `;
         } else {

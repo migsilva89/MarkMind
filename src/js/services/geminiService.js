@@ -257,7 +257,7 @@ CRITICAL RULES:
 6. Group related bookmarks
 7. Keep categorization reasons short and objective
 8. Maximum folder depth is 3 levels
-9. Create subfolders for related services/topics WITHIN existing main folders first
+9. Create subfolders for related topics WITHIN existing main folders first
 10. Group similar services together
 11. ONLY INCLUDE FOLDERS THAT WILL CONTAIN BOOKMARKS
 12. DO NOT INCLUDE EMPTY FOLDERS IN THE RESPONSE
@@ -280,6 +280,14 @@ REQUIRED RESPONSE FORMAT:
         }
     ]
 }
+
+CRITICAL RULES FOR OTHER BOOKMARKS:
+BEFORE ADD TO OTHER BOOKMARKS, you MUST:
+   - Try to fit the bookmark in existing folders
+   - Try to fit the bookmark in existing subfolders
+   - Try to create a new subfolder in an existing category
+   - Try to create a new main folder
+   - Only if all above fail, then use Other Bookmarks
 
 IMPORTANT VALIDATION RULES:
 - Each URL must appear in EXACTLY ONE folder
