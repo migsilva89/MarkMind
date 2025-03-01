@@ -216,7 +216,8 @@ class GeminiService {
 
             const bookmarksData = bookmarks.map(b => {
                 const cleanedUrl = cleanUrl(b.url);
-                return `- ${b.title}\n  URL: ${cleanedUrl}\n  ID: ${b.id || 'new'}`;
+                const title = b.title || cleanedUrl; // Use URL as fallback if title is missing
+                return `- ${title}\n  URL: ${cleanedUrl}\n  ID: ${b.id || 'new'}`;
             }).join('\n');
 
             // Format folders data with hierarchy
@@ -423,9 +424,15 @@ IMPORTANT VALIDATION RULES:
 
                 // Validate each bookmark
                 folder.bookmarks.forEach((bm, bmIndex) => {
-                    if (!bm.url || !bm.title || !bm.id) {
+                    if (!bm.url || !bm.id) {
                         throw new Error(`Bookmark ${bmIndex} in ${folder.name} missing required fields`);
                     }
+                    
+                    // Ensure title is never null
+                    if (bm.title === null) {
+                        bm.title = "";
+                    }
+                    
                     // Mark bookmark as processed
                     bookmarkIds.add(bm.id);
                 });
@@ -620,6 +627,101 @@ IMPORTANT VALIDATION RULES:
             // Apply validation after parsing response
             if (result.folders) {
                 result.folders = validateNoDuplicates(result.folders);
+                
+                // Merge folders with the same name and ID
+                const mergedFolders = [];
+                const folderMap = new Map();
+                
+                // First pass: group folders by ID
+                result.folders.forEach(folder => {
+                    const key = folder.id || folder.name;
+                    if (!folderMap.has(key)) {
+                        folderMap.set(key, folder);
+                    } else {
+                        // Merge this folder with the existing one
+                        const existingFolder = folderMap.get(key);
+                        
+                        if (logger) {
+                            logger(`🔄 Merging duplicate folder: ${folder.name}`, 'info');
+                        }
+                        
+                        // Merge bookmarks
+                        existingFolder.bookmarks = [
+                            ...existingFolder.bookmarks,
+                            ...folder.bookmarks
+                        ];
+                        
+                        // Merge subfolders
+                        if (folder.subfolders && folder.subfolders.length > 0) {
+                            if (!existingFolder.subfolders) {
+                                existingFolder.subfolders = [];
+                            }
+                            existingFolder.subfolders = [
+                                ...existingFolder.subfolders,
+                                ...folder.subfolders
+                            ];
+                        }
+                    }
+                });
+                
+                // Convert map back to array
+                result.folders = Array.from(folderMap.values());
+                
+                if (logger && result.folders.length < folderMap.size) {
+                    logger(`✅ Merged ${result.folders.length - folderMap.size} duplicate folders`, 'success');
+                }
+                
+                // Recursively merge duplicate subfolders within each folder
+                const mergeSubfolders = (folder) => {
+                    if (!folder.subfolders || folder.subfolders.length === 0) {
+                        return folder;
+                    }
+                    
+                    // Group subfolders by name
+                    const subfoldersMap = new Map();
+                    folder.subfolders.forEach(subfolder => {
+                        const key = subfolder.id || subfolder.name;
+                        if (!subfoldersMap.has(key)) {
+                            subfoldersMap.set(key, subfolder);
+                        } else {
+                            // Merge this subfolder with the existing one
+                            const existingSubfolder = subfoldersMap.get(key);
+                            
+                            if (logger) {
+                                logger(`🔄 Merging duplicate subfolder: ${subfolder.name} in ${folder.name}`, 'info');
+                            }
+                            
+                            // Merge bookmarks
+                            existingSubfolder.bookmarks = [
+                                ...existingSubfolder.bookmarks,
+                                ...subfolder.bookmarks
+                            ];
+                            
+                            // Merge nested subfolders
+                            if (subfolder.subfolders && subfolder.subfolders.length > 0) {
+                                if (!existingSubfolder.subfolders) {
+                                    existingSubfolder.subfolders = [];
+                                }
+                                existingSubfolder.subfolders = [
+                                    ...existingSubfolder.subfolders,
+                                    ...subfolder.subfolders
+                                ];
+                            }
+                        }
+                    });
+                    
+                    // Update folder's subfolders
+                    folder.subfolders = Array.from(subfoldersMap.values());
+                    
+                    // Recursively merge subfolders of subfolders
+                    folder.subfolders.forEach(mergeSubfolders);
+                    
+                    return folder;
+                };
+                
+                // Apply subfolder merging to all top-level folders
+                result.folders.forEach(mergeSubfolders);
+                
                 // Clean empty folders before returning
                 result.folders = result.folders
                     .map(folder => this.cleanEmptyFolders(folder))
