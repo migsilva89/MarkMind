@@ -4,7 +4,7 @@
   <img src="./src/assets/icons/icon128.png" alt="MarkMind Logo" width="128" height="128">
   <p><strong>Transform your chaotic bookmarks into organized bliss with AI</strong></p>
   <p>
-    <a href="https://chrome.google.com/webstore/detail/markmind/[your-extension-id]">
+    <a href="https://chromewebstore.google.com/detail/MarkMind/bdobgdkpeffdbonfpokgkbncgnbnjnoo">
       <img src="https://img.shields.io/badge/Chrome-Add%20to%20Chrome-green" alt="Chrome Web Store">
     </a>
     <a href="https://github.com/migsilva89/MarkMind/issues">
@@ -21,7 +21,7 @@
 MarkMind replaces Chrome's native bookmark button with AI-powered organization that actually understands what you're saving. One click and your bookmarks find their perfect home - automatically!
 
 <div align="center">
-  <img src="https://github.com/migsilva89/MarkMind/raw/main/assets/screenshots/demo.gif" alt="MarkMind Demo" width="600">
+  <img src="https://www.markmind.xyz/addcurrent.gif" alt="MarkMind Demo" width="600">
 </div>
 
 ### 🌟 Key Features
