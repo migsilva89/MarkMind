@@ -35,7 +35,7 @@ MarkMind replaces Chrome's native bookmark button with AI-powered organization t
 ## 🚀 Getting Started
 
 ### Quick Install
-1. [Add MarkMind from the Chrome Web Store](https://chrome.google.com/webstore/detail/markmind/[your-extension-id])
+1. [Add MarkMind from the Chrome Web Store]([https://chrome.google.com/webstore/detail/markmind/[your-extension-id]](https://chromewebstore.google.com/detail/markmind/bdobgdkpeffdbonfpokgkbncgnbnjnoo))
 2. Get a free [Google AI Studio](https://aistudio.google.com/app/apikey) API key
 3. Click the MarkMind icon and enter your API key in settings
 4. Start organizing your bookmarks with AI!
