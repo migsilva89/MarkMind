@@ -3,7 +3,11 @@
  * Used by both Welcome and Settings pages
  */
 
+import * as ServiceSelector from './ServiceSelector.js';
+import { getService } from '../config/services.js';
+
 let container = null;
+let currentService = null;
 let config = {
     title: '',
     showWelcomeMessage: false,
@@ -39,8 +43,10 @@ function getTemplate() {
             <div class="settings-body">
                 <div class="welcome-message"></div>
 
+                <div id="service-selector-container"></div>
+
                 <div class="form-group">
-                    <label for="api-key-input">Gemini API Key</label>
+                    <label for="api-key-input" id="api-key-label">API Key</label>
                     <input
                         type="password"
                         id="api-key-input"
@@ -48,8 +54,8 @@ function getTemplate() {
                         autocomplete="off"
                     >
                     <p class="help-text">
-                        Get your free API key at
-                        <a href="https://makersuite.google.com/app/apikey" target="_blank">Google AI Studio</a>
+                        Get your API key at
+                        <a href="#" target="_blank" id="api-key-help-link">AI Studio</a>
                     </p>
                 </div>
 
@@ -95,8 +101,16 @@ export function open(options = {}) {
         onClose: options.onClose || null,
     };
 
+    // Initialize service selector
+    const selectorContainer = container.querySelector('#service-selector-container');
+    ServiceSelector.init(selectorContainer, onServiceChange);
+
     updateUI();
     container.classList.add('active');
+
+    // Set initial service and check for existing key
+    currentService = getService(ServiceSelector.getCurrentService());
+    updateFormForService();
     checkExistingKey();
 }
 
@@ -120,8 +134,8 @@ function updateUI() {
 
     if (config.showWelcomeMessage) {
         welcomeMsg.innerHTML = `
-            <p>AI-powered bookmark organization at your fingertips.</p>
-            <p>To get started, please add your Gemini API key below.</p>
+            <p class="welcome-intro">Let AI organize your bookmarks intelligently. MarkMind analyzes your bookmarks and sorts them into meaningful folders automatically.</p>
+            <p class="welcome-cta">Enter your API key below to get started.</p>
         `;
         welcomeMsg.style.display = 'block';
     } else {
@@ -131,15 +145,49 @@ function updateUI() {
     closeBtn.style.display = config.canClose ? 'block' : 'none';
 }
 
+function onServiceChange(serviceId) {
+    currentService = getService(serviceId);
+    updateFormForService();
+    checkExistingKey();
+    clearStatus();
+}
+
+function updateFormForService() {
+    const label = container.querySelector('#api-key-label');
+    const input = container.querySelector('#api-key-input');
+    const helpLink = container.querySelector('#api-key-help-link');
+
+    label.textContent = currentService.label;
+    input.placeholder = currentService.placeholder;
+    helpLink.href = currentService.helpLink;
+    helpLink.textContent = currentService.helpLinkText;
+}
+
 async function checkExistingKey() {
+    const storageKey = currentService.storageKey;
     return new Promise((resolve) => {
-        chrome.storage.local.get(['geminiApiKey'], (result) => {
-            if (result.geminiApiKey) {
+        chrome.storage.local.get([storageKey], (result) => {
+            if (result[storageKey]) {
                 showKeyExists();
+            } else {
+                resetKeyForm();
             }
-            resolve(!!result.geminiApiKey);
+            resolve(!!result[storageKey]);
         });
     });
+}
+
+function resetKeyForm() {
+    const input = container.querySelector('#api-key-input');
+    const saveBtn = container.querySelector('#save-api-key');
+    const testBtn = container.querySelector('#test-api-key');
+    const removeBtn = container.querySelector('#remove-api-key');
+
+    input.value = '';
+    input.placeholder = currentService.placeholder;
+    saveBtn.textContent = 'Save API Key';
+    testBtn.style.display = 'none';
+    removeBtn.style.display = 'none';
 }
 
 function showKeyExists() {
@@ -164,7 +212,7 @@ async function saveApiKey() {
         return;
     }
 
-    if (!apiKey.startsWith('AI') || apiKey.length < 30) {
+    if (!currentService.validateKey(apiKey)) {
         showStatus('Invalid API key format', 'error');
         return;
     }
@@ -172,7 +220,7 @@ async function saveApiKey() {
     showStatus('Saving...', 'loading');
 
     try {
-        await chrome.storage.local.set({ geminiApiKey: apiKey });
+        await chrome.storage.local.set({ [currentService.storageKey]: apiKey });
         showStatus('API key saved successfully', 'success');
         showKeyExists();
 
@@ -191,11 +239,17 @@ async function saveApiKey() {
 }
 
 async function testApiKey() {
+    // Only Google/Gemini supports direct API testing from browser
+    if (currentService.id !== 'google') {
+        showStatus('Test not available for this service', 'error');
+        return;
+    }
+
     showStatus('Testing connection...', 'loading');
 
     try {
-        const result = await chrome.storage.local.get(['geminiApiKey']);
-        const apiKey = result.geminiApiKey;
+        const result = await chrome.storage.local.get([currentService.storageKey]);
+        const apiKey = result[currentService.storageKey];
 
         if (!apiKey) {
             showStatus('No API key found', 'error');
@@ -203,7 +257,7 @@ async function testApiKey() {
         }
 
         const response = await fetch(
-            `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`,
+            `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`,
             {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
@@ -228,19 +282,8 @@ async function removeApiKey() {
     if (!confirm('Are you sure you want to remove your API key?')) return;
 
     try {
-        await chrome.storage.local.remove(['geminiApiKey']);
-
-        const input = container.querySelector('#api-key-input');
-        const saveBtn = container.querySelector('#save-api-key');
-        const testBtn = container.querySelector('#test-api-key');
-        const removeBtn = container.querySelector('#remove-api-key');
-
-        input.value = '';
-        input.placeholder = 'Enter your API key';
-        saveBtn.textContent = 'Save API Key';
-        testBtn.style.display = 'none';
-        removeBtn.style.display = 'none';
-
+        await chrome.storage.local.remove([currentService.storageKey]);
+        resetKeyForm();
         showStatus('API key removed', 'success');
     } catch (error) {
         showStatus('Failed to remove API key', 'error');
