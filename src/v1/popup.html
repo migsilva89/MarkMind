@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>MarkMind</title>
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <div class="header-top">
+                <div class="logo-container">
+                    <img src="assets/icons/icon48.png" alt="MarkMind Logo" class="logo">
+                    <span class="logo-title">MarkMind</span>
+                </div>
+                <div class="github-footer">
+                    <a href="https://github.com/migsilva89/MarkMind" target="_blank">
+                        ⭐ Star on GitHub
+                    </a>
+                </div>
+                <button id="settings-btn" class="icon-btn" title="Settings">⚙️</button>
+            </div>
+            <button id="add-current-btn" class="primary-btn">
+                <span class="icon">+</span>
+                Add Current Page
+            </button>
+            <div id="add-status" class="status-message" style="display: none;"></div>
+        </div>
+
+        <div id="api-key-warning" class="api-key-warning" style="display: none;">
+            <p>⚠️ API Key Required</p>
+            <p class="warning-description">Please configure your Gemini API key to start organizing bookmarks.</p>
+            <button id="configure-api-key" class="secondary-btn">Configure API Key</button>
+        </div>
+
+        <div id="settings-section" class="settings-section" style="display: none;">
+            <h2>
+                Settings
+                <button class="settings-close" id="settings-close">×</button>
+            </h2>
+            <div class="settings-form">
+                <div class="form-group">
+                    <label for="api-key">Gemini API Key</label>
+                    <div class="api-key-input">
+                        <input type="password" id="api-key" placeholder="Paste your API key here">
+                        <button id="save-api-key" class="secondary-btn">Save</button>
+                    </div>
+                    <div id="settings-status" class="status-message" style="display: none;"></div>
+                    <p class="help-text">
+                        Get your API key at: <a href="https://makersuite.google.com/app/apikey" target="_blank">Google AI Studio</a><br>
+                        <small>Your API key is stored locally and only used to communicate with Google's Gemini AI service.</small>
+                    </p>
+                    <button id="test-api" class="secondary-btn test-btn" style="display: none;">Test API</button>
+                    <button id="remove-api-key" class="secondary-btn warning-btn" style="display: none;">Remove API Key</button>
+                    <div id="test-result" class="test-result" style="display: none;"></div>
+                    <div class="settings-actions">
+                        <a href="PRIVACY.md" target="_blank" class="privacy-link">Privacy Policy</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="controls">
+            <button id="select-all" class="secondary-btn">Select All</button>
+            <button id="deselect-all" class="secondary-btn">Clear</button>
+            <button id="organize-btn" class="primary-btn" disabled>Organize</button>
+        </div>
+
+        <div id="bookmarks-container" class="bookmarks-tree"></div>
+
+        <div id="pending-bookmarks" class="pending-section" style="display: none;">
+            <div class="pending-header">
+                Selected Links <span id="pending-count" class="pending-count">0</span>
+            </div>
+            <div id="pending-list" class="pending-list"></div>
+        </div>
+
+        <div class="progress-section" style="display: none;">
+            <div class="progress-bar">
+                <div id="progress-indicator" class="progress-indicator"></div>
+            </div>
+            <div class="progress-info">
+                <div id="progress-text" class="progress-text">Processing...</div>
+                <div id="progress-count" class="progress-count">0%</div>
+            </div>
+        </div>
+
+        <div class="logs-section" style="display: none;">
+            <div class="logs-header">
+                <h3>Process Logs</h3>
+                <button class="collapse-btn" id="collapse-logs" title="Toggle Logs">›</button>
+            </div>
+            <div id="logs-container" class="logs-container"></div>
+        </div>
+
+        <div class="results-section" style="display: none;">
+            <div id="results-list"></div>
+        </div>
+    </div>
+
+    <script type="module" src="js/popup.js"></script>
+</body>
+</html> 

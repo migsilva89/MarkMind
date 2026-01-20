@@ -8,7 +8,7 @@ MarkMind is a Chrome extension that uses Google's Gemini AI to intelligently org
 
 ## Development Setup
 
-This is a vanilla JavaScript Chrome extension with no build process or package manager.
+This is a vanilla JavaScript Chrome extension (Manifest V3) with no build process or package manager.
 
 ### Loading the Extension
 
@@ -27,21 +27,54 @@ The extension requires a Google AI Studio API key (Gemini). Keys are stored in C
 
 ## Architecture
 
-### Core Components
+The codebase follows a modular architecture with singleton instances for managers, services, and UI components.
 
-- **popup.js** - Main UI controller. Handles bookmark selection, organization workflow, settings management, and user interactions. Contains the state machine for switching between normal/executing/results views.
+### Entry Point
 
-- **background.js** - Service worker for Chrome extension background tasks. Handles message passing and basic bookmark operations. Currently minimal as most logic is in popup.js.
+**popup.js** - Application entry point. Initializes all modules and sets up event handlers. Delegates all logic to specialized managers and components.
 
-- **services/geminiService.js** - Gemini AI integration. Builds prompts for bookmark organization, validates AI responses, handles folder merging, and ensures bookmarks aren't duplicated. Key method is `suggestOrganization()`.
+### Managers (Singleton Pattern)
 
-- **config.js** - API configuration including Gemini API URL, model settings (temperature, tokens), and default category list.
+- **StateManager** - Centralized state with observable pattern. Tracks bookmarks tree, pending selections, UI state (normal/executing/results), and API key validity. Subscribe to state changes with `subscribe(key, callback)`.
+
+- **OrganizationManager** - Orchestrates the organization workflow. Handles both single bookmark (`addCurrentPage()`) and bulk organization (`organizeBulk()`). Processes AI suggestions and applies changes via bookmark service.
+
+- **BookmarkTreeManager** - Renders the bookmark tree UI with checkboxes. Manages selection state and folder expand/collapse behavior.
+
+- **SettingsManager** - API key management (save/remove/test) and settings panel visibility.
+
+- **UIManager** - DOM element caching and status message display.
+
+### Services (Singleton Pattern)
+
+- **geminiService** - Gemini AI integration. Key method is `suggestOrganization(bookmarks, existingFolders, logger, isSingleBookmark)`. Builds prompts, validates responses, handles folder merging, and removes duplicate bookmarks.
+
+- **bookmarkService** - Wraps Chrome Bookmarks API (getTree, create, move, search, getSubTree).
+
+- **storageService** - Wraps Chrome Storage API for API key persistence.
+
+### UI Components (Singleton Pattern)
+
+- **LogPanel** - Displays operation logs with collapsible panel.
+- **ProgressBar** - Shows simulated progress during AI operations.
+- **ResultsPreview** - Displays AI suggestions with approve/cancel actions.
+
+### Configuration
+
+- **config/api.js** - Gemini API URL and model settings (temperature, tokens).
+- **config/constants.js** - Chrome native folder IDs, limits (MAX_FOLDER_DEPTH=3), UI states, default categories.
+
+### Utilities
+
+- **folderUtils.js** - Folder hierarchy building, native folder detection, bookmark counting.
+- **urlUtils.js** - URL cleaning and normalization.
+- **domUtils.js** - DOM element creation helpers.
 
 ### Key Data Flows
 
-1. **Single Bookmark Addition**: User clicks "Add Current Page" -> popup.js checks if URL already bookmarked -> geminiService suggests folder -> user approves -> bookmark created/moved
+1. **Single Bookmark**: User clicks "Add Current Page" → OrganizationManager checks if URL exists → geminiService.suggestOrganization() → ResultsPreview shows options (move/duplicate/create) → OrganizationManager.processFolder() applies changes
 
-2. **Bulk Organization**: User selects bookmarks -> geminiService analyzes all selected -> returns folder structure with `isNew` flags -> user reviews -> popup.js creates folders and moves bookmarks via Chrome Bookmarks API
+2. **Bulk Organization**: User selects bookmarks → OrganizationManager.organizeBulk() → geminiService analyzes all → ResultsPreview shows folder structure with `isNew` flags → User approves → OrganizationManager processes each folder and moves bookmarks
 
 ### Chrome APIs Used
 
@@ -49,9 +82,10 @@ The extension requires a Google AI Studio API key (Gemini). Keys are stored in C
 - `chrome.storage.local` - API key persistence
 - `chrome.tabs` - Get current tab for "Add Current Page"
 
-### Folder Structure Rules
+### Business Rules
 
 - Maximum folder depth: 3 levels
-- Chrome native folders (Bookmarks Bar id=1, Other Bookmarks id=2, Mobile Bookmarks id=3) are handled specially
-- AI is instructed to prefer existing folders over creating new ones
+- Chrome native folders: Bookmarks Bar (id=1), Other Bookmarks (id=2), Mobile Bookmarks (id=3)
+- AI prefers existing folders over creating new ones
 - Empty folders are recursively cleaned from AI responses
+- Bookmarks must not be duplicated across folders in AI suggestions
