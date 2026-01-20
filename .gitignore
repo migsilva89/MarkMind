@@ -57,4 +57,7 @@ coverage/
 *.crx
 *.pem
 *.zip
-web-ext-artifacts/ 
+web-ext-artifacts/
+
+# Preview assets (local only)
+preview/

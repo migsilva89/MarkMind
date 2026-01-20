@@ -1,35 +1,19 @@
-// Gemini API Configuration
+/**
+ * Legacy Configuration File
+ * This file is kept for backward compatibility.
+ * New code should import from config/api.js and config/constants.js directly.
+ *
+ * @deprecated Use imports from config/api.js and config/constants.js instead
+ */
+
+import { GEMINI_API_URL, MODEL_CONFIG } from './config/api.js';
+import { DEFAULT_CATEGORIES } from './config/constants.js';
+
 const config = {
-    // API key must be set by user
     GEMINI_API_KEY: '',
-    
-    // API endpoint updated to use gemini-2.0-flash-exp
-    GEMINI_API_URL: 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent',
-    
-    // Model settings
-    MODEL_CONFIG: {
-        temperature: 0.7,
-        topK: 40,
-        topP: 0.95,
-        maxOutputTokens: 8192, // Increased to 8K tokens (flash-exp max limit)
-    },
-    
-    // Default categories for organization
-    DEFAULT_CATEGORIES: [
-        'Technology',
-        'News',
-        'Entertainment',
-        'Education',
-        'Finance',
-        'Health',
-        'Sports',
-        'Travel',
-        'Shopping',
-        'Social',
-        'Development',
-        'Productivity',
-        'Others'
-    ]
+    GEMINI_API_URL,
+    MODEL_CONFIG,
+    DEFAULT_CATEGORIES
 };
 
-export default config; 
+export default config;
