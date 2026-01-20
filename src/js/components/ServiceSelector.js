@@ -27,11 +27,11 @@ export function init(containerElement, onChange) {
 function render(containerElement) {
     containerElement.innerHTML = `
         <div class="service-selector">
-            <p class="service-selector-label">Select AI service</p>
-            <div class="service-tabs">
+            <p class="service-selector-label">AI Provider</p>
+            <div class="service-tabs-pill">
                 ${getServiceIds().map(id => `
                     <button
-                        class="service-tab ${id === currentService ? 'active' : ''}"
+                        class="service-tab-pill ${id === currentService ? 'active' : ''}"
                         data-service="${id}"
                     >
                         ${SERVICES[id].name}
@@ -42,7 +42,7 @@ function render(containerElement) {
     `;
 
     // Add click listeners
-    containerElement.querySelectorAll('.service-tab').forEach(tab => {
+    containerElement.querySelectorAll('.service-tab-pill').forEach(tab => {
         tab.addEventListener('click', () => selectService(tab.dataset.service));
     });
 }
@@ -72,7 +72,7 @@ export function selectService(serviceId, save = true) {
     currentService = serviceId;
 
     // Update UI
-    document.querySelectorAll('.service-tab').forEach(tab => {
+    document.querySelectorAll('.service-tab-pill').forEach(tab => {
         tab.classList.toggle('active', tab.dataset.service === serviceId);
     });
 
