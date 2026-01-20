@@ -8,6 +8,8 @@
 import * as OrganizeTab from './tabs/organize.js';
 import * as InsightsTab from './tabs/insights.js';
 import * as DiscoverTab from './tabs/discover.js';
+import * as Welcome from './components/Welcome.js';
+import * as Settings from './components/Settings.js';
 
 // Tab modules registry
 const tabModules = {
@@ -31,11 +33,28 @@ async function init() {
         tabContents: document.querySelectorAll('.tab-content'),
     };
 
+    // Initialize components
+    Welcome.init();
+
+    // Check if first time user (no API key)
+    const hasApiKey = await checkApiKey();
+    if (!hasApiKey) {
+        Welcome.open();
+    }
+
     // Initialize all tab modules
     initializeTabs(elements);
 
     // Setup event listeners
     setupEventListeners(elements);
+}
+
+async function checkApiKey() {
+    return new Promise((resolve) => {
+        chrome.storage.local.get(['geminiApiKey'], (result) => {
+            resolve(!!result.geminiApiKey);
+        });
+    });
 }
 
 function initializeTabs(elements) {
@@ -50,8 +69,7 @@ function initializeTabs(elements) {
 function setupEventListeners(elements) {
     // Settings button
     elements.settingsBtn?.addEventListener('click', () => {
-        console.log('Settings clicked');
-        // TODO: Implement settings panel
+        Settings.open();
     });
 
     // Tab switching
