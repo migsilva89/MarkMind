@@ -4,6 +4,9 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>MarkMind v2</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
@@ -20,11 +23,26 @@
             </button>
         </header>
 
-        <!-- Main Content Area -->
-        <main class="main-content">
-            <p class="placeholder-text">Version 2 - Clean Slate</p>
+        <!-- Tabs Navigation -->
+        <nav class="tabs">
+            <button class="tab active" data-tab="organize">Organize</button>
+            <button class="tab" data-tab="insights">Insights</button>
+            <button class="tab" data-tab="discover">Discover</button>
+        </nav>
 
-            <!-- Future content will go here -->
+        <!-- Tab Content -->
+        <main class="main-content">
+            <div id="organize-tab" class="tab-content active">
+                <p class="placeholder-text">Organize your bookmarks</p>
+            </div>
+
+            <div id="insights-tab" class="tab-content">
+                <p class="placeholder-text">Bookmark insights</p>
+            </div>
+
+            <div id="discover-tab" class="tab-content">
+                <p class="placeholder-text">Discover new content</p>
+            </div>
         </main>
 
         <!-- Footer -->

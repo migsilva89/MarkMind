@@ -9,33 +9,60 @@
    CSS Variables (Design Tokens)
    ======================================== */
 :root {
-    /* Colors */
-    --color-primary: #2563eb;
-    --color-primary-hover: #1d4ed8;
-    --color-background: #ffffff;
-    --color-surface: #f8fafc;
-    --color-text: #1e293b;
-    --color-text-muted: #64748b;
-    --color-border: #e2e8f0;
+    /* Colors - Zinc palette (matching preview) */
+    --color-primary: #18181b;          /* zinc-900 */
+    --color-primary-hover: #27272a;    /* zinc-800 */
+    --color-background: #fafafa;       /* zinc-50 */
+    --color-surface: #f4f4f5;          /* zinc-100 */
+    --color-text: #18181b;             /* zinc-900 */
+    --color-text-muted: #71717a;       /* zinc-500 */
+    --color-text-light: #a1a1aa;       /* zinc-400 */
+    --color-border: #e4e4e7;           /* zinc-200 */
+    --color-border-light: #d4d4d8;     /* zinc-300 */
+    --color-white: #ffffff;
+
+    /* Accent Colors */
+    --color-amber-100: #fef3c7;
+    --color-amber-600: #d97706;
+    --color-emerald-100: #d1fae5;
+    --color-emerald-600: #059669;
+    --color-rose-100: #ffe4e6;
+    --color-rose-200: #fecdd3;
+    --color-rose-600: #e11d48;
+    --color-rose-700: #be123c;
+    --color-blue-600: #2563eb;
 
     /* Spacing */
     --spacing-xs: 4px;
     --spacing-sm: 8px;
-    --spacing-md: 16px;
-    --spacing-lg: 24px;
-    --spacing-xl: 32px;
+    --spacing-md: 12px;
+    --spacing-lg: 16px;
+    --spacing-xl: 24px;
 
-    /* Typography */
-    --font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-    --font-size-sm: 12px;
-    --font-size-base: 14px;
-    --font-size-lg: 16px;
+    /* Typography - Smaller, refined sizes */
+    --font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    --font-size-xs: 9px;
+    --font-size-sm: 10px;
+    --font-size-base: 11px;
+    --font-size-md: 12px;
+    --font-size-lg: 14px;
     --font-size-xl: 20px;
+
+    /* Line Heights */
+    --line-height-tight: 1.25;
+    --line-height-normal: 1.5;
+    --line-height-relaxed: 1.625;
+
+    /* Letter Spacing */
+    --letter-spacing-tight: -0.025em;
+    --letter-spacing-normal: 0;
 
     /* Border Radius */
     --radius-sm: 4px;
     --radius-md: 8px;
     --radius-lg: 12px;
+    --radius-xl: 16px;
+    --radius-full: 9999px;
 
     /* Transitions */
     --transition-fast: 150ms ease;
@@ -53,11 +80,35 @@
 
 body {
     font-family: var(--font-family);
-    font-size: var(--font-size-base);
+    font-size: var(--font-size-md);
     color: var(--color-text);
     background-color: var(--color-background);
     width: 400px;
-    min-height: 300px;
+    height: 650px;
+    overflow: hidden;
+    /* Font smoothing for crisp text */
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    text-rendering: optimizeLegibility;
+    /* Line height */
+    line-height: var(--line-height-normal);
+}
+
+/* Hide scrollbars on popup (fixed dimensions) */
+html::-webkit-scrollbar,
+body::-webkit-scrollbar,
+.settings-panel::-webkit-scrollbar,
+.settings-content::-webkit-scrollbar,
+.settings-body::-webkit-scrollbar {
+    display: none;
+}
+html,
+body,
+.settings-panel,
+.settings-content,
+.settings-body {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
 }
 
 /* ========================================
@@ -66,8 +117,9 @@ body {
 .container {
     display: flex;
     flex-direction: column;
-    min-height: 300px;
+    height: 100%;
     padding: var(--spacing-md);
+    overflow: hidden;
 }
 
 /* ========================================
@@ -106,22 +158,57 @@ body {
 }
 
 /* ========================================
-   Buttons
+   Tabs
    ======================================== */
-.icon-btn {
-    background: none;
-    border: none;
-    cursor: pointer;
-    padding: var(--spacing-sm);
-    border-radius: var(--radius-md);
-    font-size: var(--font-size-lg);
-    color: var(--color-text-muted);
-    transition: background-color var(--transition-fast);
+.tabs {
+    display: flex;
+    gap: var(--spacing-xs);
+    padding: var(--spacing-md) 0;
+    border-bottom: 1px solid var(--color-border);
 }
 
-.icon-btn:hover {
-    background-color: var(--color-surface);
+.tab {
+    flex: 1;
+    padding: var(--spacing-sm) var(--spacing-md);
+    background: none;
+    border: none;
+    border-radius: var(--radius-md);
+    font-size: var(--font-size-sm);
+    font-weight: 500;
+    color: var(--color-text-muted);
+    cursor: pointer;
+    transition: all var(--transition-fast);
 }
+
+.tab:hover {
+    background-color: var(--color-surface);
+    color: var(--color-text);
+}
+
+.tab.active {
+    background-color: var(--color-primary);
+    color: var(--color-white);
+}
+
+/* ========================================
+   Tab Content
+   ======================================== */
+.tab-content {
+    display: none;
+    width: 100%;
+}
+
+.tab-content.active {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+}
+
+/* ========================================
+   Buttons (Icon)
+   ======================================== */
+/* Icon button styles defined in Settings Panel section */
 
 /* ========================================
    Main Content
@@ -159,3 +246,590 @@ body {
 .github-link:hover {
     color: var(--color-primary);
 }
+
+/* ========================================
+   Buttons (General) - Ghost Style
+   ======================================== */
+.btn {
+    padding: var(--spacing-sm) var(--spacing-md);
+    border-radius: var(--radius-md);
+    font-size: var(--font-size-sm);
+    font-weight: 500;
+    cursor: pointer;
+    transition: all var(--transition-fast);
+    background: transparent;
+    border: 1px solid var(--color-border-light);
+}
+
+.btn-primary {
+    color: var(--color-primary);
+    border-color: var(--color-primary);
+}
+
+.btn-primary:hover {
+    background-color: var(--color-surface);
+}
+
+.btn-secondary {
+    color: var(--color-text-muted);
+    border-color: var(--color-border-light);
+}
+
+.btn-secondary:hover {
+    background-color: var(--color-surface);
+    color: var(--color-text);
+}
+
+.btn-danger {
+    color: var(--color-rose-600);
+    border-color: var(--color-rose-200);
+}
+
+.btn-danger:hover {
+    background-color: var(--color-rose-100);
+}
+
+/* ========================================
+   Settings Panel
+   ======================================== */
+.settings-panel {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 100;
+    overflow: hidden;
+}
+
+.settings-panel.active {
+    display: block;
+}
+
+.settings-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: transparent;
+}
+
+.settings-content {
+    position: relative;
+    background-color: var(--color-background);
+    width: 100%;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+}
+
+.settings-header {
+    padding: 10px var(--spacing-md);
+    border-bottom: 1px solid var(--color-border);
+    background-color: var(--color-white);
+}
+
+.header-welcome,
+.header-settings {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.header-left {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-sm);
+}
+
+.header-logo {
+    width: 28px;
+    height: 28px;
+}
+
+.settings-title {
+    font-size: var(--font-size-lg);
+    font-weight: 600;
+    color: var(--color-text);
+    line-height: var(--line-height-tight);
+    letter-spacing: var(--letter-spacing-tight);
+}
+
+.settings-title-text {
+    font-size: var(--font-size-lg);
+    font-weight: 600;
+    color: var(--color-text);
+    line-height: var(--line-height-tight);
+    letter-spacing: var(--letter-spacing-tight);
+}
+
+.header-actions {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.github-star-btn {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 10px;
+    background-color: var(--color-primary);
+    color: var(--color-white);
+    border: none;
+    border-radius: var(--radius-md);
+    font-size: var(--font-size-sm);
+    font-weight: 500;
+    text-decoration: none;
+    transition: background-color var(--transition-fast);
+}
+
+.github-star-btn:hover {
+    background-color: var(--color-primary-hover);
+}
+
+.github-star-btn .github-icon {
+    width: 14px;
+    height: 14px;
+}
+
+.github-star-btn .star-icon {
+    width: 12px;
+    height: 12px;
+    color: #fbbf24;
+}
+
+.icon-btn {
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 6px;
+    border-radius: var(--radius-md);
+    color: var(--color-text-muted);
+    transition: background-color var(--transition-fast);
+}
+
+.icon-btn:hover {
+    background-color: var(--color-surface);
+}
+
+.icon-btn .close-icon,
+.icon-btn .settings-icon,
+.icon-btn .back-icon {
+    width: 16px;
+    height: 16px;
+}
+
+.settings-body {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    padding: var(--spacing-sm) var(--spacing-md);
+    overflow: hidden;
+    gap: var(--spacing-sm);
+}
+
+.welcome-message {
+    text-align: center;
+    margin-bottom: var(--spacing-xs);
+    padding: var(--spacing-xs) 0;
+}
+
+.welcome-headline {
+    font-size: var(--font-size-xl);
+    font-weight: 700;
+    color: var(--color-text);
+    letter-spacing: var(--letter-spacing-tight);
+    line-height: var(--line-height-tight);
+    margin-bottom: 2px;
+}
+
+.welcome-subtext {
+    font-size: var(--font-size-md);
+    color: var(--color-text-muted);
+    font-weight: 400;
+}
+
+/* ========================================
+   API Key Card
+   ======================================== */
+.api-key-card {
+    background-color: var(--color-white);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-xl);
+    padding: var(--spacing-md);
+}
+
+.api-key-card-header {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-sm);
+    margin-bottom: var(--spacing-sm);
+}
+
+.api-key-icon {
+    width: 32px;
+    height: 32px;
+    border-radius: var(--radius-md);
+    background-color: var(--color-surface);
+    border: 1px solid var(--color-text);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+
+.api-key-icon svg {
+    width: 16px;
+    height: 16px;
+    color: var(--color-text);
+}
+
+.api-key-titles {
+    flex: 1;
+}
+
+.api-key-title {
+    font-size: var(--font-size-md);
+    font-weight: 600;
+    color: var(--color-text);
+    margin: 0;
+    line-height: var(--line-height-tight);
+}
+
+.api-key-subtitle {
+    font-size: var(--font-size-xs);
+    color: var(--color-text-muted);
+    margin: 0;
+}
+
+.api-key-card input {
+    width: 100%;
+    padding: var(--spacing-sm) var(--spacing-md);
+    border: 1px solid var(--color-border-light);
+    border-radius: var(--radius-md);
+    font-size: var(--font-size-base);
+    margin-bottom: var(--spacing-sm);
+    transition: all var(--transition-fast);
+}
+
+.api-key-card input:focus {
+    outline: none;
+    border-color: transparent;
+    box-shadow: 0 0 0 2px var(--color-primary);
+}
+
+.api-key-card input::placeholder {
+    color: var(--color-text-light);
+}
+
+.api-key-actions {
+    display: flex;
+    gap: var(--spacing-sm);
+    margin-bottom: var(--spacing-sm);
+}
+
+.btn-save {
+    flex: 1;
+}
+
+/* .btn-outline is an alias for .btn-secondary - use .btn .btn-secondary instead */
+
+.api-key-help {
+    font-size: var(--font-size-xs);
+    color: var(--color-text-muted);
+    margin: 0;
+    padding: var(--spacing-xs) var(--spacing-sm);
+    background-color: var(--color-background);
+    border-radius: var(--radius-md);
+}
+
+.api-key-help a {
+    color: var(--color-blue-600);
+    text-decoration: none;
+}
+
+.api-key-help a:hover {
+    text-decoration: underline;
+}
+
+/* Legacy form-group (keep for compatibility) */
+.form-group {
+    background-color: var(--color-background);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-lg);
+    padding: var(--spacing-sm) var(--spacing-md);
+    margin-bottom: var(--spacing-sm);
+}
+
+.form-group label {
+    display: block;
+    font-size: 11px;
+    font-weight: 500;
+    margin-bottom: var(--spacing-xs);
+}
+
+.form-group input {
+    width: 100%;
+    padding: var(--spacing-xs) var(--spacing-sm);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-md);
+    font-size: var(--font-size-sm);
+    transition: border-color var(--transition-fast);
+}
+
+.form-group input:focus {
+    outline: none;
+    border-color: var(--color-primary);
+}
+
+.help-text {
+    font-size: 11px;
+    color: var(--color-text-muted);
+    margin-top: var(--spacing-xs);
+    padding: var(--spacing-xs) var(--spacing-sm);
+    background-color: var(--color-surface);
+    border-radius: var(--radius-sm);
+}
+
+.help-text a {
+    color: var(--color-primary);
+    text-decoration: none;
+}
+
+.help-text a:hover {
+    text-decoration: underline;
+}
+
+.settings-status {
+    display: none;
+    padding: var(--spacing-sm) var(--spacing-md);
+    border-radius: var(--radius-md);
+    font-size: var(--font-size-sm);
+    font-weight: 500;
+    text-align: center;
+}
+
+.settings-status.success {
+    background-color: var(--color-emerald-100);
+    color: var(--color-emerald-600);
+}
+
+.settings-status.error {
+    background-color: var(--color-rose-100);
+    color: var(--color-rose-600);
+}
+
+.settings-status.loading {
+    background-color: var(--color-surface);
+    color: var(--color-text-muted);
+}
+
+.settings-actions {
+    display: flex;
+    gap: var(--spacing-xs);
+    margin-top: var(--spacing-xs);
+}
+
+.settings-actions .btn {
+    flex: 1;
+    padding: var(--spacing-xs) var(--spacing-sm);
+    font-size: 11px;
+}
+
+.settings-footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: var(--spacing-sm) var(--spacing-md);
+    border-top: 1px solid var(--color-border);
+    background-color: var(--color-white);
+}
+
+.footer-version {
+    font-size: var(--font-size-xs);
+    color: var(--color-text-light);
+}
+
+.footer-bug-link {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--spacing-xs);
+    font-size: var(--font-size-sm);
+    color: var(--color-text-muted);
+    text-decoration: none;
+    transition: color var(--transition-fast);
+}
+
+.footer-bug-link:hover {
+    color: var(--color-text);
+}
+
+.settings-footer a {
+    color: var(--color-text-muted);
+    text-decoration: none;
+}
+
+.settings-footer a:hover {
+    color: var(--color-text);
+}
+
+/* ========================================
+   Service Selector (Pill Style)
+   ======================================== */
+.service-selector {
+    margin-bottom: var(--spacing-sm);
+}
+
+.service-selector-label {
+    font-size: var(--font-size-base);
+    font-weight: 500;
+    color: var(--color-text-muted);
+    margin-bottom: var(--spacing-xs);
+}
+
+.service-tabs-pill {
+    display: flex;
+    gap: 6px;
+}
+
+.service-tab-pill {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 6px 12px;
+    background: transparent;
+    border: 1px solid var(--color-border-light);
+    border-radius: var(--radius-full);
+    font-size: var(--font-size-sm);
+    font-weight: 500;
+    color: var(--color-text-muted);
+    cursor: pointer;
+    transition: all var(--transition-fast);
+}
+
+.service-tab-pill:hover {
+    background-color: var(--color-surface);
+    color: var(--color-text);
+}
+
+.service-tab-pill.active {
+    border-color: var(--color-primary);
+    background-color: var(--color-surface);
+    color: var(--color-primary);
+}
+
+/* ========================================
+   Info Card (Privacy & Security)
+   ======================================== */
+.info-card {
+    background-color: var(--color-white);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-xl);
+    padding: var(--spacing-md);
+}
+
+.info-card-header {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-sm);
+    margin-bottom: var(--spacing-sm);
+}
+
+.info-card-icon-wrap {
+    width: 32px;
+    height: 32px;
+    border-radius: var(--radius-md);
+    background-color: var(--color-emerald-100);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+
+.info-card-svg {
+    width: 16px;
+    height: 16px;
+    color: var(--color-emerald-600);
+}
+
+.info-card-titles {
+    flex: 1;
+}
+
+.info-card-title {
+    font-size: var(--font-size-md);
+    font-weight: 600;
+    margin: 0;
+    color: var(--color-text);
+    line-height: var(--line-height-tight);
+}
+
+.info-card-subtitle {
+    font-size: var(--font-size-xs);
+    color: var(--color-text-muted);
+    margin: 0;
+}
+
+.info-card-text {
+    font-size: var(--font-size-sm);
+    color: var(--color-text-muted);
+    line-height: 1.4;
+    margin-bottom: var(--spacing-sm);
+}
+
+.info-card-link {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--spacing-xs);
+    font-size: var(--font-size-sm);
+    color: var(--color-blue-600);
+    text-decoration: none;
+}
+
+.info-card-link:hover {
+    text-decoration: underline;
+}
+
+/* ========================================
+   Danger Zone
+   ======================================== */
+.danger-zone {
+    background-color: var(--color-white);
+    border: 1px solid var(--color-rose-200);
+    border-radius: var(--radius-xl);
+    padding: var(--spacing-md);
+}
+
+.danger-zone-title {
+    font-size: var(--font-size-base);
+    font-weight: 600;
+    color: var(--color-rose-700);
+    margin-bottom: var(--spacing-sm);
+}
+
+.btn-danger-outline {
+    width: 100%;
+    padding: var(--spacing-sm) var(--spacing-md);
+    background: transparent;
+    border: 1px solid var(--color-rose-200);
+    border-radius: var(--radius-md);
+    font-size: var(--font-size-sm);
+    font-weight: 500;
+    color: var(--color-rose-600);
+    cursor: pointer;
+    transition: all var(--transition-fast);
+}
+
+.btn-danger-outline:hover {
+    background-color: var(--color-rose-100);
+}
+
+/* ========================================
+   Footer (Updated)
+   ======================================== */
+/* Footer styles defined in settings-footer section */
