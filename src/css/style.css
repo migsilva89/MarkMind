@@ -94,11 +94,19 @@ body {
     line-height: var(--line-height-normal);
 }
 
-/* Hide all scrollbars globally */
-*::-webkit-scrollbar {
+/* Hide scrollbars on popup (fixed dimensions) */
+html::-webkit-scrollbar,
+body::-webkit-scrollbar,
+.settings-panel::-webkit-scrollbar,
+.settings-content::-webkit-scrollbar,
+.settings-body::-webkit-scrollbar {
     display: none;
 }
-* {
+html,
+body,
+.settings-panel,
+.settings-content,
+.settings-body {
     -ms-overflow-style: none;
     scrollbar-width: none;
 }
@@ -179,7 +187,7 @@ body {
 
 .tab.active {
     background-color: var(--color-primary);
-    color: #ffffff;
+    color: var(--color-white);
 }
 
 /* ========================================
@@ -292,6 +300,7 @@ body {
     width: 100%;
     height: 100%;
     z-index: 100;
+    overflow: hidden;
 }
 
 .settings-panel.active {
@@ -465,7 +474,8 @@ body {
     width: 32px;
     height: 32px;
     border-radius: var(--radius-md);
-    background-color: var(--color-amber-100);
+    background-color: var(--color-surface);
+    border: 1px solid var(--color-text);
     display: flex;
     align-items: center;
     justify-content: center;
@@ -475,7 +485,7 @@ body {
 .api-key-icon svg {
     width: 16px;
     height: 16px;
-    color: var(--color-amber-600);
+    color: var(--color-text);
 }
 
 .api-key-titles {
@@ -524,30 +534,9 @@ body {
 
 .btn-save {
     flex: 1;
-    color: var(--color-primary);
-    border-color: var(--color-primary);
 }
 
-.btn-save:hover {
-    background-color: var(--color-surface);
-}
-
-.btn-outline {
-    padding: var(--spacing-sm) var(--spacing-md);
-    background: transparent;
-    border: 1px solid var(--color-border-light);
-    color: var(--color-text-muted);
-    border-radius: var(--radius-md);
-    font-size: var(--font-size-sm);
-    font-weight: 500;
-    cursor: pointer;
-    transition: all var(--transition-fast);
-}
-
-.btn-outline:hover {
-    background-color: var(--color-surface);
-    color: var(--color-text);
-}
+/* .btn-outline is an alias for .btn-secondary - use .btn .btn-secondary instead */
 
 .api-key-help {
     font-size: var(--font-size-xs);

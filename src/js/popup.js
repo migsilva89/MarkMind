@@ -51,8 +51,10 @@ async function init() {
 
 async function checkApiKey() {
     return new Promise((resolve) => {
-        chrome.storage.local.get(['geminiApiKey'], (result) => {
-            resolve(!!result.geminiApiKey);
+        const keysToCheck = ['geminiApiKey', 'openaiApiKey', 'anthropicApiKey'];
+        chrome.storage.local.get(keysToCheck, (result) => {
+            const hasAnyKey = keysToCheck.some(key => !!result[key]);
+            resolve(hasAnyKey);
         });
     });
 }
