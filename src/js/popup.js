@@ -3,6 +3,11 @@
  *
  * This is a clean slate for v2 development.
  * v1 code is archived at: ../v1/js/popup.js
+ *
+ * CHANGELOG:
+ * - 20 JANUARY: Created V2 entry point with tab system
+ * - 21 JANUARY: PR review feedback fixes
+ * - 24 JANUARY: Added OpenRouter to API key check
  */
 
 import * as OrganizeTab from './tabs/organize.js';
@@ -49,9 +54,10 @@ async function init() {
     setupEventListeners(elements);
 }
 
+// 24 JANUARY: Added 'openrouterApiKey' to the list of keys to check
 async function checkApiKey() {
     return new Promise((resolve) => {
-        const keysToCheck = ['geminiApiKey', 'openaiApiKey', 'anthropicApiKey'];
+        const keysToCheck = ['geminiApiKey', 'openaiApiKey', 'anthropicApiKey', 'openrouterApiKey'];
         chrome.storage.local.get(keysToCheck, (result) => {
             const hasAnyKey = keysToCheck.some(key => !!result[key]);
             resolve(hasAnyKey);

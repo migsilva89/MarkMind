@@ -1,6 +1,11 @@
 /**
  * ApiKeyPanel - Base component for API key management
  * Used by both Welcome and Settings pages
+ *
+ * CHANGELOG:
+ * - 20 JANUARY: Created panel with Google API testing
+ * - 21 JANUARY: PR review feedback fixes
+ * - 24 JANUARY: Added OpenRouter API testing support
  */
 
 import * as ServiceSelector from './ServiceSelector.js';
@@ -325,13 +330,15 @@ async function saveApiKey() {
     }
 }
 
+// ============================================
+// 24 JANUARY: Updated testApiKey to support all services
+// - Google: Uses Gemini API directly
+// - OpenAI: Uses chat completions endpoint
+// - Anthropic: Uses messages endpoint
+// - OpenRouter: Uses OpenAI-compatible chat completions endpoint
+// - Requires host_permissions in manifest for CORS
+// ============================================
 async function testApiKey() {
-    // Only Google/Gemini supports direct API testing from browser
-    if (currentService.id !== 'google') {
-        showStatus('Test not available for this service', 'error');
-        return;
-    }
-
     showStatus('Testing connection...', 'loading');
 
     try {
@@ -343,19 +350,75 @@ async function testApiKey() {
             return;
         }
 
-        const response = await fetch(
-            'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent',
-            {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'x-goog-api-key': apiKey
-                },
-                body: JSON.stringify({
-                    contents: [{ parts: [{ text: 'Hello' }] }]
-                })
-            }
-        );
+        let response;
+
+        if (currentService.id === 'google') {
+            response = await fetch(
+                'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent',
+                {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'x-goog-api-key': apiKey
+                    },
+                    body: JSON.stringify({
+                        contents: [{ parts: [{ text: 'Hello' }] }]
+                    })
+                }
+            );
+        } else if (currentService.id === 'openai') {
+            response = await fetch(
+                'https://api.openai.com/v1/chat/completions',
+                {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${apiKey}`
+                    },
+                    body: JSON.stringify({
+                        model: 'gpt-3.5-turbo',
+                        messages: [{ role: 'user', content: 'Hi' }],
+                        max_tokens: 5
+                    })
+                }
+            );
+        } else if (currentService.id === 'anthropic') {
+            response = await fetch(
+                'https://api.anthropic.com/v1/messages',
+                {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'x-api-key': apiKey,
+                        'anthropic-version': '2023-06-01',
+                        'anthropic-dangerous-direct-browser-access': 'true'
+                    },
+                    body: JSON.stringify({
+                        model: 'claude-3-haiku-20240307',
+                        max_tokens: 10,
+                        messages: [{ role: 'user', content: 'Hi' }]
+                    })
+                }
+            );
+        } else if (currentService.id === 'openrouter') {
+            response = await fetch(
+                'https://openrouter.ai/api/v1/chat/completions',
+                {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${apiKey}`,
+                        'HTTP-Referer': 'https://markmind.app',
+                        'X-Title': 'MarkMind'
+                    },
+                    body: JSON.stringify({
+                        model: 'openai/gpt-3.5-turbo',
+                        messages: [{ role: 'user', content: 'Hi' }],
+                        max_tokens: 5
+                    })
+                }
+            );
+        }
 
         if (response.ok) {
             showStatus('Connection successful!', 'success');

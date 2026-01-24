@@ -1,7 +1,7 @@
 /**
  * ServiceSelector Component
  *
- * Displays service selection tabs (Google, OpenAI, Anthropic)
+ * Displays service selection tabs (Google, OpenAI, Anthropic, OpenRouter)
  * Reusable in Welcome and Settings screens
  */
 

@@ -10,9 +10,14 @@
  * - helpLink: URL to get API key
  * - helpLinkText: display text for help link
  * - validateKey: function to validate key format
+ *
+ * CHANGELOG:
+ * - 20 JANUARY: Created with Google, OpenAI, Anthropic services
+ * - 24 JANUARY: Added OpenRouter service (API aggregator)
  */
 
 export const SERVICES = {
+    // 20 JANUARY: Original services
     google: {
         id: 'google',
         name: 'Google',
@@ -42,6 +47,23 @@ export const SERVICES = {
         helpLink: 'https://console.anthropic.com/settings/keys',
         helpLinkText: 'Anthropic Console',
         validateKey: (key) => key.startsWith('sk-ant-') && key.length >= 30,
+    },
+    // ============================================
+    // 24 JANUARY: Added OpenRouter
+    // - API aggregator that provides access to multiple AI models
+    // - Uses OpenAI-compatible API format
+    // - Keys start with 'sk-or-'
+    // ============================================
+    openrouter: {
+        id: 'openrouter',
+        name: 'OpenRouter',
+        label: 'OpenRouter API Key',
+        storageKey: 'openrouterApiKey',
+        placeholder: 'Enter your OpenRouter API key',
+        helpLink: 'https://openrouter.ai/keys',
+        helpLinkText: 'OpenRouter Dashboard',
+        validateKey: (key) => key.startsWith('sk-or-') && key.length >= 30,
+        baseUrl: 'https://openrouter.ai/api/v1',
     },
 };
 

@@ -2,6 +2,66 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
+## Code Comment Convention (IMPORTANT)
+
+**All code changes MUST include dated comments following this format:**
+
+### File Header CHANGELOG
+Every modified file should have a CHANGELOG in its header comment:
+```javascript
+/**
+ * Component Name - Description
+ *
+ * CHANGELOG:
+ * - 20 JANUARY: Created component with X feature
+ * - 24 JANUARY: Added Y feature
+ */
+```
+
+### Section Comments
+New code blocks should have a dated section comment:
+```javascript
+// ============================================
+// 24 JANUARY: Feature description
+// - Detail 1
+// - Detail 2
+// ============================================
+function newFeature() { ... }
+```
+
+### Inline Comments
+Single-line changes can use inline comments:
+```javascript
+// 24 JANUARY: Added 'newKey' to the list
+const keys = ['key1', 'key2', 'newKey'];
+```
+
+### Manifest Changes
+Since JSON doesn't support comments, ALL manifest.json changes MUST be documented in `CHANGELOG.md` with:
+- Date of change
+- What was added/removed/modified
+- Why the change was needed
+
+### Why This Convention?
+- Helps team members understand when and why changes were made
+- Makes code review easier
+- Provides historical context without digging through git history
+- Essential for collaborative development
+
+### Session End Protocol
+At the end of each coding session, or when the developer requests "update changelog", Claude MUST:
+1. Update `CHANGELOG.md` with all changes made during the session
+2. Include: date, features added, UI changes, bug fixes, and files modified
+3. Document ALL manifest.json changes (permissions, host_permissions, etc.)
+4. Follow the existing CHANGELOG format with dated sections
+5. Add entries under the current date, or create a new date section if needed
+
+**Triggers for changelog update:**
+- Developer says "update changelog" or "session done"
+- Developer indicates they are stopping work
+- Before creating a commit or PR
+- When explicitly requested
+
 ## Project Overview
 
 MarkMind is a Chrome extension that uses Google's Gemini AI to intelligently organize bookmarks. It replaces Chrome's native bookmark button with AI-powered organization that automatically categorizes bookmarks into appropriate folders.
