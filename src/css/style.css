@@ -1,13 +1,5 @@
 /**
  * MarkMind v2 - Stylesheet
- * Clean minimal design
- *
- * v1 styles archived at: ../v1/css/style.css
- *
- * CHANGELOG:
- * - 20 JANUARY: Created V2 styles, settings panel, service selector
- * - 21 JANUARY: PR review feedback fixes
- * - 24 JANUARY: Updated tabs to pill ghost style, added organize tab styles
  */
 
 /* ========================================
@@ -39,7 +31,9 @@
 
     /* Spacing */
     --spacing-xs: 4px;
+    --spacing-2xs: 6px;
     --spacing-sm: 8px;
+    --spacing-2sm: 10px;
     --spacing-md: 12px;
     --spacing-lg: 16px;
     --spacing-xl: 24px;
@@ -170,14 +164,14 @@ body,
    ======================================== */
 .tabs {
     display: flex;
-    gap: 6px;
+    gap: var(--spacing-2xs);
     padding: var(--spacing-md) 0;
     border-bottom: 1px solid var(--color-border);
 }
 
 .tab {
     flex: 1;
-    padding: 6px 12px;
+    padding: var(--spacing-2xs) var(--spacing-md);
     background: transparent;
     border: 1px solid var(--color-border-light);
     border-radius: var(--radius-full);
@@ -706,7 +700,7 @@ body,
 
 .service-tabs-pill {
     display: flex;
-    gap: 4px;
+    gap: var(--spacing-xs);
     flex-wrap: wrap;
 }
 
@@ -716,7 +710,7 @@ body,
     display: flex;
     align-items: center;
     justify-content: center;
-    padding: 6px 10px;
+    padding: var(--spacing-2xs) var(--spacing-2sm);
     background: transparent;
     border: 1px solid var(--color-border-light);
     border-radius: var(--radius-full);

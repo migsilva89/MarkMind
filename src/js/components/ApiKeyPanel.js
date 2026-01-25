@@ -1,11 +1,5 @@
 /**
- * ApiKeyPanel - Base component for API key management
- * Used by both Welcome and Settings pages
- *
- * CHANGELOG:
- * - 20 JANUARY: Created panel with Google API testing
- * - 21 JANUARY: PR review feedback fixes
- * - 24 JANUARY: Added OpenRouter API testing support
+ * ApiKeyPanel - Component for API key management
  */
 
 import * as ServiceSelector from './ServiceSelector.js';
@@ -41,7 +35,6 @@ function getTemplate() {
         <div class="settings-overlay"></div>
         <div class="settings-content">
             <header class="settings-header">
-                <!-- Welcome header (with logo + github) -->
                 <div class="header-welcome" id="header-welcome">
                     <div class="header-left">
                         <img src="assets/icons/icon48.png" alt="MarkMind" class="header-logo">
@@ -59,7 +52,6 @@ function getTemplate() {
                         </a>
                     </div>
                 </div>
-                <!-- Settings header (with back arrow + close) -->
                 <div class="header-settings" id="header-settings" style="display: none;">
                     <div class="header-left">
                         <button class="icon-btn" id="panel-back" title="Back">
@@ -79,10 +71,8 @@ function getTemplate() {
 
             <div class="settings-body">
                 <div class="welcome-message"></div>
-
                 <div id="service-selector-container"></div>
 
-                <!-- API Key Card -->
                 <div class="api-key-card">
                     <div class="api-key-card-header">
                         <div class="api-key-icon">
@@ -95,12 +85,7 @@ function getTemplate() {
                             <p class="api-key-subtitle">Required for AI features</p>
                         </div>
                     </div>
-                    <input
-                        type="password"
-                        id="api-key-input"
-                        placeholder="Enter your API key..."
-                        autocomplete="off"
-                    >
+                    <input type="password" id="api-key-input" placeholder="Enter your API key..." autocomplete="off">
                     <div class="api-key-actions">
                         <button id="save-api-key" class="btn btn-primary btn-save">Save</button>
                         <button id="test-api-key" class="btn btn-secondary" style="display: none;">Test API</button>
@@ -112,7 +97,6 @@ function getTemplate() {
 
                 <div id="panel-status" class="settings-status"></div>
 
-                <!-- Privacy & Security -->
                 <div class="info-card">
                     <div class="info-card-header">
                         <div class="info-card-icon-wrap">
@@ -137,7 +121,6 @@ function getTemplate() {
                     </a>
                 </div>
 
-                <!-- Danger Zone (only visible when key exists) -->
                 <div class="danger-zone" id="danger-zone" style="display: none;">
                     <h3 class="danger-zone-title">Danger Zone</h3>
                     <button id="remove-api-key" class="btn btn-danger-outline">Remove API Key</button>
@@ -160,15 +143,12 @@ function getTemplate() {
 function setupEventListeners() {
     container.querySelector('#panel-close')?.addEventListener('click', close);
     container.querySelector('#panel-back')?.addEventListener('click', close);
-
     container.querySelector('.settings-overlay')?.addEventListener('click', () => {
         if (config.canClose) close();
     });
-
     container.querySelector('#save-api-key')?.addEventListener('click', saveApiKey);
     container.querySelector('#test-api-key')?.addEventListener('click', testApiKey);
     container.querySelector('#remove-api-key')?.addEventListener('click', removeApiKey);
-
     container.querySelector('#api-key-input')?.addEventListener('keydown', (e) => {
         if (e.key === 'Enter') saveApiKey();
     });
@@ -182,14 +162,12 @@ export function open(options = {}) {
         onClose: options.onClose || null,
     };
 
-    // Initialize service selector
     const selectorContainer = container.querySelector('#service-selector-container');
     ServiceSelector.init(selectorContainer, onServiceChange);
 
     updateUI();
     container.classList.add('active');
 
-    // Set initial service and check for existing key
     currentService = getService(ServiceSelector.getCurrentService());
     updateFormForService();
     checkExistingKey();
@@ -197,13 +175,9 @@ export function open(options = {}) {
 
 export function close() {
     if (!config.canClose) return;
-
     container.classList.remove('active');
     clearStatus();
-
-    if (config.onClose) {
-        config.onClose();
-    }
+    config.onClose?.();
 }
 
 function updateUI() {
@@ -213,7 +187,6 @@ function updateUI() {
     const welcomeMsg = container.querySelector('.welcome-message');
 
     if (config.showWelcomeMessage) {
-        // Welcome mode: show logo header
         welcomeHeader.style.display = 'flex';
         settingsHeader.style.display = 'none';
         welcomeTitle.textContent = config.title;
@@ -223,7 +196,6 @@ function updateUI() {
         `;
         welcomeMsg.style.display = 'block';
     } else {
-        // Settings mode: show back/close header
         welcomeHeader.style.display = 'none';
         settingsHeader.style.display = 'flex';
         welcomeMsg.style.display = 'none';
@@ -249,17 +221,13 @@ function updateFormForService() {
 }
 
 async function checkExistingKey() {
-    const storageKey = currentService.storageKey;
-    return new Promise((resolve) => {
-        chrome.storage.local.get([storageKey], (result) => {
-            if (result[storageKey]) {
-                showKeyExists();
-            } else {
-                resetKeyForm();
-            }
-            resolve(!!result[storageKey]);
-        });
-    });
+    const result = await chrome.storage.local.get([currentService.storageKey]);
+    if (result[currentService.storageKey]) {
+        showKeyExists();
+    } else {
+        resetKeyForm();
+    }
+    return !!result[currentService.storageKey];
 }
 
 function resetKeyForm() {
@@ -305,40 +273,32 @@ async function saveApiKey() {
     showStatus('Saving...', 'loading');
 
     try {
-        await new Promise((resolve, reject) => {
-            chrome.storage.local.set({ [currentService.storageKey]: apiKey }, () => {
-                if (chrome.runtime.lastError) {
-                    return reject(chrome.runtime.lastError);
-                }
-                resolve();
-            });
-        });
+        await chrome.storage.local.set({ [currentService.storageKey]: apiKey });
         showStatus('API key saved successfully', 'success');
         showKeyExists();
 
-        // Allow closing after save if it was blocked
         if (!config.canClose) {
             config.canClose = true;
             updateUI();
-
-            setTimeout(() => {
-                close();
-            }, 1500);
+            setTimeout(close, 1500);
         }
     } catch (error) {
         showStatus('Failed to save API key', 'error');
     }
 }
 
-// ============================================
-// 24 JANUARY: Updated testApiKey to support all services
-// - Google: Uses Gemini API directly
-// - OpenAI: Uses chat completions endpoint
-// - Anthropic: Uses messages endpoint
-// - OpenRouter: Uses OpenAI-compatible chat completions endpoint
-// - Requires host_permissions in manifest for CORS
-// ============================================
+/**
+ * Tests API connection using data-driven config from services.js
+ * Each service defines its own endpoint, headers, body, and validation
+ * This avoids large if/else chains and makes adding new services easy
+ */
 async function testApiKey() {
+    const { testConfig } = currentService;
+    if (!testConfig) {
+        showStatus('Test not available for this service', 'error');
+        return;
+    }
+
     showStatus('Testing connection...', 'loading');
 
     try {
@@ -350,78 +310,20 @@ async function testApiKey() {
             return;
         }
 
-        let response;
-
-        if (currentService.id === 'google') {
-            response = await fetch(
-                'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent',
-                {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'x-goog-api-key': apiKey
-                    },
-                    body: JSON.stringify({
-                        contents: [{ parts: [{ text: 'Hello' }] }]
-                    })
-                }
-            );
-        } else if (currentService.id === 'openai') {
-            response = await fetch(
-                'https://api.openai.com/v1/chat/completions',
-                {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'Authorization': `Bearer ${apiKey}`
-                    },
-                    body: JSON.stringify({
-                        model: 'gpt-3.5-turbo',
-                        messages: [{ role: 'user', content: 'Hi' }],
-                        max_tokens: 5
-                    })
-                }
-            );
-        } else if (currentService.id === 'anthropic') {
-            response = await fetch(
-                'https://api.anthropic.com/v1/messages',
-                {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'x-api-key': apiKey,
-                        'anthropic-version': '2023-06-01',
-                        'anthropic-dangerous-direct-browser-access': 'true'
-                    },
-                    body: JSON.stringify({
-                        model: 'claude-3-haiku-20240307',
-                        max_tokens: 10,
-                        messages: [{ role: 'user', content: 'Hi' }]
-                    })
-                }
-            );
-        } else if (currentService.id === 'openrouter') {
-            response = await fetch(
-                'https://openrouter.ai/api/v1/chat/completions',
-                {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'Authorization': `Bearer ${apiKey}`,
-                        'HTTP-Referer': 'https://markmind.app',
-                        'X-Title': 'MarkMind'
-                    },
-                    body: JSON.stringify({
-                        model: 'openai/gpt-3.5-turbo',
-                        messages: [{ role: 'user', content: 'Hi' }],
-                        max_tokens: 5
-                    })
-                }
-            );
-        }
+        // Use testConfig from services.js - each service defines how to test itself
+        const response = await fetch(testConfig.getEndpoint(apiKey), {
+            method: 'POST',
+            headers: testConfig.getHeaders(apiKey),
+            body: JSON.stringify(testConfig.getBody())
+        });
 
         if (response.ok) {
-            showStatus('Connection successful!', 'success');
+            const data = await response.json();
+            if (testConfig.validateResponse(data)) {
+                showStatus('Connection successful!', 'success');
+            } else {
+                showStatus('Unexpected response format', 'error');
+            }
         } else {
             const error = await response.json();
             showStatus(`Error: ${error.error?.message || 'Invalid API key'}`, 'error');
@@ -435,22 +337,12 @@ async function removeApiKey() {
     if (!confirm('Are you sure you want to remove your API key?')) return;
 
     try {
-        await new Promise((resolve, reject) => {
-            chrome.storage.local.remove([currentService.storageKey], () => {
-                if (chrome.runtime.lastError) {
-                    return reject(chrome.runtime.lastError);
-                }
-                resolve();
-            });
-        });
+        await chrome.storage.local.remove([currentService.storageKey]);
         showStatus('API key removed', 'success');
 
-        // Redirect to welcome screen after brief delay
         setTimeout(() => {
             container.classList.remove('active');
             clearStatus();
-
-            // Reopen in welcome mode
             open({
                 title: 'Welcome',
                 showWelcomeMessage: true,

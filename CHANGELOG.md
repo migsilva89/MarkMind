@@ -6,6 +6,58 @@ All notable changes to MarkMind are documented in this file.
 
 ---
 
+## 25 JANUARY 2026
+
+### PR Review Fixes
+Addressed all feedback from PR #8 code review.
+
+- **Removed `tabs` permission**: Now extracts URL/title from content script instead of `chrome.tabs.query`
+  - More privacy-friendly (doesn't request access to all tabs)
+  - Uses `activeTab` + `scripting` permissions only
+  - Files: `src/js/tabs/organize.js`, `src/manifest.json`
+
+- **Simplified metadata extraction**: Reduced to essential fields only
+  - Kept: url, title, description, keywords, h1
+  - Removed: author, ogType, ogSiteName, twitterTitle, twitterDescription, schemaType, canonicalUrl
+  - Files: `src/js/tabs/organize.js`
+
+- **Data-driven API testing**: Refactored `testApiKey()` to use config from `services.js`
+  - Each service now defines its own `testConfig` (endpoint, headers, body, validation)
+  - No more if/else chains - easy to add new services
+  - Files: `src/js/components/ApiKeyPanel.js`, `src/js/config/services.js`
+
+- **CSS variables**: Replaced hardcoded pixel values with design tokens
+  - Added `--spacing-2xs: 6px` and `--spacing-2sm: 10px`
+  - Fixed `.tabs` and `.service-tab-pill` padding/gap
+  - Files: `src/css/style.css`
+
+- **Modern async/await**: Simplified Promise handling using native MV3 Promise support
+  - Files: `src/js/tabs/organize.js`, `src/js/popup.js`, `src/js/components/ApiKeyPanel.js`
+
+### Code Style Changes
+- Removed dated changelog comments from code (git history is enough)
+- Kept helpful "why" comments for code understanding
+- Updated CLAUDE.md with new code style guidelines
+
+### Manifest Changes (`manifest.json`)
+```json
+// REMOVED: "tabs" permission (no longer needed)
+// Before: ["bookmarks", "activeTab", "tabs", "storage", "scripting"]
+// After:  ["bookmarks", "activeTab", "storage", "scripting"]
+```
+
+### Files Modified
+- `src/js/tabs/organize.js`
+- `src/js/components/ApiKeyPanel.js`
+- `src/js/config/services.js`
+- `src/js/popup.js`
+- `src/css/style.css`
+- `src/manifest.json`
+- `CLAUDE.md`
+- `CHANGELOG.md`
+
+---
+
 ## 24 JANUARY 2026
 
 ### Features

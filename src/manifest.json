@@ -6,7 +6,6 @@
   "permissions": [
     "bookmarks",
     "activeTab",
-    "tabs",
     "storage",
     "scripting"
   ],
