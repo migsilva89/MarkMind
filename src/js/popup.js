@@ -1,8 +1,5 @@
 /**
  * MarkMind v2 - Entry Point
- *
- * This is a clean slate for v2 development.
- * v1 code is archived at: ../v1/js/popup.js
  */
 
 import * as OrganizeTab from './tabs/organize.js';
@@ -24,8 +21,6 @@ let currentTab = 'organize';
 document.addEventListener('DOMContentLoaded', init);
 
 async function init() {
-    console.log('MarkMind v2 initialized');
-
     // Cache DOM elements
     const elements = {
         settingsBtn: document.getElementById('settings-btn'),
@@ -50,13 +45,9 @@ async function init() {
 }
 
 async function checkApiKey() {
-    return new Promise((resolve) => {
-        const keysToCheck = ['geminiApiKey', 'openaiApiKey', 'anthropicApiKey'];
-        chrome.storage.local.get(keysToCheck, (result) => {
-            const hasAnyKey = keysToCheck.some(key => !!result[key]);
-            resolve(hasAnyKey);
-        });
-    });
+    const keysToCheck = ['geminiApiKey', 'openaiApiKey', 'anthropicApiKey', 'openrouterApiKey'];
+    const result = await chrome.storage.local.get(keysToCheck);
+    return keysToCheck.some(key => !!result[key]);
 }
 
 function initializeTabs(elements) {
@@ -70,9 +61,7 @@ function initializeTabs(elements) {
 
 function setupEventListeners(elements) {
     // Settings button
-    elements.settingsBtn?.addEventListener('click', () => {
-        Settings.open();
-    });
+    elements.settingsBtn?.addEventListener('click', () => Settings.open());
 
     // Tab switching
     elements.tabs.forEach(tab => {
@@ -85,9 +74,7 @@ function switchTab(selectedTab, elements) {
     const previousTab = currentTab;
 
     // Notify previous tab of deactivation
-    if (tabModules[previousTab]?.onDeactivate) {
-        tabModules[previousTab].onDeactivate();
-    }
+    tabModules[previousTab]?.onDeactivate?.();
 
     // Update tab buttons
     elements.tabs.forEach(tab => tab.classList.remove('active'));
@@ -98,9 +85,7 @@ function switchTab(selectedTab, elements) {
     document.getElementById(`${tabName}-tab`)?.classList.add('active');
 
     // Notify new tab of activation
-    if (tabModules[tabName]?.onActivate) {
-        tabModules[tabName].onActivate();
-    }
+    tabModules[tabName]?.onActivate?.();
 
     currentTab = tabName;
 }
