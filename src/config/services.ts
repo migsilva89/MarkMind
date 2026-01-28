@@ -1,0 +1,142 @@
+/**
+ * AI Service Configurations
+ *
+ * Each service has:
+ * - id, name, label: Display info for UI
+ * - storageKey: Chrome storage key for the API key
+ * - validateKey: Function to check key format before saving
+ * - testConfig: Configuration for testing API connection (data-driven approach)
+ */
+
+export interface ServiceTestConfig {
+  getEndpoint: (apiKey: string) => string;
+  getHeaders: (apiKey: string) => Record<string, string>;
+  getBody: () => Record<string, unknown>;
+  validateResponse: (data: Record<string, unknown>) => boolean;
+}
+
+export interface ServiceConfig {
+  id: string;
+  name: string;
+  label: string;
+  storageKey: string;
+  placeholder: string;
+  helpLink: string;
+  helpLinkText: string;
+  validateKey: (key: string) => boolean;
+  testConfig: ServiceTestConfig;
+}
+
+export const SERVICES: Record<string, ServiceConfig> = {
+  google: {
+    id: 'google',
+    name: 'Google',
+    label: 'Gemini API Key',
+    storageKey: 'geminiApiKey',
+    placeholder: 'Enter your Gemini API key',
+    helpLink: 'https://aistudio.google.com/apikey',
+    helpLinkText: 'Google AI Studio',
+    validateKey: (key: string) => key.startsWith('AI') && key.length >= 30,
+    testConfig: {
+      getEndpoint: (apiKey: string) =>
+        `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`,
+      getHeaders: () => ({ 'Content-Type': 'application/json' }),
+      getBody: () => ({ contents: [{ parts: [{ text: 'Hi' }] }] }),
+      validateResponse: (data) => {
+        const candidates = data.candidates as unknown[] | undefined;
+        return (candidates?.length ?? 0) > 0;
+      },
+    },
+  },
+  openai: {
+    id: 'openai',
+    name: 'OpenAI',
+    label: 'OpenAI API Key',
+    storageKey: 'openaiApiKey',
+    placeholder: 'Enter your OpenAI API key',
+    helpLink: 'https://platform.openai.com/api-keys',
+    helpLinkText: 'OpenAI Platform',
+    validateKey: (key: string) => key.startsWith('sk-') && key.length >= 30,
+    testConfig: {
+      getEndpoint: () => 'https://api.openai.com/v1/chat/completions',
+      getHeaders: (apiKey: string) => ({
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${apiKey}`,
+      }),
+      getBody: () => ({
+        model: 'gpt-4o-mini',
+        messages: [{ role: 'user', content: 'Hi' }],
+        max_tokens: 5,
+      }),
+      validateResponse: (data) => {
+        const choices = data.choices as unknown[] | undefined;
+        return (choices?.length ?? 0) > 0;
+      },
+    },
+  },
+  anthropic: {
+    id: 'anthropic',
+    name: 'Anthropic',
+    label: 'Anthropic API Key',
+    storageKey: 'anthropicApiKey',
+    placeholder: 'Enter your Anthropic API key',
+    helpLink: 'https://console.anthropic.com/settings/keys',
+    helpLinkText: 'Anthropic Console',
+    validateKey: (key: string) => key.startsWith('sk-ant-') && key.length >= 30,
+    testConfig: {
+      getEndpoint: () => 'https://api.anthropic.com/v1/messages',
+      getHeaders: (apiKey: string) => ({
+        'Content-Type': 'application/json',
+        'x-api-key': apiKey,
+        'anthropic-version': '2023-06-01',
+        'anthropic-dangerous-direct-browser-access': 'true',
+      }),
+      getBody: () => ({
+        model: 'claude-3-haiku-20240307',
+        max_tokens: 5,
+        messages: [{ role: 'user', content: 'Hi' }],
+      }),
+      validateResponse: (data) => {
+        const content = data.content as unknown[] | undefined;
+        return (content?.length ?? 0) > 0;
+      },
+    },
+  },
+  openrouter: {
+    id: 'openrouter',
+    name: 'OpenRouter',
+    label: 'OpenRouter API Key',
+    storageKey: 'openrouterApiKey',
+    placeholder: 'Enter your OpenRouter API key',
+    helpLink: 'https://openrouter.ai/keys',
+    helpLinkText: 'OpenRouter Dashboard',
+    validateKey: (key: string) => key.startsWith('sk-or-') && key.length >= 30,
+    testConfig: {
+      getEndpoint: () => 'https://openrouter.ai/api/v1/chat/completions',
+      getHeaders: (apiKey: string) => ({
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${apiKey}`,
+      }),
+      getBody: () => ({
+        model: 'openai/gpt-4o-mini',
+        messages: [{ role: 'user', content: 'Hi' }],
+        max_tokens: 5,
+      }),
+      validateResponse: (data) => {
+        const choices = data.choices as unknown[] | undefined;
+        return (choices?.length ?? 0) > 0;
+      },
+    },
+  },
+};
+
+export const DEFAULT_SERVICE_ID = 'google';
+export const SELECTED_SERVICE_STORAGE_KEY = 'selectedService';
+
+export function getService(serviceId: string): ServiceConfig {
+  return SERVICES[serviceId] || SERVICES[DEFAULT_SERVICE_ID];
+}
+
+export function getServiceIds(): string[] {
+  return Object.keys(SERVICES);
+}
