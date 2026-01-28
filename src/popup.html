@@ -1,58 +1,12 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>MarkMind v2</title>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="css/style.css">
-</head>
-<body>
-    <div class="container">
-        <!-- Header -->
-        <header class="header">
-            <div class="logo-section">
-                <img src="assets/icons/icon48.png" alt="MarkMind" class="logo">
-                <h1>MarkMind</h1>
-                <span class="version">v2</span>
-            </div>
-            <button id="settings-btn" class="icon-btn" title="Settings">
-                <span>&#9881;</span>
-            </button>
-        </header>
-
-        <!-- Tabs Navigation -->
-        <nav class="tabs">
-            <button class="tab active" data-tab="organize">Organize</button>
-            <button class="tab" data-tab="insights">Insights</button>
-            <button class="tab" data-tab="discover">Discover</button>
-        </nav>
-
-        <!-- Tab Content -->
-        <main class="main-content">
-            <div id="organize-tab" class="tab-content active">
-                <p class="placeholder-text">Organize your bookmarks</p>
-            </div>
-
-            <div id="insights-tab" class="tab-content">
-                <p class="placeholder-text">Bookmark insights</p>
-            </div>
-
-            <div id="discover-tab" class="tab-content">
-                <p class="placeholder-text">Discover new content</p>
-            </div>
-        </main>
-
-        <!-- Footer -->
-        <footer class="footer">
-            <a href="https://github.com/migsilva89/MarkMind" target="_blank" class="github-link">
-                GitHub
-            </a>
-        </footer>
-    </div>
-
-    <script type="module" src="js/popup.js"></script>
-</body>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>MarkMind</title>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="./main.tsx"></script>
+  </body>
 </html>

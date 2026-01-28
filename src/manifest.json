@@ -1,8 +1,21 @@
 {
   "manifest_version": 3,
   "name": "MarkMind",
+  "description": "Transform your chaotic bookmarks into organized bliss with AI",
   "version": "2.0.0",
-  "description": "AI-powered bookmark organization that helps you keep your bookmarks clean and organized using artificial intelligence.",
+  "icons": {
+    "16": "assets/icons/icon16.png",
+    "48": "assets/icons/icon48.png",
+    "128": "assets/icons/icon128.png"
+  },
+  "action": {
+    "default_popup": "src/popup.html",
+    "default_icon": {
+      "16": "assets/icons/icon16.png",
+      "48": "assets/icons/icon48.png",
+      "128": "assets/icons/icon128.png"
+    }
+  },
   "permissions": [
     "bookmarks",
     "activeTab",
@@ -14,13 +27,5 @@
     "https://api.openai.com/*",
     "https://api.anthropic.com/*",
     "https://openrouter.ai/*"
-  ],
-  "action": {
-    "default_popup": "popup.html"
-  },
-  "icons": {
-    "16": "assets/icons/icon16.png",
-    "48": "assets/icons/icon48.png",
-    "128": "assets/icons/icon128.png"
-  }
-} 
+  ]
+}
