@@ -298,6 +298,141 @@ const API_TEST_TIMEOUT_MS = 5000;
 
 ---
 
+## Modern React Patterns (2025)
+
+### CRITICAL: Arrow Functions for Everything
+
+**Always use arrow functions** for components, handlers, and callbacks. This is the modern standard.
+
+```typescript
+// BAD - function declarations
+function MyComponent() { ... }
+function handleClick() { ... }
+
+// GOOD - arrow functions
+const MyComponent = () => { ... };
+const handleClick = () => { ... };
+```
+
+### useCallback for Props
+
+**Always wrap handlers passed to child components with useCallback** to prevent unnecessary re-renders.
+
+```typescript
+// BAD - creates new function on every render
+const handleServiceChange = (serviceId: string) => {
+  setCurrentService(getService(serviceId));
+};
+<ServiceSelector onServiceChange={handleServiceChange} />
+
+// GOOD - memoized, stable reference
+const handleServiceChange = useCallback((serviceId: string) => {
+  setCurrentService(getService(serviceId));
+}, []);
+<ServiceSelector onServiceChange={handleServiceChange} />
+```
+
+### useEffect Cleanup
+
+**Always clean up side effects**, especially timers and subscriptions.
+
+```typescript
+// BAD - memory leak, timer continues after unmount
+useEffect(() => {
+  setTimeout(() => {
+    setStatusMessage('');
+  }, 5000);
+}, []);
+
+// GOOD - cleanup prevents memory leak
+useEffect(() => {
+  const timeoutId = setTimeout(() => {
+    setStatusMessage('');
+  }, 5000);
+
+  return () => clearTimeout(timeoutId);
+}, []);
+```
+
+### Exhaustive Dependencies
+
+**Always include all dependencies** in useEffect/useCallback dependency arrays.
+
+```typescript
+// BAD - missing dependency
+useEffect(() => {
+  loadServiceFromStorage();
+  onServiceChange(selectedServiceId);
+}, []); // onServiceChange is missing!
+
+// GOOD - all dependencies included
+useEffect(() => {
+  loadServiceFromStorage();
+  onServiceChange(selectedServiceId);
+}, [onServiceChange, selectedServiceId]);
+```
+
+### Type Guards Over Type Assertions
+
+**Use type guards (Array.isArray, typeof)** instead of type assertions (as).
+
+```typescript
+// BAD - unsafe type assertion
+const validateResponse = (data: unknown) => {
+  const candidates = data.candidates as unknown[] | undefined;
+  return (candidates?.length ?? 0) > 0;
+};
+
+// GOOD - type-safe validation
+const validateResponse = (data: unknown): boolean => {
+  if (typeof data !== 'object' || data === null) return false;
+  const obj = data as Record<string, unknown>;
+  return Array.isArray(obj.candidates) && obj.candidates.length > 0;
+};
+```
+
+### Error Handling
+
+**Always log errors in catch blocks** for debugging. Never silently swallow errors.
+
+```typescript
+// BAD - silent error, impossible to debug
+try {
+  await fetchData();
+} catch {
+  return fallbackValue;
+}
+
+// GOOD - logged error with fallback
+try {
+  await fetchData();
+} catch (error) {
+  console.error('Failed to fetch data:', error);
+  return fallbackValue;
+}
+```
+
+### Dynamic Values from Runtime
+
+**Never hardcode values that can be retrieved at runtime**, like version numbers.
+
+```typescript
+// BAD - hardcoded version
+<span>MarkMind v2.0.0</span>
+
+// GOOD - dynamic version from manifest
+const [version, setVersion] = useState('');
+
+useEffect(() => {
+  const manifest = chrome.runtime.getManifest();
+  setVersion(manifest.version);
+}, []);
+
+<span>MarkMind v{version}</span>
+```
+
+---
+
 ## Code Standards
 
 ### DRY (Don't Repeat Yourself)
@@ -326,20 +461,20 @@ Each function/component should do ONE thing well.
 
 ```typescript
 // BAD - Function does too much
-function handleSave() {
+const handleSave = () => {
   validateKey();
   saveToStorage();
   updateUI();
   showNotification();
   closePanel();
-}
+};
 
 // GOOD - Separate concerns
-async function saveApiKey(apiKey: string): Promise<void> {
+const saveApiKey = async (apiKey: string): Promise<void> => {
   await chrome.storage.local.set({ [storageKey]: apiKey });
-}
+};
 
-function handleApiKeySave() {
+const handleApiKeySave = () => {
   if (!validateApiKeyFormat(apiKeyInput)) {
     showStatusMessage('Invalid format', 'error');
     return;
@@ -347,14 +482,14 @@ function handleApiKeySave() {
   saveApiKey(apiKeyInput).then(() => {
     showStatusMessage('Saved', 'success');
   });
-}
+};
 ```
 
 ### Component Structure
 
 ```typescript
-// Standard component structure
-import { useState } from 'react';
+// Standard component structure with arrow functions
+import { useState, useCallback } from 'react';
 import './ComponentName.css';
 
 interface ComponentNameProps {
@@ -362,18 +497,18 @@ interface ComponentNameProps {
   onAction: () => void;
 }
 
-function ComponentName({ propName, onAction }: ComponentNameProps) {
+const ComponentName = ({ propName, onAction }: ComponentNameProps) => {
   // 1. State declarations
   const [isLoading, setIsLoading] = useState(false);
 
   // 2. Derived state / computed values
   const isValid = propName.length > 0;
 
-  // 3. Event handlers
-  function handleButtonClick() {
+  // 3. Event handlers (arrow functions, useCallback for props)
+  const handleButtonClick = useCallback(() => {
     setIsLoading(true);
     onAction();
-  }
+  }, [onAction]);
 
   // 4. Render
   return (
@@ -383,7 +518,7 @@ function ComponentName({ propName, onAction }: ComponentNameProps) {
       </button>
     </div>
   );
-}
+};
 
 export default ComponentName;
 ```

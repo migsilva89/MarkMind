@@ -5,7 +5,7 @@
  * Reusable in Welcome and Settings screens
  */
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import {
   SERVICES,
   DEFAULT_SERVICE_ID,
@@ -19,35 +19,35 @@ interface ServiceSelectorProps {
   initialServiceId?: string;
 }
 
-function ServiceSelector({
+const ServiceSelector = ({
   onServiceChange,
   initialServiceId,
-}: ServiceSelectorProps) {
+}: ServiceSelectorProps) => {
   const [currentServiceId, setCurrentServiceId] = useState<string>(
     initialServiceId || DEFAULT_SERVICE_ID
   );
 
   useEffect(() => {
+    const loadSavedServiceFromStorage = async (): Promise<void> => {
+      const result = await chrome.storage.local.get([SELECTED_SERVICE_STORAGE_KEY]);
+      const savedServiceId = result[SELECTED_SERVICE_STORAGE_KEY];
+
+      if (savedServiceId && SERVICES[savedServiceId]) {
+        setCurrentServiceId(savedServiceId);
+        onServiceChange(savedServiceId);
+      }
+    };
+
     loadSavedServiceFromStorage();
-  }, []);
+  }, [onServiceChange]);
 
-  async function loadSavedServiceFromStorage(): Promise<void> {
-    const result = await chrome.storage.local.get([SELECTED_SERVICE_STORAGE_KEY]);
-    const savedServiceId = result[SELECTED_SERVICE_STORAGE_KEY];
-
-    if (savedServiceId && SERVICES[savedServiceId]) {
-      setCurrentServiceId(savedServiceId);
-      onServiceChange(savedServiceId);
-    }
-  }
-
-  function handleServiceSelect(serviceId: string): void {
+  const handleServiceSelect = useCallback((serviceId: string): void => {
     if (!SERVICES[serviceId]) return;
 
     setCurrentServiceId(serviceId);
     chrome.storage.local.set({ [SELECTED_SERVICE_STORAGE_KEY]: serviceId });
     onServiceChange(serviceId);
-  }
+  }, [onServiceChange]);
 
   return (
     <div className="service-selector">
@@ -65,6 +65,6 @@ function ServiceSelector({
       </div>
     </div>
   );
-}
+};
 
 export default ServiceSelector;

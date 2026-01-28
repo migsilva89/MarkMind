@@ -1,16 +1,12 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import ApiKeyPanel from './components/ApiKeyPanel/ApiKeyPanel';
 import { SERVICES, SELECTED_SERVICE_STORAGE_KEY } from './config/services';
 
-function App() {
+const App = () => {
   const [showApiKeyPanel, setShowApiKeyPanel] = useState(false);
   const [hasAnyApiKey, setHasAnyApiKey] = useState<boolean | null>(null);
 
-  useEffect(() => {
-    checkForExistingApiKeys();
-  }, []);
-
-  async function checkForExistingApiKeys(): Promise<void> {
+  const checkForExistingApiKeys = useCallback(async (): Promise<void> => {
     const storageKeys = Object.values(SERVICES).map(
       (service) => service.storageKey
     );
@@ -22,16 +18,20 @@ function App() {
     if (!hasKey) {
       setShowApiKeyPanel(true);
     }
-  }
+  }, []);
 
-  function handleApiKeyPanelClose(): void {
+  useEffect(() => {
+    checkForExistingApiKeys();
+  }, [checkForExistingApiKeys]);
+
+  const handleApiKeyPanelClose = useCallback((): void => {
     setShowApiKeyPanel(false);
     checkForExistingApiKeys();
-  }
+  }, [checkForExistingApiKeys]);
 
-  function handleOpenSettings(): void {
+  const handleOpenSettings = useCallback((): void => {
     setShowApiKeyPanel(true);
-  }
+  }, []);
 
   if (hasAnyApiKey === null) {
     return null;
@@ -51,7 +51,7 @@ function App() {
       />
     </div>
   );
-}
+};
 
 interface MainContentProps {
   onOpenSettings: () => void;
@@ -68,36 +68,53 @@ interface PageMetadata {
   h1?: string | null;
 }
 
-function MainContent({ onOpenSettings }: MainContentProps) {
+const MainContent = ({ onOpenSettings }: MainContentProps) => {
   const [selectedServiceId, setSelectedServiceId] = useState<string>('');
   const [isLoading, setIsLoading] = useState(false);
   const [statusMessage, setStatusMessage] = useState('');
   const [statusType, setStatusType] = useState<OrganizeStatusType>('default');
+  const statusTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
+    const loadSelectedService = async (): Promise<void> => {
+      const result = await chrome.storage.local.get([SELECTED_SERVICE_STORAGE_KEY]);
+      if (result[SELECTED_SERVICE_STORAGE_KEY]) {
+        setSelectedServiceId(result[SELECTED_SERVICE_STORAGE_KEY]);
+      }
+    };
+
     loadSelectedService();
   }, []);
 
-  async function loadSelectedService(): Promise<void> {
-    const result = await chrome.storage.local.get([SELECTED_SERVICE_STORAGE_KEY]);
-    if (result[SELECTED_SERVICE_STORAGE_KEY]) {
-      setSelectedServiceId(result[SELECTED_SERVICE_STORAGE_KEY]);
-    }
-  }
+  // Cleanup timeout on unmount
+  useEffect(() => {
+    return () => {
+      if (statusTimeoutRef.current) {
+        clearTimeout(statusTimeoutRef.current);
+      }
+    };
+  }, []);
 
-  function showStatus(message: string, type: OrganizeStatusType = 'default'): void {
+  const showStatus = useCallback((message: string, type: OrganizeStatusType = 'default'): void => {
+    // Clear any existing timeout
+    if (statusTimeoutRef.current) {
+      clearTimeout(statusTimeoutRef.current);
+      statusTimeoutRef.current = null;
+    }
+
     setStatusMessage(message);
     setStatusType(type);
 
     if (type === 'success' || type === 'error') {
-      setTimeout(() => {
+      statusTimeoutRef.current = setTimeout(() => {
         setStatusMessage('');
         setStatusType('default');
+        statusTimeoutRef.current = null;
       }, 5000);
     }
-  }
+  }, []);
 
-  async function getCurrentPageData(): Promise<PageMetadata | null> {
+  const getCurrentPageData = useCallback(async (): Promise<PageMetadata | null> => {
     const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
     if (!tab?.id) throw new Error('No active tab found');
 
@@ -124,16 +141,17 @@ function MainContent({ onOpenSettings }: MainContentProps) {
         },
       });
       return result as PageMetadata;
-    } catch {
+    } catch (error) {
+      console.error('Failed to execute script on page, using fallback:', error);
       return {
         url: tab.url || '',
         title: tab.title || '',
         favIconUrl: tab.favIconUrl,
       };
     }
-  }
+  }, []);
 
-  async function handleAddCurrentPage(): Promise<void> {
+  const handleAddCurrentPage = useCallback(async (): Promise<void> => {
     if (isLoading) return;
 
     try {
@@ -159,7 +177,7 @@ function MainContent({ onOpenSettings }: MainContentProps) {
     } finally {
       setIsLoading(false);
     }
-  }
+  }, [isLoading, showStatus, getCurrentPageData]);
 
   const serviceName = selectedServiceId
     ? SERVICES[selectedServiceId]?.name || ''
@@ -253,6 +271,6 @@ function MainContent({ onOpenSettings }: MainContentProps) {
       </main>
     </>
   );
-}
+};
 
 export default App;

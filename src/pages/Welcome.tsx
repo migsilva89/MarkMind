@@ -1,9 +1,9 @@
-import "./Welcome.css";
+import './Welcome.css';
 
-function Welcome() {
+const Welcome = () => {
   const handleGetStarted = () => {
     // TODO: Navigate to API key setup or main app
-    console.log("Get Started clicked");
+    console.log('Get Started clicked');
   };
 
   return (
@@ -24,6 +24,6 @@ function Welcome() {
       </button>
     </div>
   );
-}
+};
 
 export default Welcome;

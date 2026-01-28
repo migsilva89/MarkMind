@@ -5,7 +5,7 @@
  * Includes service selection, key input, testing, and removal
  */
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import ServiceSelector from '../ServiceSelector/ServiceSelector';
 import {
   getService,
@@ -29,12 +29,12 @@ interface ApiKeyPanelProps {
   onClose?: () => void;
 }
 
-function ApiKeyPanel({
+const ApiKeyPanel = ({
   isOpen,
   showWelcomeMessage = false,
   canClose = true,
   onClose,
-}: ApiKeyPanelProps) {
+}: ApiKeyPanelProps) => {
   const [currentService, setCurrentService] = useState<ServiceConfig>(
     getService(DEFAULT_SERVICE_ID)
   );
@@ -42,6 +42,23 @@ function ApiKeyPanel({
   const [hasExistingKey, setHasExistingKey] = useState(false);
   const [status, setStatus] = useState<StatusMessage>({ message: '', type: null, showGoToApp: false });
   const [canClosePanel, setCanClosePanel] = useState(canClose);
+  const [extensionVersion, setExtensionVersion] = useState('');
+  const autoCloseTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  // Load extension version from manifest
+  useEffect(() => {
+    const manifest = chrome.runtime.getManifest();
+    setExtensionVersion(manifest.version);
+  }, []);
+
+  // Cleanup timeout on unmount
+  useEffect(() => {
+    return () => {
+      if (autoCloseTimeoutRef.current) {
+        clearTimeout(autoCloseTimeoutRef.current);
+      }
+    };
+  }, []);
 
   const checkExistingApiKey = useCallback(async (service: ServiceConfig): Promise<boolean> => {
     const result = await chrome.storage.local.get([service.storageKey]);
@@ -60,25 +77,33 @@ function ApiKeyPanel({
     setCanClosePanel(canClose);
   }, [canClose]);
 
-  function handleServiceChange(serviceId: string): void {
+  const showStatusMessage = useCallback((message: string, type: StatusType): void => {
+    setStatus({ message, type, showGoToApp: false });
+  }, []);
+
+  const clearStatus = useCallback((): void => {
+    setStatus({ message: '', type: null, showGoToApp: false });
+  }, []);
+
+  const handlePanelClose = useCallback((): void => {
+    if (!canClosePanel) return;
+    clearStatus();
+    onClose?.();
+  }, [canClosePanel, clearStatus, onClose]);
+
+  const handleServiceChange = useCallback((serviceId: string): void => {
     const service = getService(serviceId);
     setCurrentService(service);
     setApiKeyInput('');
     clearStatus();
     checkExistingApiKey(service);
-  }
+  }, [clearStatus, checkExistingApiKey]);
 
-  function handleApiKeyInputChange(event: React.ChangeEvent<HTMLInputElement>): void {
+  const handleApiKeyInputChange = useCallback((event: React.ChangeEvent<HTMLInputElement>): void => {
     setApiKeyInput(event.target.value);
-  }
+  }, []);
 
-  function handleApiKeyInputKeyDown(event: React.KeyboardEvent<HTMLInputElement>): void {
-    if (event.key === 'Enter') {
-      handleApiKeySave();
-    }
-  }
-
-  async function handleApiKeySave(): Promise<void> {
+  const handleApiKeySave = useCallback(async (): Promise<void> => {
     const trimmedKey = apiKeyInput.trim();
 
     if (!trimmedKey) {
@@ -101,16 +126,28 @@ function ApiKeyPanel({
 
       if (!canClosePanel) {
         setCanClosePanel(true);
-        setTimeout(() => {
+        // Clear any existing timeout
+        if (autoCloseTimeoutRef.current) {
+          clearTimeout(autoCloseTimeoutRef.current);
+        }
+        autoCloseTimeoutRef.current = setTimeout(() => {
           handlePanelClose();
+          autoCloseTimeoutRef.current = null;
         }, 1500);
       }
-    } catch {
+    } catch (error) {
+      console.error('Failed to save API key:', error);
       showStatusMessage('Failed to save API key', 'error');
     }
-  }
+  }, [apiKeyInput, currentService, canClosePanel, showStatusMessage, handlePanelClose]);
 
-  async function handleApiKeyTest(): Promise<void> {
+  const handleApiKeyInputKeyDown = useCallback((event: React.KeyboardEvent<HTMLInputElement>): void => {
+    if (event.key === 'Enter') {
+      handleApiKeySave();
+    }
+  }, [handleApiKeySave]);
+
+  const handleApiKeyTest = useCallback(async (): Promise<void> => {
     const { testConfig } = currentService;
 
     if (!testConfig) {
@@ -151,12 +188,13 @@ function ApiKeyPanel({
         const errorMessage = errorData.error?.message || 'Invalid API key';
         showStatusMessage(`Error: ${errorMessage}`, 'error');
       }
-    } catch {
+    } catch (error) {
+      console.error('API test failed:', error);
       showStatusMessage('Connection failed', 'error');
     }
-  }
+  }, [currentService, showStatusMessage]);
 
-  async function handleApiKeyRemove(): Promise<void> {
+  const handleApiKeyRemove = useCallback(async (): Promise<void> => {
     const confirmRemoval = window.confirm(
       'Are you sure you want to remove your API key?'
     );
@@ -168,35 +206,22 @@ function ApiKeyPanel({
       showStatusMessage('API key removed', 'success');
       setHasExistingKey(false);
       setApiKeyInput('');
-    } catch {
+    } catch (error) {
+      console.error('Failed to remove API key:', error);
       showStatusMessage('Failed to remove API key', 'error');
     }
-  }
+  }, [currentService.storageKey, showStatusMessage]);
 
-  function handlePanelClose(): void {
-    if (!canClosePanel) return;
-    clearStatus();
-    onClose?.();
-  }
-
-  function handleOverlayClick(): void {
+  const handleOverlayClick = useCallback((): void => {
     if (canClosePanel) {
       handlePanelClose();
     }
-  }
+  }, [canClosePanel, handlePanelClose]);
 
-  function showStatusMessage(message: string, type: StatusType): void {
-    setStatus({ message, type, showGoToApp: false });
-  }
-
-  function clearStatus(): void {
-    setStatus({ message: '', type: null, showGoToApp: false });
-  }
-
-  function handleGoToApp(): void {
+  const handleGoToApp = useCallback((): void => {
     clearStatus();
     onClose?.();
-  }
+  }, [clearStatus, onClose]);
 
   if (!isOpen) return null;
 
@@ -413,7 +438,7 @@ function ApiKeyPanel({
         </div>
 
         <footer className="api-key-panel-footer">
-          <span className="footer-version">MarkMind v2.0.0</span>
+          <span className="footer-version">MarkMind v{extensionVersion}</span>
           <a
             href="https://github.com/migsilva89/MarkMind/issues"
             target="_blank"
@@ -440,6 +465,6 @@ function ApiKeyPanel({
       </div>
     </div>
   );
-}
+};
 
 export default ApiKeyPanel;

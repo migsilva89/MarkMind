@@ -12,7 +12,7 @@ export interface ServiceTestConfig {
   getEndpoint: (apiKey: string) => string;
   getHeaders: (apiKey: string) => Record<string, string>;
   getBody: () => Record<string, unknown>;
-  validateResponse: (data: Record<string, unknown>) => boolean;
+  validateResponse: (data: unknown) => boolean;
 }
 
 export interface ServiceConfig {
@@ -26,6 +26,15 @@ export interface ServiceConfig {
   validateKey: (key: string) => boolean;
   testConfig: ServiceTestConfig;
 }
+
+/**
+ * Type-safe helper to check if data has an array property with items
+ */
+const hasArrayWithItems = (data: unknown, propertyName: string): boolean => {
+  if (typeof data !== 'object' || data === null) return false;
+  const obj = data as Record<string, unknown>;
+  return Array.isArray(obj[propertyName]) && obj[propertyName].length > 0;
+};
 
 export const SERVICES: Record<string, ServiceConfig> = {
   google: {
@@ -42,10 +51,7 @@ export const SERVICES: Record<string, ServiceConfig> = {
         `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`,
       getHeaders: () => ({ 'Content-Type': 'application/json' }),
       getBody: () => ({ contents: [{ parts: [{ text: 'Hi' }] }] }),
-      validateResponse: (data) => {
-        const candidates = data.candidates as unknown[] | undefined;
-        return (candidates?.length ?? 0) > 0;
-      },
+      validateResponse: (data: unknown) => hasArrayWithItems(data, 'candidates'),
     },
   },
   openai: {
@@ -68,10 +74,7 @@ export const SERVICES: Record<string, ServiceConfig> = {
         messages: [{ role: 'user', content: 'Hi' }],
         max_tokens: 5,
       }),
-      validateResponse: (data) => {
-        const choices = data.choices as unknown[] | undefined;
-        return (choices?.length ?? 0) > 0;
-      },
+      validateResponse: (data: unknown) => hasArrayWithItems(data, 'choices'),
     },
   },
   anthropic: {
@@ -96,10 +99,7 @@ export const SERVICES: Record<string, ServiceConfig> = {
         max_tokens: 5,
         messages: [{ role: 'user', content: 'Hi' }],
       }),
-      validateResponse: (data) => {
-        const content = data.content as unknown[] | undefined;
-        return (content?.length ?? 0) > 0;
-      },
+      validateResponse: (data: unknown) => hasArrayWithItems(data, 'content'),
     },
   },
   openrouter: {
@@ -122,10 +122,7 @@ export const SERVICES: Record<string, ServiceConfig> = {
         messages: [{ role: 'user', content: 'Hi' }],
         max_tokens: 5,
       }),
-      validateResponse: (data) => {
-        const choices = data.choices as unknown[] | undefined;
-        return (choices?.length ?? 0) > 0;
-      },
+      validateResponse: (data: unknown) => hasArrayWithItems(data, 'choices'),
     },
   },
 };
@@ -133,10 +130,10 @@ export const SERVICES: Record<string, ServiceConfig> = {
 export const DEFAULT_SERVICE_ID = 'google';
 export const SELECTED_SERVICE_STORAGE_KEY = 'selectedService';
 
-export function getService(serviceId: string): ServiceConfig {
+export const getService = (serviceId: string): ServiceConfig => {
   return SERVICES[serviceId] || SERVICES[DEFAULT_SERVICE_ID];
-}
+};
 
-export function getServiceIds(): string[] {
+export const getServiceIds = (): string[] => {
   return Object.keys(SERVICES);
-}
+};
