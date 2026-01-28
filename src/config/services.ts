@@ -48,7 +48,7 @@ export const SERVICES: Record<string, ServiceConfig> = {
     validateKey: (key: string) => key.startsWith('AI') && key.length >= 30,
     testConfig: {
       getEndpoint: (apiKey: string) =>
-        `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`,
+        `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`,
       getHeaders: () => ({ 'Content-Type': 'application/json' }),
       getBody: () => ({ contents: [{ parts: [{ text: 'Hi' }] }] }),
       validateResponse: (data: unknown) => hasArrayWithItems(data, 'candidates'),
