@@ -21,12 +21,12 @@
     "react-dom": "^19.2.4"
   },
   "devDependencies": {
-    "@crxjs/vite-plugin": "^2.3.0",
+    "@crxjs/vite-plugin": "^2.0.0-beta.27",
     "@types/chrome": "^0.0.306",
     "@types/react": "^19.2.10",
     "@types/react-dom": "^19.2.3",
-    "@vitejs/plugin-react": "^5.1.2",
+    "@vitejs/plugin-react": "^4.3.4",
     "typescript": "^5.9.3",
-    "vite": "^7.3.1"
+    "vite": "^5.4.14"
   }
 }
