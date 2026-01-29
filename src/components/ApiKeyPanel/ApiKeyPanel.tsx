@@ -32,13 +32,7 @@ const ApiKeyPanel = ({
   const [hasExistingKey, setHasExistingKey] = useState(false);
   const [status, setStatus] = useState<ApiKeyPanelStatusMessage>({ message: '', type: null, showGoToApp: false });
   const [canClosePanel, setCanClosePanel] = useState(canClose);
-  const [extensionVersion, setExtensionVersion] = useState('');
   const autoCloseTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-
-  useEffect(() => {
-    const manifest = chrome.runtime.getManifest();
-    setExtensionVersion(manifest.version);
-  }, []);
 
   useEffect(() => {
     return () => {
@@ -425,7 +419,7 @@ const ApiKeyPanel = ({
         </div>
 
         <footer className="api-key-panel-footer">
-          <span className="footer-version">MarkMind v{extensionVersion}</span>
+          <span className="footer-version">MarkMind v{chrome.runtime.getManifest().version}</span>
           <a
             href="https://github.com/migsilva89/MarkMind/issues"
             target="_blank"
