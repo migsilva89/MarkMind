@@ -485,6 +485,56 @@ const handleApiKeySave = () => {
 };
 ```
 
+### Comments Policy
+
+**Code should be self-documenting through clear naming conventions.** Do NOT add comments that describe what the code obviously does.
+
+#### NEVER Write These Comments
+
+```typescript
+// BAD - Obvious from code
+// Cleanup timeout on unmount
+useEffect(() => {
+  return () => clearTimeout(timeoutRef.current);
+}, []);
+
+// BAD - Function name already explains this
+// Load extension version from manifest
+const manifest = chrome.runtime.getManifest();
+
+// BAD - JSDoc that repeats the component name
+/**
+ * ApiKeyPanel Component
+ * Full-screen panel for API key management
+ */
+const ApiKeyPanel = () => { ... };
+```
+
+#### ONLY Write Comments For
+
+1. **Complex business logic** that isn't obvious from the code
+2. **Important implementation decisions** explaining WHY, not WHAT
+3. **Crucial app flows** where understanding the sequence matters
+4. **TODO markers** for incomplete work
+5. **Non-obvious workarounds** or browser-specific hacks
+
+```typescript
+// GOOD - Explains WHY (business decision)
+// Auto-close after save only for first-time users to guide them to main app
+if (!canClosePanel) {
+  setCanClosePanel(true);
+  autoCloseTimeoutRef.current = setTimeout(handlePanelClose, 1500);
+}
+
+// GOOD - TODO for incomplete work
+// TODO: Send pageData to AI for organization suggestion
+
+// GOOD - Non-obvious workaround
+// Chrome requires activeTab permission to access tab.url in some contexts
+```
+
+**Rule of thumb:** If the code is clear from naming conventions and structure, don't add a comment. If a reviewer or future developer would ask "why?" not "what?", then add a comment.
+
 ### Component Structure
 
 ```typescript

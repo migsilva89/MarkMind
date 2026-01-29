@@ -86,7 +86,6 @@ const MainContent = ({ onOpenSettings }: MainContentProps) => {
     loadSelectedService();
   }, []);
 
-  // Cleanup timeout on unmount
   useEffect(() => {
     return () => {
       if (statusTimeoutRef.current) {
@@ -96,7 +95,6 @@ const MainContent = ({ onOpenSettings }: MainContentProps) => {
   }, []);
 
   const showStatus = useCallback((message: string, type: OrganizeStatusType = 'default'): void => {
-    // Clear any existing timeout
     if (statusTimeoutRef.current) {
       clearTimeout(statusTimeoutRef.current);
       statusTimeoutRef.current = null;

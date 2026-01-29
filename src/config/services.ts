@@ -1,13 +1,3 @@
-/**
- * AI Service Configurations
- *
- * Each service has:
- * - id, name, label: Display info for UI
- * - storageKey: Chrome storage key for the API key
- * - validateKey: Function to check key format before saving
- * - testConfig: Configuration for testing API connection (data-driven approach)
- */
-
 export interface ServiceTestConfig {
   getEndpoint: (apiKey: string) => string;
   getHeaders: (apiKey: string) => Record<string, string>;
@@ -27,9 +17,6 @@ export interface ServiceConfig {
   testConfig: ServiceTestConfig;
 }
 
-/**
- * Type-safe helper to check if data has an array property with items
- */
 const hasArrayWithItems = (data: unknown, propertyName: string): boolean => {
   if (typeof data !== 'object' || data === null) return false;
   const obj = data as Record<string, unknown>;

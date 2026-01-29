@@ -1,10 +1,3 @@
-/**
- * ApiKeyPanel Component
- *
- * Full-screen panel for API key management
- * Includes service selection, key input, testing, and removal
- */
-
 import { useState, useEffect, useCallback, useRef } from 'react';
 import ServiceSelector from '../ServiceSelector/ServiceSelector';
 import {
@@ -45,13 +38,11 @@ const ApiKeyPanel = ({
   const [extensionVersion, setExtensionVersion] = useState('');
   const autoCloseTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  // Load extension version from manifest
   useEffect(() => {
     const manifest = chrome.runtime.getManifest();
     setExtensionVersion(manifest.version);
   }, []);
 
-  // Cleanup timeout on unmount
   useEffect(() => {
     return () => {
       if (autoCloseTimeoutRef.current) {
@@ -126,7 +117,6 @@ const ApiKeyPanel = ({
 
       if (!canClosePanel) {
         setCanClosePanel(true);
-        // Clear any existing timeout
         if (autoCloseTimeoutRef.current) {
           clearTimeout(autoCloseTimeoutRef.current);
         }

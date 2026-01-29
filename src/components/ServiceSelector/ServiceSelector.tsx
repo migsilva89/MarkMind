@@ -1,10 +1,3 @@
-/**
- * ServiceSelector Component
- *
- * Displays service selection tabs (Google, OpenAI, Anthropic, OpenRouter)
- * Reusable in Welcome and Settings screens
- */
-
 import { useEffect, useState, useCallback } from 'react';
 import {
   SERVICES,
