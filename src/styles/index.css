@@ -171,120 +171,7 @@ button {
   background: none;
 }
 
-/* ========================================
-   Ghost Button (Pill Style)
-   - Transparent background
-   - Border-based design
-   - Soft grey on hover/active
-   ======================================== */
-.btn-ghost {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: var(--spacing-md);
-  padding: var(--spacing-lg) var(--spacing-2xl);
-  background: transparent;
-  border: 1px solid var(--color-border-light);
-  border-radius: var(--radius-full);
-  font-size: var(--font-size-xs);
-  font-weight: var(--font-weight-medium);
-  color: var(--color-text-muted);
-  cursor: pointer;
-  transition: all var(--transition-fast);
-}
-
-.btn-ghost:hover {
-  background-color: var(--color-surface);
-  color: var(--color-text);
-  border-color: var(--color-text-muted);
-}
-
-.btn-ghost:active {
-  background-color: var(--color-surface-hover);
-}
-
-.btn-ghost.active {
-  background-color: var(--color-surface);
-  border-color: var(--color-primary);
-  color: var(--color-primary);
-}
-
-.btn-ghost:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
-}
-
-/* Ghost Button Variants */
-.btn-ghost.btn-primary {
-  color: var(--color-primary);
-  border-color: var(--color-primary);
-}
-
-.btn-ghost.btn-primary:hover {
-  background-color: var(--color-surface);
-}
-
-.btn-ghost.btn-danger {
-  color: var(--color-error);
-  border-color: var(--color-error-bg-hover);
-}
-
-.btn-ghost.btn-danger:hover {
-  background-color: var(--color-error-bg);
-}
-
-/* ========================================
-   Solid Button
-   ======================================== */
-.btn-solid {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: var(--spacing-md);
-  padding: var(--spacing-lg) var(--spacing-2xl);
-  background-color: var(--color-primary);
-  border: none;
-  border-radius: var(--radius-md);
-  font-size: var(--font-size-xs);
-  font-weight: var(--font-weight-medium);
-  color: var(--color-white);
-  cursor: pointer;
-  transition: all var(--transition-fast);
-}
-
-.btn-solid:hover {
-  background-color: var(--color-primary-hover);
-}
-
-.btn-solid:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
-}
-
-/* ========================================
-   Icon Button
-   ======================================== */
-.btn-icon {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  padding: var(--spacing-sm);
-  background: transparent;
-  border: none;
-  border-radius: var(--radius-md);
-  color: var(--color-text-muted);
-  cursor: pointer;
-  transition: background-color var(--transition-fast);
-}
-
-.btn-icon:hover {
-  background-color: var(--color-surface);
-}
-
-.btn-icon svg {
-  width: 16px;
-  height: 16px;
-}
+/* Button styles moved to components/Button/Button.css */
 
 /* ========================================
    Form Elements
@@ -435,12 +322,6 @@ a:hover {
 
 .organize-status.error {
   color: var(--color-error);
-}
-
-/* Loading Button State */
-.btn-ghost.loading {
-  opacity: 0.7;
-  cursor: not-allowed;
 }
 
 /* Spinner Animation */
