@@ -1,91 +1,149 @@
 # CLAUDE.md
 
-This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
+## CRITICAL: Before Writing ANY Code
 
-## Code Style Guidelines
+**ALWAYS invoke `/architecture` before:**
+- Creating new components or files
+- Refactoring existing code
+- Adding new features
+- Any code modifications
 
-- **Keep code clean** - No dated changelog comments (e.g., `// 24 JANUARY: Added X`). Git history tracks changes.
-- **Helpful comments are welcome** - Short comments explaining "why" something is done are good practice:
-  ```javascript
-  // Fallback for restricted pages (chrome://, etc.)
-  // Get tab ID to inject script (activeTab grants access on user click)
-  ```
-- **Use modern JavaScript** - async/await, optional chaining, nullish coalescing, object destructuring.
-- **Data-driven patterns** - Prefer configuration objects over if/else chains for scalability.
-- **Use CSS variables** - Always use design tokens from `:root`, never hardcode pixel values.
-- **Minimal permissions** - Only request Chrome permissions that are absolutely necessary.
+This loads detailed patterns and examples. **Do NOT skip. Do NOT wait for user to remind you.**
 
-## Session End Protocol
-
-At the end of each coding session, or when the developer requests "update changelog", Claude MUST:
-1. Update `CHANGELOG.md` with all changes made during the session
-2. Include: date, features added, UI changes, bug fixes, and files modified
-3. Document ALL manifest.json changes (permissions, host_permissions, etc.)
-4. Follow the existing CHANGELOG format with dated sections
-
-**Triggers for changelog update:**
-- Developer says "update changelog" or "session done"
-- Developer indicates they are stopping work
-- Before creating a commit or PR
-- When explicitly requested
+---
 
 ## Project Overview
 
-MarkMind is a Chrome extension that uses AI to intelligently organize bookmarks. It supports multiple AI providers (Google Gemini, OpenAI, Anthropic, OpenRouter) and automatically categorizes bookmarks into appropriate folders.
+MarkMind is a **Chrome Extension (Manifest V3)** that uses AI to intelligently organize bookmarks. Supports Google Gemini, OpenAI, Anthropic, and OpenRouter.
+
+### Tech Stack
+
+- **Framework**: React 19 + TypeScript
+- **Build Tool**: Vite with @crxjs/vite-plugin
+- **Extension**: Chrome Manifest V3
+- **Styling**: CSS with design tokens (variables in `src/styles/index.css`)
+
+---
 
 ## Development Setup
 
-This is a vanilla JavaScript Chrome extension (Manifest V3) with no build process or package manager.
+```bash
+npm install       # Install dependencies
+npm run dev       # Start dev server with HMR
+npm run build     # Build for production (outputs to dist/)
+```
 
 ### Loading the Extension
 
-1. Navigate to `chrome://extensions/`
-2. Enable "Developer mode"
-3. Click "Load unpacked"
-4. Select the `src` folder
+1. Run `npm run build`
+2. Go to `chrome://extensions/`
+3. Enable "Developer mode"
+4. Click "Load unpacked" → Select `dist/`
 
-### Testing Changes
+---
 
-After making changes, reload the extension in Chrome (click the refresh icon on the extension card in `chrome://extensions/`).
+## Project Structure
 
-## Architecture
+```
+src/
+├── components/          # React components (ONE per file)
+│   ├── ApiKeyPanel/
+│   ├── Button/
+│   ├── icons/
+│   ├── MainContent/
+│   └── ServiceSelector/
+├── hooks/               # Custom React hooks (folder per hook)
+│   └── apiKeyPanel/
+│       ├── useApiKeyPanel.ts   # Main hook
+│       ├── types.ts            # Hook-specific types
+│       ├── index.ts            # Exports
+│       └── handlers/           # Separated handlers
+│           ├── handleApiKeySave.ts
+│           ├── handleApiKeyTest.ts
+│           └── ...
+├── config/              # Configuration DATA only
+├── types/               # TypeScript types/interfaces
+├── utils/               # Reusable utility functions
+├── styles/              # Design tokens (CSS variables)
+├── pages/               # Page-level components
+└── App.tsx              # Root component only
+```
 
-The codebase follows a modular architecture with singleton instances for managers, services, and UI components.
+---
 
-### Entry Point
+## Architecture Rules (MUST FOLLOW)
 
-**popup.js** - Application entry point. Initializes all modules and sets up event handlers.
+### File Organization
+- [ ] **One component per file** - Never define multiple components in same file
+- [ ] **Types go in `src/types/`** - Not in config or component files
+- [ ] **Helpers go in `src/utils/`** - Reusable functions, not in config
+- [ ] **Config only contains DATA** - No type definitions, no helper functions
+- [ ] **Each component folder** - ComponentName.tsx + ComponentName.css
 
-### Managers (Singleton Pattern)
+### Separation of Concerns
+| Folder | Contains | Does NOT Contain |
+|--------|----------|------------------|
+| `types/` | Interfaces, type definitions | Logic, data |
+| `config/` | Configuration data, constants | Types, helpers |
+| `utils/` | Reusable helper functions | Types, config |
+| `hooks/` | React hooks (folder per hook) | Components |
+| `components/` | ONE React component per file | Multiple components |
 
-- **StateManager** - Centralized state with observable pattern
-- **OrganizationManager** - Orchestrates the organization workflow
-- **BookmarkTreeManager** - Renders the bookmark tree UI with checkboxes
-- **SettingsManager** - API key management and settings panel visibility
-- **UIManager** - DOM element caching and status message display
+### Hook Organization (Complex Hooks)
+- [ ] **Folder per hook** - `hooks/hookName/` not `hooks/useHookName.ts`
+- [ ] **Handlers in separate files** - `handlers/handleAction.ts`
+- [ ] **Types in hook folder** - `types.ts` for hook-specific types
+- [ ] **Index exports** - `index.ts` for clean imports
 
-### Services (Singleton Pattern)
+### Code Patterns
+- [ ] **Arrow functions** for all components and handlers
+- [ ] **useCallback** for handlers passed to children
+- [ ] **useEffect cleanup** for timers and subscriptions
+- [ ] **Design tokens only** - Never hardcode colors/spacing/sizes
+- [ ] **Descriptive names** - No abbreviations (service not s, bookmark not b)
+- [ ] **Error logging** - Always console.error in catch blocks
 
-- **geminiService** - AI integration for bookmark organization suggestions
-- **bookmarkService** - Wraps Chrome Bookmarks API
-- **storageService** - Wraps Chrome Storage API for API key persistence
+### Type Rules
+- [ ] **Props interfaces** stay in component file
+- [ ] **Shared types** (2+ files use it) go to `src/types/`
+- [ ] **Domain models** go to `src/types/models.ts`
 
-### Configuration
+---
 
-- **config/services.js** - AI service configurations (endpoints, headers, validation, test configs)
-- **config/api.js** - API URL and model settings
-- **config/constants.js** - Chrome native folder IDs, limits, UI states
+## Key Files Reference
 
-### Chrome APIs Used
+| File | Purpose |
+|------|---------|
+| `src/config/services.ts` | AI provider configurations (data only) |
+| `src/types/services.ts` | ServiceConfig, ServiceTestConfig interfaces |
+| `src/types/common.ts` | StatusType, StatusMessage |
+| `src/types/pages.ts` | PageMetadata |
+| `src/utils/helpers.ts` | Reusable utility functions |
+| `src/styles/index.css` | Design tokens (all CSS variables) |
+| `src/hooks/apiKeyPanel/` | API key panel hook (folder with handlers) |
 
-- `chrome.bookmarks` - Tree operations, create, move, search
-- `chrome.storage.local` - API key persistence
-- `chrome.scripting` - Content script injection for metadata extraction
-- `chrome.tabs` - Get active tab ID (via activeTab permission)
+---
 
-### Business Rules
+## Quick Reference
 
-- Maximum folder depth: 3 levels
-- Chrome native folders: Bookmarks Bar (id=1), Other Bookmarks (id=2), Mobile Bookmarks (id=3)
-- AI prefers existing folders over creating new ones
-- Empty folders are recursively cleaned from AI responses
+### Storage Keys
+```typescript
+geminiApiKey, openaiApiKey, anthropicApiKey, openrouterApiKey, selectedService
+```
+
+### Design Token Prefixes
+```css
+--color-*    /* Colors */
+--spacing-*  /* Spacing (2xs, xs, sm, md, lg, xl, 2xl, 3xl, 4xl) */
+--font-size-* /* Typography */
+--radius-*   /* Border radius */
+```
+
+---
+
+## Remember
+
+1. **Read this file** at session start
+2. **Invoke `/architecture`** before ANY code changes
+3. **Follow the checklist** - Every rule exists because of past mistakes
+4. **When in doubt** - Check existing code patterns in the codebase

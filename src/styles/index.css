@@ -1,49 +1,339 @@
+/**
+ * MarkMind Design System
+ * All colors, spacing, typography, and radii defined as CSS variables
+ * NO hardcoded values allowed in component styles
+ */
+
+/* ========================================
+   Google Fonts Import
+   ======================================== */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+
+/* ========================================
+   CSS Variables (Design Tokens)
+   ======================================== */
 :root {
-  --color-primary: #6366f1;
-  --color-primary-hover: #4f46e5;
-  --color-bg: #ffffff;
-  --color-bg-secondary: #f8fafc;
-  --color-border: #e2e8f0;
-  --color-text: #1e293b;
-  --color-text-secondary: #64748b;
-  --color-text-muted: #94a3b8;
-  --color-success: #22c55e;
-  --color-error: #ef4444;
-  --color-warning: #f59e0b;
+  /* Colors - Zinc palette */
+  --color-primary: #18181b;           /* zinc-900 */
+  --color-primary-hover: #27272a;     /* zinc-800 */
+  --color-background: #fafafa;        /* zinc-50 */
+  --color-surface: #f4f4f5;           /* zinc-100 */
+  --color-surface-hover: #e4e4e7;     /* zinc-200 - soft grey for hover */
+  --color-text: #18181b;              /* zinc-900 */
+  --color-text-secondary: #52525b;    /* zinc-600 */
+  --color-text-muted: #71717a;        /* zinc-500 */
+  --color-text-light: #a1a1aa;        /* zinc-400 */
+  --color-border: #e4e4e7;            /* zinc-200 */
+  --color-border-light: #d4d4d8;      /* zinc-300 */
+  --color-white: #ffffff;
 
+  /* Accent Colors - Status */
+  --color-success-bg: #d1fae5;        /* emerald-100 */
+  --color-success: #059669;           /* emerald-600 */
+  --color-error-bg: #ffe4e6;          /* rose-100 */
+  --color-error-bg-hover: #fecdd3;    /* rose-200 */
+  --color-error: #e11d48;             /* rose-600 */
+  --color-error-dark: #be123c;        /* rose-700 */
+  --color-warning-bg: #fef3c7;        /* amber-100 */
+  --color-warning: #d97706;           /* amber-600 */
+  --color-link: #2563eb;              /* blue-600 */
+
+  /* Spacing Scale */
+  --spacing-2xs: 2px;
   --spacing-xs: 4px;
-  --spacing-sm: 8px;
-  --spacing-md: 16px;
-  --spacing-lg: 24px;
-  --spacing-xl: 32px;
+  --spacing-sm: 6px;
+  --spacing-md: 8px;
+  --spacing-lg: 10px;
+  --spacing-xl: 12px;
+  --spacing-2xl: 16px;
+  --spacing-3xl: 20px;
+  --spacing-4xl: 24px;
 
+  /* Typography */
+  --font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --font-size-2xs: 9px;
+  --font-size-xs: 10px;
+  --font-size-sm: 11px;
+  --font-size-base: 12px;
+  --font-size-md: 13px;
+  --font-size-lg: 14px;
+  --font-size-xl: 16px;
+  --font-size-2xl: 20px;
+  --font-size-3xl: 24px;
+
+  /* Font Weights */
+  --font-weight-normal: 400;
+  --font-weight-medium: 500;
+  --font-weight-semibold: 600;
+  --font-weight-bold: 700;
+
+  /* Line Heights */
+  --line-height-tight: 1.25;
+  --line-height-normal: 1.5;
+  --line-height-relaxed: 1.625;
+
+  /* Letter Spacing */
+  --letter-spacing-tight: -0.025em;
+  --letter-spacing-normal: 0;
+
+  /* Border Radius */
   --radius-sm: 4px;
   --radius-md: 8px;
   --radius-lg: 12px;
+  --radius-xl: 16px;
   --radius-full: 9999px;
 
-  --font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen,
-    Ubuntu, Cantarell, sans-serif;
+  /* Shadows */
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.05);
+  --shadow-md: 0 4px 6px rgba(0, 0, 0, 0.1);
+
+  /* Transitions */
+  --transition-fast: 150ms ease;
+  --transition-normal: 200ms ease;
+
+  /* Layout */
+  --popup-width: 400px;
+  --popup-height: 650px;
 }
 
-* {
+/* ========================================
+   Base Reset
+   ======================================== */
+*,
+*::before,
+*::after {
   margin: 0;
   padding: 0;
   box-sizing: border-box;
 }
 
+/* ========================================
+   Base Styles
+   ======================================== */
 html,
 body,
 #root {
-  width: 360px;
-  min-height: 480px;
+  width: var(--popup-width);
+  height: var(--popup-height);
   font-family: var(--font-family);
-  font-size: 14px;
-  line-height: 1.5;
+  font-size: var(--font-size-base);
+  font-weight: var(--font-weight-normal);
+  line-height: var(--line-height-normal);
   color: var(--color-text);
-  background: var(--color-bg);
+  background-color: var(--color-background);
+  overflow: hidden;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
 }
 
+/* Hide scrollbars */
+::-webkit-scrollbar {
+  display: none;
+}
+
+html,
+body {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+/* ========================================
+   Typography Utilities
+   ======================================== */
+.text-2xs { font-size: var(--font-size-2xs); }
+.text-xs { font-size: var(--font-size-xs); }
+.text-sm { font-size: var(--font-size-sm); }
+.text-base { font-size: var(--font-size-base); }
+.text-md { font-size: var(--font-size-md); }
+.text-lg { font-size: var(--font-size-lg); }
+.text-xl { font-size: var(--font-size-xl); }
+.text-2xl { font-size: var(--font-size-2xl); }
+
+.font-normal { font-weight: var(--font-weight-normal); }
+.font-medium { font-weight: var(--font-weight-medium); }
+.font-semibold { font-weight: var(--font-weight-semibold); }
+.font-bold { font-weight: var(--font-weight-bold); }
+
+.text-primary { color: var(--color-text); }
+.text-secondary { color: var(--color-text-secondary); }
+.text-muted { color: var(--color-text-muted); }
+.text-light { color: var(--color-text-light); }
+
+/* ========================================
+   Button Base
+   ======================================== */
 button {
   font-family: inherit;
+  font-size: inherit;
+  cursor: pointer;
+  border: none;
+  background: none;
+}
+
+/* Button styles moved to components/Button/Button.css */
+
+/* ========================================
+   Form Elements
+   ======================================== */
+input[type="text"],
+input[type="password"],
+input[type="email"] {
+  width: 100%;
+  padding: var(--spacing-md) var(--spacing-xl);
+  border: 1px solid var(--color-border-light);
+  border-radius: var(--radius-md);
+  font-family: var(--font-family);
+  font-size: var(--font-size-sm);
+  color: var(--color-text);
+  background-color: var(--color-white);
+  transition: all var(--transition-fast);
+}
+
+input[type="text"]:focus,
+input[type="password"]:focus,
+input[type="email"]:focus {
+  outline: none;
+  border-color: transparent;
+  box-shadow: 0 0 0 2px var(--color-primary);
+}
+
+input::placeholder {
+  color: var(--color-text-light);
+}
+
+/* ========================================
+   Card Component
+   ======================================== */
+.card {
+  background-color: var(--color-white);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-xl);
+  padding: var(--spacing-xl);
+}
+
+/* ========================================
+   Status Messages
+   ======================================== */
+.status {
+  padding: var(--spacing-md) var(--spacing-xl);
+  border-radius: var(--radius-md);
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-medium);
+  text-align: center;
+}
+
+.status.success {
+  background-color: var(--color-success-bg);
+  color: var(--color-success);
+}
+
+.status.error {
+  background-color: var(--color-error-bg);
+  color: var(--color-error);
+}
+
+.status.loading {
+  background-color: var(--color-surface);
+  color: var(--color-text-muted);
+}
+
+/* ========================================
+   Link Styles
+   ======================================== */
+a {
+  color: var(--color-link);
+  text-decoration: none;
+  transition: color var(--transition-fast);
+}
+
+a:hover {
+  text-decoration: underline;
+}
+
+/* ========================================
+   Container
+   ======================================== */
+.container {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  overflow: hidden;
+}
+
+/* ========================================
+   Main Header
+   ======================================== */
+.main-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: var(--spacing-xl);
+  border-bottom: 1px solid var(--color-border);
+  background-color: var(--color-white);
+}
+
+.main-header-left {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-md);
+}
+
+.main-header-logo {
+  width: 28px;
+  height: 28px;
+}
+
+.main-header-title {
+  font-size: var(--font-size-lg);
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-text);
+}
+
+/* ========================================
+   Main Content Area
+   ======================================== */
+.main-content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: var(--spacing-4xl);
+}
+
+.organize-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--spacing-2xl);
+  text-align: center;
+}
+
+.organize-status {
+  font-size: var(--font-size-sm);
+  color: var(--color-text-muted);
+}
+
+.organize-status.success {
+  color: var(--color-success);
+}
+
+.organize-status.error {
+  color: var(--color-error);
+}
+
+/* Spinner Animation */
+.spinner {
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
 }
