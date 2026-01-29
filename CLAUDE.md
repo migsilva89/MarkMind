@@ -52,7 +52,15 @@ src/
 │   ├── icons/
 │   ├── MainContent/
 │   └── ServiceSelector/
-├── hooks/               # Custom React hooks
+├── hooks/               # Custom React hooks (folder per hook)
+│   └── apiKeyPanel/
+│       ├── useApiKeyPanel.ts   # Main hook
+│       ├── types.ts            # Hook-specific types
+│       ├── index.ts            # Exports
+│       └── handlers/           # Separated handlers
+│           ├── handleApiKeySave.ts
+│           ├── handleApiKeyTest.ts
+│           └── ...
 ├── config/              # Configuration DATA only
 ├── types/               # TypeScript types/interfaces
 ├── utils/               # Reusable utility functions
@@ -78,8 +86,14 @@ src/
 | `types/` | Interfaces, type definitions | Logic, data |
 | `config/` | Configuration data, constants | Types, helpers |
 | `utils/` | Reusable helper functions | Types, config |
-| `hooks/` | React hooks | Components, types |
+| `hooks/` | React hooks (folder per hook) | Components |
 | `components/` | ONE React component per file | Multiple components |
+
+### Hook Organization (Complex Hooks)
+- [ ] **Folder per hook** - `hooks/hookName/` not `hooks/useHookName.ts`
+- [ ] **Handlers in separate files** - `handlers/handleAction.ts`
+- [ ] **Types in hook folder** - `types.ts` for hook-specific types
+- [ ] **Index exports** - `index.ts` for clean imports
 
 ### Code Patterns
 - [ ] **Arrow functions** for all components and handlers
@@ -106,7 +120,7 @@ src/
 | `src/types/pages.ts` | PageMetadata |
 | `src/utils/helpers.ts` | Reusable utility functions |
 | `src/styles/index.css` | Design tokens (all CSS variables) |
-| `src/hooks/useApiKeyPanel.ts` | API key panel state management |
+| `src/hooks/apiKeyPanel/` | API key panel hook (folder with handlers) |
 
 ---
 

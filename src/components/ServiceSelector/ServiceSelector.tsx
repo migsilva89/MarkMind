@@ -5,6 +5,7 @@ import {
   SELECTED_SERVICE_STORAGE_KEY,
   getServiceIds,
 } from '../../config/services';
+import Button from '../Button/Button';
 import './ServiceSelector.css';
 
 interface ServiceSelectorProps {
@@ -47,13 +48,14 @@ const ServiceSelector = ({
       <p className="service-selector-label">AI Provider</p>
       <div className="service-tabs-pill">
         {getServiceIds().map((serviceId) => (
-          <button
+          <Button
             key={serviceId}
-            className={`service-tab-pill ${serviceId === currentServiceId ? 'active' : ''}`}
+            variant="tab"
+            active={serviceId === currentServiceId}
             onClick={() => handleServiceSelect(serviceId)}
           >
             {SERVICES[serviceId].name}
-          </button>
+          </Button>
         ))}
       </div>
     </div>

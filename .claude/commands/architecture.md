@@ -537,6 +537,74 @@ const handleApiKeySave = () => {
 
 ---
 
+## Hook Organization Pattern
+
+For complex hooks with multiple handlers, use folder structure:
+
+```
+src/hooks/
+└── hookName/
+    ├── useHookName.ts      # Main hook (orchestration)
+    ├── types.ts            # Hook-specific types
+    ├── index.ts            # Clean exports
+    └── handlers/
+        ├── handleAction1.ts
+        ├── handleAction2.ts
+        └── index.ts        # Handler exports
+```
+
+### Handler Factory Pattern
+
+```typescript
+// handlers/handleApiKeySave.ts
+interface HandleApiKeySaveDeps {
+  currentService: ServiceConfig;
+  apiKeyInput: string;
+  showStatusMessage: (msg: string, type: StatusType) => void;
+  // ... other dependencies
+}
+
+export const createHandleApiKeySave = (deps: HandleApiKeySaveDeps) => {
+  return async (): Promise<void> => {
+    const { currentService, apiKeyInput, showStatusMessage } = deps;
+
+    // Handler logic here
+  };
+};
+```
+
+### Using Handlers in Main Hook
+
+```typescript
+// useHookName.ts
+import { createHandleApiKeySave } from './handlers';
+
+export const useHookName = () => {
+  // State
+  const [apiKeyInput, setApiKeyInput] = useState('');
+
+  // Create handlers with useMemo for stable references
+  const handleApiKeySave = useMemo(
+    () => createHandleApiKeySave({
+      currentService,
+      apiKeyInput,
+      showStatusMessage,
+    }),
+    [currentService, apiKeyInput, showStatusMessage]
+  );
+
+  return { handleApiKeySave };
+};
+```
+
+### Benefits
+- **Isolation**: Each handler in its own file
+- **Testable**: Test handlers independently
+- **Findable**: Easy to locate specific logic
+- **Scalable**: Add handlers without bloating main file
+
+---
+
 ## Pre-Implementation Checklist
 
 Before writing ANY code, verify:
@@ -551,3 +619,5 @@ Before writing ANY code, verify:
 8. [ ] Am I logging errors in catch blocks?
 9. [ ] Are my names descriptive (no abbreviations)?
 10. [ ] Does this follow existing patterns in the codebase?
+11. [ ] For complex hooks: Am I using folder structure with separate handlers?
+12. [ ] Am I using the Button component (not raw `<button>` elements)?

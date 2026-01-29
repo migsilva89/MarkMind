@@ -3,6 +3,7 @@ import { SERVICES, SELECTED_SERVICE_STORAGE_KEY } from '../../config/services';
 import { type StatusType } from '../../types/common';
 import { type PageMetadata } from '../../types/pages';
 import { SettingsIcon, SpinnerIcon, PlusIcon } from '../icons/Icons';
+import Button from '../Button/Button';
 
 interface MainContentProps {
   onOpenSettings: () => void;
@@ -136,9 +137,9 @@ const MainContent = ({ onOpenSettings }: MainContentProps) => {
           />
           <h1 className="main-header-title">MarkMind</h1>
         </div>
-        <button className="btn-icon" onClick={onOpenSettings} title="Settings">
+        <Button variant="icon" onClick={onOpenSettings} title="Settings">
           <SettingsIcon />
-        </button>
+        </Button>
       </header>
 
       <main className="main-content">
@@ -146,8 +147,8 @@ const MainContent = ({ onOpenSettings }: MainContentProps) => {
           <p className={`organize-status ${statusType}`}>
             {statusMessage || defaultStatusText}
           </p>
-          <button
-            className={`btn-ghost ${isLoading ? 'loading' : ''}`}
+          <Button
+            className={isLoading ? 'loading' : ''}
             onClick={handleAddCurrentPage}
             disabled={isLoading}
           >
@@ -162,7 +163,7 @@ const MainContent = ({ onOpenSettings }: MainContentProps) => {
                 Add Current Page
               </>
             )}
-          </button>
+          </Button>
         </div>
       </main>
     </>

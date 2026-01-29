@@ -1,6 +1,6 @@
 import ServiceSelector from '../ServiceSelector/ServiceSelector';
 import Button from '../Button/Button';
-import { useApiKeyPanel } from '../../hooks/useApiKeyPanel';
+import { useApiKeyPanel } from '../../hooks/apiKeyPanel';
 import {
   GitHubIcon,
   StarIcon,

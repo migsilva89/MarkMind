@@ -1,3 +1,4 @@
+import Button from '../components/Button/Button';
 import './Welcome.css';
 
 const Welcome = () => {
@@ -19,9 +20,9 @@ const Welcome = () => {
         Before you start organizing, please set up your API key to connect with
         an AI provider.
       </p>
-      <button className="btn-ghost" onClick={handleGetStarted}>
+      <Button onClick={handleGetStarted}>
         Get Started
-      </button>
+      </Button>
     </div>
   );
 };
