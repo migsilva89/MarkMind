@@ -1,21 +1,6 @@
-export interface ServiceTestConfig {
-  getEndpoint: (apiKey: string) => string;
-  getHeaders: (apiKey: string) => Record<string, string>;
-  getBody: () => Record<string, unknown>;
-  validateResponse: (data: unknown) => boolean;
-}
+import { type ServiceConfig, type ServiceTestConfig } from '../types/services';
 
-export interface ServiceConfig {
-  id: string;
-  name: string;
-  label: string;
-  storageKey: string;
-  placeholder: string;
-  helpLink: string;
-  helpLinkText: string;
-  validateKey: (key: string) => boolean;
-  testConfig: ServiceTestConfig;
-}
+export type { ServiceConfig, ServiceTestConfig };
 
 const hasArrayWithItems = (data: unknown, propertyName: string): boolean => {
   if (typeof data !== 'object' || data === null) return false;
