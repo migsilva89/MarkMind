@@ -5,13 +5,10 @@ import {
   DEFAULT_SERVICE_ID,
   type ServiceConfig,
 } from '../../config/services';
+import { type StatusType, type StatusMessage } from '../../types/common';
 import './ApiKeyPanel.css';
 
-type StatusType = 'success' | 'error' | 'loading' | null;
-
-interface StatusMessage {
-  message: string;
-  type: StatusType;
+interface ApiKeyPanelStatusMessage extends StatusMessage {
   showGoToApp?: boolean;
 }
 
@@ -33,7 +30,7 @@ const ApiKeyPanel = ({
   );
   const [apiKeyInput, setApiKeyInput] = useState('');
   const [hasExistingKey, setHasExistingKey] = useState(false);
-  const [status, setStatus] = useState<StatusMessage>({ message: '', type: null, showGoToApp: false });
+  const [status, setStatus] = useState<ApiKeyPanelStatusMessage>({ message: '', type: null, showGoToApp: false });
   const [canClosePanel, setCanClosePanel] = useState(canClose);
   const [extensionVersion, setExtensionVersion] = useState('');
   const autoCloseTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);

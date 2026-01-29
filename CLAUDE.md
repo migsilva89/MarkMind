@@ -62,6 +62,8 @@ MarkMind/
 │   ├── pages/               # Page-level components
 │   ├── hooks/               # Custom React hooks
 │   ├── config/              # Configuration (services, constants)
+│   ├── types/               # Shared TypeScript types
+│   │   └── common.ts        # StatusType, StatusMessage, etc.
 │   ├── styles/
 │   │   └── index.css        # Design system tokens
 │   ├── App.tsx              # Root component
@@ -571,6 +573,47 @@ const ComponentName = ({ propName, onAction }: ComponentNameProps) => {
 };
 
 export default ComponentName;
+```
+
+### Type Organization
+
+**CRITICAL: Follow these rules for TypeScript types and interfaces.**
+
+#### Where to Put Types
+
+| Type Category | Location | Example |
+|--------------|----------|---------|
+| **Props interfaces** | In component file | `ApiKeyPanelProps` stays in `ApiKeyPanel.tsx` |
+| **Shared UI types** | `src/types/common.ts` | `StatusType`, `StatusMessage` |
+| **Domain models** | `src/types/models.ts` | `Bookmark`, `User`, `Collection` |
+| **Service types** | `src/config/services.ts` | `ServiceConfig`, `ServiceTestConfig` |
+
+#### Rules
+
+1. **Props interfaces stay in component files** - They are only used by that component
+2. **Shared types go to `src/types/`** - If 2+ components use the same type, extract it
+3. **Extend base types locally** - If a component needs extra properties, extend the shared type
+
+```typescript
+// src/types/common.ts - Shared base type
+export interface StatusMessage {
+  message: string;
+  type: StatusType;
+}
+
+// ApiKeyPanel.tsx - Extends for component-specific needs
+import { type StatusMessage } from '../../types/common';
+
+interface ApiKeyPanelStatusMessage extends StatusMessage {
+  showGoToApp?: boolean;  // Component-specific property
+}
+```
+
+#### Current Shared Types (`src/types/common.ts`)
+
+```typescript
+export type StatusType = 'success' | 'error' | 'loading' | 'default' | null;
+export interface StatusMessage { message: string; type: StatusType; }
 ```
 
 ---

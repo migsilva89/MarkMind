@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import ApiKeyPanel from './components/ApiKeyPanel/ApiKeyPanel';
 import { SERVICES, SELECTED_SERVICE_STORAGE_KEY } from './config/services';
+import { type StatusType } from './types/common';
 
 const App = () => {
   const [showApiKeyPanel, setShowApiKeyPanel] = useState(false);
@@ -57,8 +58,6 @@ interface MainContentProps {
   onOpenSettings: () => void;
 }
 
-type OrganizeStatusType = 'default' | 'success' | 'error';
-
 interface PageMetadata {
   url: string;
   title: string;
@@ -72,7 +71,7 @@ const MainContent = ({ onOpenSettings }: MainContentProps) => {
   const [selectedServiceId, setSelectedServiceId] = useState<string>('');
   const [isLoading, setIsLoading] = useState(false);
   const [statusMessage, setStatusMessage] = useState('');
-  const [statusType, setStatusType] = useState<OrganizeStatusType>('default');
+  const [statusType, setStatusType] = useState<StatusType>('default');
   const statusTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
@@ -94,7 +93,7 @@ const MainContent = ({ onOpenSettings }: MainContentProps) => {
     };
   }, []);
 
-  const showStatus = useCallback((message: string, type: OrganizeStatusType = 'default'): void => {
+  const showStatus = useCallback((message: string, type: StatusType = 'default'): void => {
     if (statusTimeoutRef.current) {
       clearTimeout(statusTimeoutRef.current);
       statusTimeoutRef.current = null;
