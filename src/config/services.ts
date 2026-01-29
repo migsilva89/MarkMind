@@ -1,12 +1,7 @@
 import { type ServiceConfig, type ServiceTestConfig } from '../types/services';
+import { hasArrayWithItems } from '../utils/helpers';
 
 export type { ServiceConfig, ServiceTestConfig };
-
-const hasArrayWithItems = (data: unknown, propertyName: string): boolean => {
-  if (typeof data !== 'object' || data === null) return false;
-  const obj = data as Record<string, unknown>;
-  return Array.isArray(obj[propertyName]) && obj[propertyName].length > 0;
-};
 
 export const SERVICES: Record<string, ServiceConfig> = {
   google: {
