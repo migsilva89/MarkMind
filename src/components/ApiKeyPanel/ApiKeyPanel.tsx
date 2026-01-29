@@ -8,6 +8,8 @@ import {
 import { type StatusType, type StatusMessage } from '../../types/common';
 import './ApiKeyPanel.css';
 
+const AUTO_CLOSE_DELAY_MS = 1500;
+
 interface ApiKeyPanelStatusMessage extends StatusMessage {
   showGoToApp?: boolean;
 }
@@ -34,30 +36,12 @@ const ApiKeyPanel = ({
   const [canClosePanel, setCanClosePanel] = useState(canClose);
   const autoCloseTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  useEffect(() => {
-    return () => {
-      if (autoCloseTimeoutRef.current) {
-        clearTimeout(autoCloseTimeoutRef.current);
-      }
-    };
-  }, []);
-
   const checkExistingApiKey = useCallback(async (service: ServiceConfig): Promise<boolean> => {
     const result = await chrome.storage.local.get([service.storageKey]);
     const keyExists = !!result[service.storageKey];
     setHasExistingKey(keyExists);
     return keyExists;
   }, []);
-
-  useEffect(() => {
-    if (isOpen) {
-      checkExistingApiKey(currentService);
-    }
-  }, [isOpen, currentService, checkExistingApiKey]);
-
-  useEffect(() => {
-    setCanClosePanel(canClose);
-  }, [canClose]);
 
   const showStatusMessage = useCallback((message: string, type: StatusType): void => {
     setStatus({ message, type, showGoToApp: false });
@@ -114,7 +98,7 @@ const ApiKeyPanel = ({
         autoCloseTimeoutRef.current = setTimeout(() => {
           handlePanelClose();
           autoCloseTimeoutRef.current = null;
-        }, 1500);
+        }, AUTO_CLOSE_DELAY_MS);
       }
     } catch (error) {
       console.error('Failed to save API key:', error);
@@ -203,6 +187,24 @@ const ApiKeyPanel = ({
     clearStatus();
     onClose?.();
   }, [clearStatus, onClose]);
+
+  useEffect(() => {
+    return () => {
+      if (autoCloseTimeoutRef.current) {
+        clearTimeout(autoCloseTimeoutRef.current);
+      }
+    };
+  }, []);
+
+  useEffect(() => {
+    if (isOpen) {
+      checkExistingApiKey(currentService);
+    }
+  }, [isOpen, currentService, checkExistingApiKey]);
+
+  useEffect(() => {
+    setCanClosePanel(canClose);
+  }, [canClose]);
 
   if (!isOpen) return null;
 
