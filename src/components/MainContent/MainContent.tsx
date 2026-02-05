@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback, useRef } from 'react';
 import { SERVICES, SELECTED_SERVICE_STORAGE_KEY } from '../../config/services';
 import { type StatusType } from '../../types/common';
 import { type PageMetadata } from '../../types/pages';
+import { getFolderDataForAI } from '../../utils/folders';
 import { SettingsIcon, SpinnerIcon, PlusIcon } from '../icons/Icons';
 import Button from '../Button/Button';
 
@@ -97,17 +98,19 @@ const MainContent = ({ onOpenSettings }: MainContentProps) => {
       setIsLoading(true);
       showStatus('Getting page information...', 'default');
 
-      const pageData = await getCurrentPageData();
+      const [pageData, _folderData] = await Promise.all([
+        getCurrentPageData(),
+        getFolderDataForAI(),
+      ]);
 
       if (!pageData?.url) {
         showStatus('Could not get current page info', 'error');
         return;
       }
 
-      console.log('Page data collected:', pageData);
       showStatus(`Analyzing: ${pageData.title}`, 'default');
 
-      // TODO: Send pageData to AI for organization suggestion
+      // TODO: Send pageData and _folderData to AI for organization suggestion
       showStatus('Page data collected! AI integration coming soon.', 'success');
     } catch (error) {
       console.error('Error adding current page:', error);
