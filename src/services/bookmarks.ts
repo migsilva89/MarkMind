@@ -23,3 +23,34 @@ export const findBookmarkByUrl = async (url: string): Promise<ChromeBookmarkNode
     });
   });
 };
+
+export const createFolder = async (
+  parentId: string,
+  title: string
+): Promise<ChromeBookmarkNode> => {
+  return new Promise((resolve, reject) => {
+    chrome.bookmarks.create({ parentId, title }, (folder) => {
+      if (chrome.runtime.lastError) {
+        reject(new Error(chrome.runtime.lastError.message));
+        return;
+      }
+      resolve(folder as ChromeBookmarkNode);
+    });
+  });
+};
+
+export const createBookmark = async (
+  parentId: string,
+  title: string,
+  url: string
+): Promise<ChromeBookmarkNode> => {
+  return new Promise((resolve, reject) => {
+    chrome.bookmarks.create({ parentId, title, url }, (bookmark) => {
+      if (chrome.runtime.lastError) {
+        reject(new Error(chrome.runtime.lastError.message));
+        return;
+      }
+      resolve(bookmark as ChromeBookmarkNode);
+    });
+  });
+};
