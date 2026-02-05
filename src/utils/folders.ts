@@ -19,12 +19,13 @@ const buildTextTreeAndMap = (
   pathMap: FolderPathMap,
   stats: TraversalStats
 ): void => {
-  if (node.url) {
+  if (node.url || !node.title) {
     return;
   }
 
-  const folderName = node.title || '';
-  const currentPath = parentPath ? `${parentPath}/${folderName}` : folderName;
+  const folderName = node.title;
+  const escapedFolderName = folderName.replace(/\//g, '\\/');
+  const currentPath = [parentPath, escapedFolderName].filter(Boolean).join('/');
   const indent = '  '.repeat(depth);
 
   lines.push(`${indent}${folderName}`);
