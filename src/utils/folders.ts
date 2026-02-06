@@ -10,9 +10,15 @@ interface TraversalStats {
   totalCount: number;
 }
 
-const buildTextTreeAndMap = (
+const getFolderChildren = (node: ChromeBookmarkNode): ChromeBookmarkNode[] => {
+  return (node.children ?? []).filter(child => !child.url && child.title);
+};
+
+const buildTreeLines = (
   node: ChromeBookmarkNode,
   parentPath: string,
+  prefix: string,
+  isLastChild: boolean,
   depth: number,
   lines: string[],
   pathMap: FolderPathMap,
@@ -25,19 +31,21 @@ const buildTextTreeAndMap = (
   const folderName = node.title;
   const escapedFolderName = folderName.replace(/\//g, '\\/');
   const currentPath = [parentPath, escapedFolderName].filter(Boolean).join('/');
-  const indent = '  '.repeat(depth);
 
-  lines.push(`${indent}${folderName}`);
+  const connector = isLastChild ? '└── ' : '├── ';
+  lines.push(`${prefix}${connector}${folderName}`);
   pathMap[currentPath] = node.id;
 
   stats.totalCount += 1;
   stats.maxDepth = Math.max(stats.maxDepth, depth);
 
-  if (node.children) {
-    for (const child of node.children) {
-      buildTextTreeAndMap(child, currentPath, depth + 1, lines, pathMap, stats);
-    }
-  }
+  const folderChildren = getFolderChildren(node);
+  const childPrefix = prefix + (isLastChild ? '    ' : '│   ');
+
+  folderChildren.forEach((child, index) => {
+    const isLast = index === folderChildren.length - 1;
+    buildTreeLines(child, currentPath, childPrefix, isLast, depth + 1, lines, pathMap, stats);
+  });
 };
 
 export const getFolderDataForAI = async (): Promise<FolderDataForAI> => {
@@ -56,9 +64,12 @@ export const getFolderDataForAI = async (): Promise<FolderDataForAI> => {
   // Use the first root folder (typically Bookmarks Bar) as default parent for new folders
   const defaultParentId = rootChildren.length > 0 ? rootChildren[0].id : rootNode.id;
 
-  for (const child of rootChildren) {
-    buildTextTreeAndMap(child, '', 0, lines, pathToIdMap, stats);
-  }
+  const rootFolders = getFolderChildren(rootNode);
+
+  rootFolders.forEach((child, index) => {
+    const isLast = index === rootFolders.length - 1;
+    buildTreeLines(child, '', '', isLast, 0, lines, pathToIdMap, stats);
+  });
 
   return {
     textTree: lines.join('\n'),

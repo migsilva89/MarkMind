@@ -166,10 +166,6 @@ const MainContent = ({ onOpenSettings }: MainContentProps) => {
         return;
       }
 
-      console.log('[Bookmarks] Folder tree sent to AI:', folderData.textTree);
-      console.log('[Bookmarks] Path-to-ID map:', folderData.pathToIdMap);
-      console.log('[Bookmarks] Default parent ID:', folderData.defaultParentId);
-
       showStatus(`Asking AI to organize: ${pageData.title}`, 'default');
 
       const aiResponse = await organizeBookmark(serviceId, {

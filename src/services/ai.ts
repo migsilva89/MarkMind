@@ -2,21 +2,25 @@ import { type AIOrganizeRequest, type AIOrganizeResponse } from '../types/ai';
 import { SERVICES } from '../config/services';
 
 const SYSTEM_PROMPT = `You are an AI assistant specialized in organizing bookmarks into folders.
+Your task is to analyze a bookmark and suggest the best existing folder from the provided hierarchy, or suggest a new folder name if none fit.
 
-YOUR TASK: Analyze the bookmark and suggest the best folder from the existing list, OR suggest a new folder name if none fit.
-
-RULES:
-1. Use existing folders when they semantically match the bookmark content
-2. Suggest a NEW folder only if no existing folder is appropriate
-3. New folders should be clear category names (e.g., "Entertainment", "Finance", "Health")
-4. Match based on content TYPE, not just keywords
-5. Services/tools you USE go in tool-related folders
-6. Content you READ goes in topic-related folders
-7. NEVER use generic folders like "Other Bookmarks" if a better option exists
+CRITICAL RULES:
+1. Use existing folders when they semantically match the bookmark content, respecting their hierarchy
+2. Match based on content TYPE, not just keywords
+3. Services/tools you USE go in tool-related folders
+4. Content you READ goes in topic-related folders
+5. Create subfolders for related topics WITHIN existing main folders first
+6. Maximum folder depth is 3 levels
+7. Suggest a NEW folder only if no existing folder or subfolder is appropriate
+8. New folders should be clear category names (e.g., "Entertainment", "Finance", "Health")
+9. BEFORE suggesting "Other Bookmarks", try: existing folders → existing subfolders → new subfolder → new main folder
+10. NEVER use generic folders like "Other Bookmarks" if a better option exists
 
 RESPONSE FORMAT:
-- If existing folder matches: return exact folder path (e.g., "Bookmarks/Development Tools")
-- If new folder needed: return "NEW: FolderName" (e.g., "NEW: Entertainment" or "NEW: Movies")
+- Return the EXACT folder path using "/" as separator, matching folder names from the hierarchy exactly
+- Example: if the tree shows Bookmarks > Development Tools > Git, return "Bookmarks/Development Tools/Git"
+- If new folder needed: return "NEW: FolderName" (e.g., "NEW: Entertainment")
+- If new subfolder in existing folder: return "NEW: ParentFolder/NewSubfolder" (e.g., "NEW: Development Tools/Frameworks")
 - Return ONLY the path, no explanation`;
 
 const buildUserPrompt = (request: AIOrganizeRequest): string => {
@@ -35,11 +39,11 @@ const buildUserPrompt = (request: AIOrganizeRequest): string => {
   }
 
   parts.push('');
-  parts.push('## EXISTING FOLDERS');
+  parts.push('## EXISTING FOLDER STRUCTURE (hierarchy)');
   parts.push(request.folderTree);
   parts.push('');
-  parts.push('Choose the best matching folder from above, or suggest "NEW: CategoryName" if none fit.');
-  parts.push('Return ONLY the folder path or new folder suggestion:');
+  parts.push('Choose the best matching folder path from the hierarchy above, or suggest "NEW: CategoryName" if none fit.');
+  parts.push('Return ONLY the exact folder path using "/" as separator:');
 
   return parts.join('\n');
 };
@@ -181,12 +185,7 @@ export const organizeBookmark = async (
 
   const userPrompt = buildUserPrompt(request);
 
-  console.log('[AI] Request:', {
-    title: request.title,
-    url: request.url,
-    description: request.description,
-    h1: request.h1,
-  });
+  console.log('[AI] Full prompt sent:\n\n--- SYSTEM ---\n' + SYSTEM_PROMPT + '\n\n--- USER ---\n' + userPrompt);
 
   let folderPath: string;
 
