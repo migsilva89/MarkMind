@@ -61,6 +61,17 @@ src/
 │           ├── handleApiKeySave.ts
 │           ├── handleApiKeyTest.ts
 │           └── ...
+├── services/            # External API and Chrome API wrappers
+│   ├── ai/              # AI organization service
+│   │   ├── index.ts     # organizeBookmark (orchestration)
+│   │   ├── prompt.ts    # System prompt + user prompt builder
+│   │   └── providers/   # One file per AI provider
+│   │       ├── gemini.ts
+│   │       ├── openai.ts
+│   │       ├── anthropic.ts
+│   │       └── openRouter.ts
+│   ├── bookmarks.ts     # Chrome Bookmarks API wrapper
+│   └── pageMetadata.ts  # Page metadata extraction (title, h1, meta)
 ├── config/              # Configuration DATA only
 ├── types/               # TypeScript types/interfaces
 ├── utils/               # Reusable utility functions
@@ -85,6 +96,7 @@ src/
 |--------|----------|------------------|
 | `types/` | Interfaces, type definitions | Logic, data |
 | `config/` | Configuration data, constants | Types, helpers |
+| `services/` | External API calls, Chrome API wrappers | React state, UI logic |
 | `utils/` | Reusable helper functions | Types, config |
 | `hooks/` | React hooks (folder per hook) | Components |
 | `components/` | ONE React component per file | Multiple components |
@@ -115,9 +127,15 @@ src/
 | File | Purpose |
 |------|---------|
 | `src/config/services.ts` | AI provider configurations (data only) |
+| `src/services/ai/` | AI bookmark organization (prompt, providers, orchestration) |
+| `src/services/ai/providers/` | One file per AI provider (gemini, openai, anthropic, openRouter) |
+| `src/services/bookmarks.ts` | Chrome Bookmarks API wrapper (getTree, create, search) |
+| `src/services/pageMetadata.ts` | Extracts page title, h1, meta from active tab |
 | `src/types/services.ts` | ServiceConfig, ServiceTestConfig interfaces |
+| `src/types/bookmarks.ts` | ChromeBookmarkNode, FolderDataForAI, FolderPathMap |
 | `src/types/common.ts` | StatusType, StatusMessage |
 | `src/types/pages.ts` | PageMetadata |
+| `src/utils/folders.ts` | Builds ASCII folder tree and path-to-ID map for AI |
 | `src/utils/helpers.ts` | Reusable utility functions |
 | `src/styles/index.css` | Design tokens (all CSS variables) |
 | `src/hooks/apiKeyPanel/` | API key panel hook (folder with handlers) |
