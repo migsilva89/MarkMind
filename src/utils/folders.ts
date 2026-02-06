@@ -2,7 +2,6 @@ import {
   type ChromeBookmarkNode,
   type FolderDataForAI,
   type FolderPathMap,
-  CHROME_ROOT_FOLDER_IDS,
 } from '../types/bookmarks';
 import { getBookmarkTree } from '../services/bookmarks';
 
@@ -45,27 +44,26 @@ export const getFolderDataForAI = async (): Promise<FolderDataForAI> => {
   const tree = await getBookmarkTree();
 
   if (!tree || tree.length === 0) {
-    return { textTree: '', pathToIdMap: {}, maxDepth: 0, totalFolderCount: 0 };
+    return { textTree: '', pathToIdMap: {}, defaultParentId: '', maxDepth: 0, totalFolderCount: 0 };
   }
 
   const rootNode = tree[0];
+  const rootChildren = rootNode.children ?? [];
   const lines: string[] = [];
   const pathToIdMap: FolderPathMap = {};
   const stats: TraversalStats = { maxDepth: 0, totalCount: 0 };
 
-  if (rootNode.children) {
-    for (const child of rootNode.children) {
-      if (child.id === CHROME_ROOT_FOLDER_IDS.MOBILE_BOOKMARKS) {
-        continue;
-      }
+  // Use the first root folder (typically Bookmarks Bar) as default parent for new folders
+  const defaultParentId = rootChildren.length > 0 ? rootChildren[0].id : rootNode.id;
 
-      buildTextTreeAndMap(child, '', 0, lines, pathToIdMap, stats);
-    }
+  for (const child of rootChildren) {
+    buildTextTreeAndMap(child, '', 0, lines, pathToIdMap, stats);
   }
 
   return {
     textTree: lines.join('\n'),
     pathToIdMap,
+    defaultParentId,
     maxDepth: stats.maxDepth,
     totalFolderCount: stats.totalCount,
   };

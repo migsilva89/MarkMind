@@ -5,7 +5,6 @@ import { type PageMetadata } from '../../types/pages';
 import { getFolderDataForAI } from '../../utils/folders';
 import { organizeBookmark } from '../../services/ai';
 import { findBookmarkByUrl, createBookmark, createFolder } from '../../services/bookmarks';
-import { CHROME_ROOT_FOLDER_IDS } from '../../types/bookmarks';
 import { SettingsIcon, SpinnerIcon, PlusIcon, CheckIcon, XIcon } from '../icons/Icons';
 import Button from '../Button/Button';
 
@@ -15,6 +14,7 @@ interface PendingSuggestion {
   folderPath: string;
   folderId: string | null;
   isNewFolder: boolean;
+  defaultParentId: string;
 }
 
 interface MainContentProps {
@@ -166,6 +166,10 @@ const MainContent = ({ onOpenSettings }: MainContentProps) => {
         return;
       }
 
+      console.log('[Bookmarks] Folder tree sent to AI:', folderData.textTree);
+      console.log('[Bookmarks] Path-to-ID map:', folderData.pathToIdMap);
+      console.log('[Bookmarks] Default parent ID:', folderData.defaultParentId);
+
       showStatus(`Asking AI to organize: ${pageData.title}`, 'default');
 
       const aiResponse = await organizeBookmark(serviceId, {
@@ -184,6 +188,7 @@ const MainContent = ({ onOpenSettings }: MainContentProps) => {
         folderPath: aiResponse.folderPath,
         folderId: folderId || null,
         isNewFolder: aiResponse.isNewFolder,
+        defaultParentId: folderData.defaultParentId,
       });
 
       if (folderId) {
@@ -212,7 +217,7 @@ const MainContent = ({ onOpenSettings }: MainContentProps) => {
       if (pendingSuggestion.isNewFolder && !targetFolderId) {
         showStatus(`Creating folder: ${pendingSuggestion.folderPath}`, 'default');
         const newFolder = await createFolder(
-          CHROME_ROOT_FOLDER_IDS.BOOKMARKS_BAR,
+          pendingSuggestion.defaultParentId,
           pendingSuggestion.folderPath
         );
         targetFolderId = newFolder.id;
