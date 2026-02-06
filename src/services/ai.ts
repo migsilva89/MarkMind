@@ -1,5 +1,5 @@
-import { type AIOrganizeRequest, type AIOrganizeResponse } from '../types/ai';
-import { SERVICES } from '../config/services';
+import { type AIOrganizeRequest, type AIOrganizeResponse } from "../types/ai";
+import { SERVICES } from "../config/services";
 
 const SYSTEM_PROMPT = `You are an AI assistant specialized in organizing bookmarks into folders.
 Your task is to analyze a bookmark and suggest the best existing folder from the provided hierarchy, or suggest a new folder name if none fit.
@@ -25,7 +25,7 @@ RESPONSE FORMAT:
 
 const buildUserPrompt = (request: AIOrganizeRequest): string => {
   const parts = [
-    '## PAGE INFORMATION',
+    "## PAGE INFORMATION",
     `Title: ${request.title}`,
     `URL: ${request.url}`,
   ];
@@ -38,22 +38,24 @@ const buildUserPrompt = (request: AIOrganizeRequest): string => {
     parts.push(`H1: ${request.h1}`);
   }
 
-  parts.push('');
-  parts.push('## EXISTING FOLDER STRUCTURE (hierarchy)');
+  parts.push("");
+  parts.push("## EXISTING FOLDER STRUCTURE (hierarchy)");
   parts.push(request.folderTree);
-  parts.push('');
-  parts.push('Choose the best matching folder path from the hierarchy above, or suggest "NEW: CategoryName" if none fit.');
+  parts.push("");
+  parts.push(
+    'Choose the best matching folder path from the hierarchy above, or suggest "NEW: CategoryName" if none fit.',
+  );
   parts.push('Return ONLY the exact folder path using "/" as separator:');
 
-  return parts.join('\n');
+  return parts.join("\n");
 };
 
 const callGemini = async (apiKey: string, prompt: string): Promise<string> => {
-  const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`;
+  const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`;
 
   const response = await fetch(endpoint, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
     body: JSON.stringify({
       systemInstruction: { parts: [{ text: SYSTEM_PROMPT }] },
       contents: [{ parts: [{ text: prompt }] }],
@@ -68,24 +70,24 @@ const callGemini = async (apiKey: string, prompt: string): Promise<string> => {
   const text = data?.candidates?.[0]?.content?.parts?.[0]?.text;
 
   if (!text) {
-    throw new Error('No response from Gemini');
+    throw new Error("No response from Gemini");
   }
 
   return text.trim();
 };
 
 const callOpenAI = async (apiKey: string, prompt: string): Promise<string> => {
-  const response = await fetch('https://api.openai.com/v1/chat/completions', {
-    method: 'POST',
+  const response = await fetch("https://api.openai.com/v1/chat/completions", {
+    method: "POST",
     headers: {
-      'Content-Type': 'application/json',
+      "Content-Type": "application/json",
       Authorization: `Bearer ${apiKey}`,
     },
     body: JSON.stringify({
-      model: 'gpt-4o-mini',
+      model: "gpt-4o-mini",
       messages: [
-        { role: 'system', content: SYSTEM_PROMPT },
-        { role: 'user', content: prompt },
+        { role: "system", content: SYSTEM_PROMPT },
+        { role: "user", content: prompt },
       ],
       max_tokens: 100,
     }),
@@ -99,26 +101,29 @@ const callOpenAI = async (apiKey: string, prompt: string): Promise<string> => {
   const text = data?.choices?.[0]?.message?.content;
 
   if (!text) {
-    throw new Error('No response from OpenAI');
+    throw new Error("No response from OpenAI");
   }
 
   return text.trim();
 };
 
-const callAnthropic = async (apiKey: string, prompt: string): Promise<string> => {
-  const response = await fetch('https://api.anthropic.com/v1/messages', {
-    method: 'POST',
+const callAnthropic = async (
+  apiKey: string,
+  prompt: string,
+): Promise<string> => {
+  const response = await fetch("https://api.anthropic.com/v1/messages", {
+    method: "POST",
     headers: {
-      'Content-Type': 'application/json',
-      'x-api-key': apiKey,
-      'anthropic-version': '2023-06-01',
-      'anthropic-dangerous-direct-browser-access': 'true',
+      "Content-Type": "application/json",
+      "x-api-key": apiKey,
+      "anthropic-version": "2023-06-01",
+      "anthropic-dangerous-direct-browser-access": "true",
     },
     body: JSON.stringify({
-      model: 'claude-3-haiku-20240307',
+      model: "claude-3-haiku-20240307",
       max_tokens: 100,
       system: SYSTEM_PROMPT,
-      messages: [{ role: 'user', content: prompt }],
+      messages: [{ role: "user", content: prompt }],
     }),
   });
 
@@ -130,28 +135,34 @@ const callAnthropic = async (apiKey: string, prompt: string): Promise<string> =>
   const text = data?.content?.[0]?.text;
 
   if (!text) {
-    throw new Error('No response from Anthropic');
+    throw new Error("No response from Anthropic");
   }
 
   return text.trim();
 };
 
-const callOpenRouter = async (apiKey: string, prompt: string): Promise<string> => {
-  const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      Authorization: `Bearer ${apiKey}`,
+const callOpenRouter = async (
+  apiKey: string,
+  prompt: string,
+): Promise<string> => {
+  const response = await fetch(
+    "https://openrouter.ai/api/v1/chat/completions",
+    {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${apiKey}`,
+      },
+      body: JSON.stringify({
+        model: "openai/gpt-4o-mini",
+        messages: [
+          { role: "system", content: SYSTEM_PROMPT },
+          { role: "user", content: prompt },
+        ],
+        max_tokens: 100,
+      }),
     },
-    body: JSON.stringify({
-      model: 'openai/gpt-4o-mini',
-      messages: [
-        { role: 'system', content: SYSTEM_PROMPT },
-        { role: 'user', content: prompt },
-      ],
-      max_tokens: 100,
-    }),
-  });
+  );
 
   if (!response.ok) {
     throw new Error(`OpenRouter API error: ${response.status}`);
@@ -161,7 +172,7 @@ const callOpenRouter = async (apiKey: string, prompt: string): Promise<string> =
   const text = data?.choices?.[0]?.message?.content;
 
   if (!text) {
-    throw new Error('No response from OpenRouter');
+    throw new Error("No response from OpenRouter");
   }
 
   return text.trim();
@@ -169,7 +180,7 @@ const callOpenRouter = async (apiKey: string, prompt: string): Promise<string> =
 
 export const organizeBookmark = async (
   serviceId: string,
-  request: AIOrganizeRequest
+  request: AIOrganizeRequest,
 ): Promise<AIOrganizeResponse> => {
   const service = SERVICES[serviceId];
   if (!service) {
@@ -185,35 +196,40 @@ export const organizeBookmark = async (
 
   const userPrompt = buildUserPrompt(request);
 
-  console.log('[AI] Full prompt sent:\n\n--- SYSTEM ---\n' + SYSTEM_PROMPT + '\n\n--- USER ---\n' + userPrompt);
+  console.log(
+    "[AI] Full prompt sent:\n\n--- SYSTEM ---\n" +
+      SYSTEM_PROMPT +
+      "\n\n--- USER ---\n" +
+      userPrompt,
+  );
 
   let folderPath: string;
 
   switch (serviceId) {
-    case 'google':
+    case "google":
       folderPath = await callGemini(apiKey, userPrompt);
       break;
-    case 'openai':
+    case "openai":
       folderPath = await callOpenAI(apiKey, userPrompt);
       break;
-    case 'anthropic':
+    case "anthropic":
       folderPath = await callAnthropic(apiKey, userPrompt);
       break;
-    case 'openrouter':
+    case "openrouter":
       folderPath = await callOpenRouter(apiKey, userPrompt);
       break;
     default:
       throw new Error(`Unsupported service: ${serviceId}`);
   }
 
-  folderPath = folderPath.replace(/^["']|["']$/g, '').trim();
+  folderPath = folderPath.replace(/^["']|["']$/g, "").trim();
 
-  const isNewFolder = folderPath.startsWith('NEW:');
+  const isNewFolder = folderPath.startsWith("NEW:");
   if (isNewFolder) {
-    folderPath = folderPath.replace(/^NEW:\s*/, '').trim();
+    folderPath = folderPath.replace(/^NEW:\s*/, "").trim();
   }
 
-  console.log('[AI] Response:', { folderPath, isNewFolder });
+  console.log("[AI] Response:", { folderPath, isNewFolder });
 
   return {
     folderPath,

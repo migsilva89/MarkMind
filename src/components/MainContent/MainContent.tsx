@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
-import { SERVICES, SELECTED_SERVICE_STORAGE_KEY } from '../../config/services';
+import { SELECTED_SERVICE_STORAGE_KEY } from '../../config/services';
 import { type StatusType } from '../../types/common';
 import { type PageMetadata } from '../../types/pages';
 import { getFolderDataForAI } from '../../utils/folders';
@@ -247,14 +247,6 @@ const MainContent = ({ onOpenSettings }: MainContentProps) => {
     showStatus('Suggestion declined', 'default');
   }, [showStatus]);
 
-  const serviceName = selectedServiceId
-    ? SERVICES[selectedServiceId]?.name || ''
-    : '';
-
-  const defaultStatusText = serviceName
-    ? `Connected to ${serviceName}`
-    : 'Select an AI provider to get started';
-
   return (
     <>
       <header className="main-header">
@@ -273,9 +265,11 @@ const MainContent = ({ onOpenSettings }: MainContentProps) => {
 
       <main className="main-content">
         <div className="organize-container">
-          <p className={`organize-status ${statusType}`}>
-            {statusMessage || defaultStatusText}
-          </p>
+          {statusMessage && (
+            <p className={`organize-status ${statusType}`}>
+              {statusMessage}
+            </p>
+          )}
           {pendingSuggestion ? (
             <div className="suggestion-actions">
               <Button
