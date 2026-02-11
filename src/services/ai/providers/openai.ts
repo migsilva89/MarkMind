@@ -1,3 +1,5 @@
+import { extractApiErrorMessage } from '../../../utils/helpers';
+
 export const callOpenAI = async (
   apiKey: string,
   systemPrompt: string,
@@ -20,7 +22,10 @@ export const callOpenAI = async (
   });
 
   if (!response.ok) {
-    throw new Error(`OpenAI API error: ${response.status}`);
+    const errorBody = await response.text();
+    console.error(`OpenAI API error [${response.status}]:`, errorBody);
+    const errorMessage = extractApiErrorMessage(errorBody);
+    throw new Error(errorMessage || `OpenAI error: ${response.status}`);
   }
 
   const data = await response.json();

@@ -1,3 +1,5 @@
+import { extractApiErrorMessage } from '../../../utils/helpers';
+
 export const callGemini = async (
   apiKey: string,
   systemPrompt: string,
@@ -15,7 +17,10 @@ export const callGemini = async (
   });
 
   if (!response.ok) {
-    throw new Error(`Gemini API error: ${response.status}`);
+    const errorBody = await response.text();
+    console.error(`Gemini API error [${response.status}]:`, errorBody);
+    const errorMessage = extractApiErrorMessage(errorBody);
+    throw new Error(errorMessage || `Gemini error: ${response.status}`);
   }
 
   const data = await response.json();

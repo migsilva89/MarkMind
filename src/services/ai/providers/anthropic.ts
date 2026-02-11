@@ -1,3 +1,5 @@
+import { extractApiErrorMessage } from '../../../utils/helpers';
+
 export const callAnthropic = async (
   apiKey: string,
   systemPrompt: string,
@@ -20,7 +22,10 @@ export const callAnthropic = async (
   });
 
   if (!response.ok) {
-    throw new Error(`Anthropic API error: ${response.status}`);
+    const errorBody = await response.text();
+    console.error(`Anthropic API error [${response.status}]:`, errorBody);
+    const errorMessage = extractApiErrorMessage(errorBody);
+    throw new Error(errorMessage || `Anthropic error: ${response.status}`);
   }
 
   const data = await response.json();

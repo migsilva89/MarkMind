@@ -1,3 +1,5 @@
+import { extractApiErrorMessage } from '../../../utils/helpers';
+
 export const callOpenRouter = async (
   apiKey: string,
   systemPrompt: string,
@@ -20,7 +22,10 @@ export const callOpenRouter = async (
   });
 
   if (!response.ok) {
-    throw new Error(`OpenRouter API error: ${response.status}`);
+    const errorBody = await response.text();
+    console.error(`OpenRouter API error [${response.status}]:`, errorBody);
+    const errorMessage = extractApiErrorMessage(errorBody);
+    throw new Error(errorMessage || `OpenRouter error: ${response.status}`);
   }
 
   const data = await response.json();
