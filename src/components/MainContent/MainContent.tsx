@@ -1,10 +1,11 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { SELECTED_SERVICE_STORAGE_KEY } from '../../config/services';
 import { type StatusType } from '../../types/common';
+import { type FolderDataForAI } from '../../types/bookmarks';
 import { getFolderDataForAI } from '../../utils/folders';
 import { organizeBookmark } from '../../services/ai';
 import { getCurrentPageData } from '../../services/pageMetadata';
-import { findBookmarkByUrl, createBookmark, createFolder } from '../../services/bookmarks';
+import { findBookmarkByUrl, createBookmark, createFolderPath } from '../../services/bookmarks';
 import { SettingsIcon, SpinnerIcon, PlusIcon, CheckIcon, XIcon } from '../icons/Icons';
 import Button from '../Button/Button';
 
@@ -14,7 +15,6 @@ interface PendingSuggestion {
   folderPath: string;
   folderId: string | null;
   isNewFolder: boolean;
-  defaultParentId: string;
 }
 
 interface MainContentProps {
@@ -28,6 +28,7 @@ const MainContent = ({ onOpenSettings }: MainContentProps) => {
   const [statusType, setStatusType] = useState<StatusType>('default');
   const [pendingSuggestion, setPendingSuggestion] = useState<PendingSuggestion | null>(null);
   const statusTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const folderDataRef = useRef<FolderDataForAI | null>(null);
 
   useEffect(() => {
     const loadSelectedService = async (): Promise<void> => {
@@ -103,6 +104,8 @@ const MainContent = ({ onOpenSettings }: MainContentProps) => {
 
       showStatus(`Asking AI to organize: ${pageData.title}`, 'default');
 
+      folderDataRef.current = folderData;
+
       const aiResponse = await organizeBookmark(serviceId, {
         title: pageData.title,
         url: pageData.url,
@@ -119,7 +122,6 @@ const MainContent = ({ onOpenSettings }: MainContentProps) => {
         folderPath: aiResponse.folderPath,
         folderId: folderId || null,
         isNewFolder: aiResponse.isNewFolder,
-        defaultParentId: folderData.defaultParentId,
       });
 
       if (folderId) {
@@ -139,7 +141,7 @@ const MainContent = ({ onOpenSettings }: MainContentProps) => {
   }, [isLoading, showStatus, selectedServiceId]);
 
   const handleAcceptSuggestion = useCallback(async (): Promise<void> => {
-    if (!pendingSuggestion) return;
+    if (!pendingSuggestion || !folderDataRef.current) return;
 
     try {
       setIsLoading(true);
@@ -147,11 +149,11 @@ const MainContent = ({ onOpenSettings }: MainContentProps) => {
 
       if (pendingSuggestion.isNewFolder && !targetFolderId) {
         showStatus(`Creating folder: ${pendingSuggestion.folderPath}`, 'default');
-        const newFolder = await createFolder(
-          pendingSuggestion.defaultParentId,
-          pendingSuggestion.folderPath
+        targetFolderId = await createFolderPath(
+          pendingSuggestion.folderPath,
+          folderDataRef.current.pathToIdMap,
+          folderDataRef.current.defaultParentId
         );
-        targetFolderId = newFolder.id;
       }
 
       if (!targetFolderId) {

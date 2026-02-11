@@ -1,4 +1,4 @@
-import { type ChromeBookmarkNode } from '../types/bookmarks';
+import { type ChromeBookmarkNode, type FolderPathMap } from '../types/bookmarks';
 
 export const getBookmarkTree = async (): Promise<ChromeBookmarkNode[]> => {
   return new Promise((resolve, reject) => {
@@ -53,4 +53,29 @@ export const createBookmark = async (
       resolve(bookmark as ChromeBookmarkNode);
     });
   });
+};
+
+export const createFolderPath = async (
+  folderPath: string,
+  pathToIdMap: FolderPathMap,
+  defaultParentId: string
+): Promise<string> => {
+  const segments = folderPath.split('/');
+  let currentParentId = defaultParentId;
+  let resolvedPath = '';
+
+  for (const segment of segments) {
+    resolvedPath = resolvedPath ? `${resolvedPath}/${segment}` : segment;
+
+    if (pathToIdMap[resolvedPath]) {
+      currentParentId = pathToIdMap[resolvedPath];
+      continue;
+    }
+
+    const newFolder = await createFolder(currentParentId, segment);
+    currentParentId = newFolder.id;
+    pathToIdMap[resolvedPath] = newFolder.id;
+  }
+
+  return currentParentId;
 };
