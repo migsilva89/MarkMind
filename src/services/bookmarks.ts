@@ -12,6 +12,18 @@ export const getBookmarkTree = async (): Promise<ChromeBookmarkNode[]> => {
   });
 };
 
+export const getBookmarkById = async (id: string): Promise<ChromeBookmarkNode | null> => {
+  return new Promise((resolve, reject) => {
+    chrome.bookmarks.get(id, (results) => {
+      if (chrome.runtime.lastError) {
+        reject(new Error(chrome.runtime.lastError.message));
+        return;
+      }
+      resolve(results.length > 0 ? (results[0] as ChromeBookmarkNode) : null);
+    });
+  });
+};
+
 export const findBookmarkByUrl = async (url: string): Promise<ChromeBookmarkNode | null> => {
   return new Promise((resolve, reject) => {
     chrome.bookmarks.search({ url }, (results) => {

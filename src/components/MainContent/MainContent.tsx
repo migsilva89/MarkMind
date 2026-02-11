@@ -5,7 +5,7 @@ import { type FolderDataForAI } from '../../types/bookmarks';
 import { getFolderDataForAI } from '../../utils/folders';
 import { organizeBookmark } from '../../services/ai';
 import { getCurrentPageData } from '../../services/pageMetadata';
-import { findBookmarkByUrl, createBookmark, createFolderPath } from '../../services/bookmarks';
+import { getBookmarkById, findBookmarkByUrl, createBookmark, createFolderPath } from '../../services/bookmarks';
 import { SettingsIcon, SpinnerIcon, PlusIcon, CheckIcon, XIcon } from '../icons/Icons';
 import Button from '../Button/Button';
 
@@ -87,7 +87,11 @@ const MainContent = ({ onOpenSettings }: MainContentProps) => {
       const existingBookmark = await findBookmarkByUrl(pageData.url);
 
       if (existingBookmark) {
-        showStatus(`Already bookmarked in: ${existingBookmark.parentId}`, 'error');
+        const parentFolder = existingBookmark.parentId
+          ? await getBookmarkById(existingBookmark.parentId)
+          : null;
+        const folderName = parentFolder?.title || 'unknown folder';
+        showStatus(`Already bookmarked in: ${folderName}`, 'error');
         return;
       }
 
