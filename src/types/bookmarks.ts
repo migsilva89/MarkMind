@@ -8,6 +8,14 @@ export interface FolderDataForAI {
   totalFolderCount: number;
 }
 
+export interface PendingSuggestion {
+  pageTitle: string;
+  pageUrl: string;
+  folderPath: string;
+  folderId: string | null;
+  isNewFolder: boolean;
+}
+
 export interface ChromeBookmarkNode {
   id: string;
   title: string;

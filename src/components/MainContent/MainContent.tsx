@@ -1,21 +1,13 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { SELECTED_SERVICE_STORAGE_KEY } from '../../config/services';
 import { type StatusType } from '../../types/common';
-import { type FolderDataForAI } from '../../types/bookmarks';
+import { type FolderDataForAI, type PendingSuggestion } from '../../types/bookmarks';
 import { getFolderDataForAI } from '../../utils/folders';
 import { organizeBookmark } from '../../services/ai';
 import { getCurrentPageData } from '../../services/pageMetadata';
 import { getBookmarkById, findBookmarkByUrl, createBookmark, createFolderPath } from '../../services/bookmarks';
 import { SettingsIcon, SpinnerIcon, PlusIcon, CheckIcon, XIcon } from '../icons/Icons';
 import Button from '../Button/Button';
-
-interface PendingSuggestion {
-  pageTitle: string;
-  pageUrl: string;
-  folderPath: string;
-  folderId: string | null;
-  isNewFolder: boolean;
-}
 
 interface MainContentProps {
   onOpenSettings: () => void;
