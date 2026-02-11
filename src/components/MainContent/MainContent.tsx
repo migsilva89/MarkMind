@@ -1,8 +1,12 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
-import { SERVICES, SELECTED_SERVICE_STORAGE_KEY } from '../../config/services';
+import { SELECTED_SERVICE_STORAGE_KEY } from '../../config/services';
 import { type StatusType } from '../../types/common';
-import { type PageMetadata } from '../../types/pages';
-import { SettingsIcon, SpinnerIcon, PlusIcon } from '../icons/Icons';
+import { type FolderDataForAI, type PendingSuggestion } from '../../types/bookmarks';
+import { getFolderDataForAI } from '../../utils/folders';
+import { organizeBookmark } from '../../services/ai';
+import { getCurrentPageData } from '../../services/pageMetadata';
+import { getBookmarkById, findBookmarkByUrl, createBookmark, createFolderPath } from '../../services/bookmarks';
+import { SettingsIcon, SpinnerIcon, PlusIcon, CheckIcon, XIcon } from '../icons/Icons';
 import Button from '../Button/Button';
 
 interface MainContentProps {
@@ -14,7 +18,9 @@ const MainContent = ({ onOpenSettings }: MainContentProps) => {
   const [isLoading, setIsLoading] = useState(false);
   const [statusMessage, setStatusMessage] = useState('');
   const [statusType, setStatusType] = useState<StatusType>('default');
+  const [pendingSuggestion, setPendingSuggestion] = useState<PendingSuggestion | null>(null);
   const statusTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const folderDataRef = useRef<FolderDataForAI | null>(null);
 
   useEffect(() => {
     const loadSelectedService = async (): Promise<void> => {
@@ -53,43 +59,6 @@ const MainContent = ({ onOpenSettings }: MainContentProps) => {
     }
   }, []);
 
-  const getCurrentPageData = useCallback(async (): Promise<PageMetadata | null> => {
-    const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
-    if (!tab?.id) throw new Error('No active tab found');
-
-    try {
-      const [{ result }] = await chrome.scripting.executeScript({
-        target: { tabId: tab.id },
-        func: () => {
-          const getMeta = (name: string): string | null => {
-            const element = document.querySelector(
-              `meta[name="${name}"], meta[property="${name}"]`
-            );
-            return element?.getAttribute('content') || null;
-          };
-
-          return {
-            url: location.href,
-            title: document.title,
-            favIconUrl:
-              document.querySelector<HTMLLinkElement>('link[rel="icon"]')?.href || null,
-            description: getMeta('description') || getMeta('og:description'),
-            keywords: getMeta('keywords'),
-            h1: document.querySelector('h1')?.textContent?.trim().slice(0, 200) || null,
-          };
-        },
-      });
-      return result as PageMetadata;
-    } catch (error) {
-      console.error('Failed to execute script on page, using fallback:', error);
-      return {
-        url: tab.url || '',
-        title: tab.title || '',
-        favIconUrl: tab.favIconUrl,
-      };
-    }
-  }, []);
-
   const handleAddCurrentPage = useCallback(async (): Promise<void> => {
     if (isLoading) return;
 
@@ -97,18 +66,67 @@ const MainContent = ({ onOpenSettings }: MainContentProps) => {
       setIsLoading(true);
       showStatus('Getting page information...', 'default');
 
-      const pageData = await getCurrentPageData();
+      const [pageData, folderData] = await Promise.all([
+        getCurrentPageData(),
+        getFolderDataForAI(),
+      ]);
 
       if (!pageData?.url) {
         showStatus('Could not get current page info', 'error');
         return;
       }
 
-      console.log('Page data collected:', pageData);
-      showStatus(`Analyzing: ${pageData.title}`, 'default');
+      const existingBookmark = await findBookmarkByUrl(pageData.url);
 
-      // TODO: Send pageData to AI for organization suggestion
-      showStatus('Page data collected! AI integration coming soon.', 'success');
+      if (existingBookmark) {
+        const parentFolder = existingBookmark.parentId
+          ? await getBookmarkById(existingBookmark.parentId)
+          : null;
+        const folderName = parentFolder?.title || 'unknown folder';
+        showStatus(`Already bookmarked in: ${folderName}`, 'error');
+        return;
+      }
+
+      let serviceId = selectedServiceId;
+      if (!serviceId) {
+        const storageResult = await chrome.storage.local.get([SELECTED_SERVICE_STORAGE_KEY]);
+        serviceId = storageResult[SELECTED_SERVICE_STORAGE_KEY];
+      }
+
+      if (!serviceId) {
+        showStatus('Please select an AI provider first', 'error');
+        return;
+      }
+
+      showStatus(`Asking AI to organize: ${pageData.title}`, 'default');
+
+      folderDataRef.current = folderData;
+
+      const aiResponse = await organizeBookmark(serviceId, {
+        title: pageData.title,
+        url: pageData.url,
+        description: pageData.description || null,
+        h1: pageData.h1 || null,
+        folderTree: folderData.textTree,
+      });
+
+      const folderId = folderData.pathToIdMap[aiResponse.folderPath];
+
+      setPendingSuggestion({
+        pageTitle: pageData.title,
+        pageUrl: pageData.url,
+        folderPath: aiResponse.folderPath,
+        folderId: folderId || null,
+        isNewFolder: aiResponse.isNewFolder,
+      });
+
+      if (folderId) {
+        showStatus(`Suggested: ${aiResponse.folderPath}`, 'default');
+      } else if (aiResponse.isNewFolder) {
+        showStatus(`New folder: ${aiResponse.folderPath}`, 'default');
+      } else {
+        showStatus(`Folder not found: ${aiResponse.folderPath}`, 'error');
+      }
     } catch (error) {
       console.error('Error adding current page:', error);
       const errorMessage = error instanceof Error ? error.message : 'Unknown error';
@@ -116,15 +134,51 @@ const MainContent = ({ onOpenSettings }: MainContentProps) => {
     } finally {
       setIsLoading(false);
     }
-  }, [isLoading, showStatus, getCurrentPageData]);
+  }, [isLoading, showStatus, selectedServiceId]);
 
-  const serviceName = selectedServiceId
-    ? SERVICES[selectedServiceId]?.name || ''
-    : '';
+  const handleAcceptSuggestion = useCallback(async (): Promise<void> => {
+    if (!pendingSuggestion || !folderDataRef.current) return;
 
-  const defaultStatusText = serviceName
-    ? `Connected to ${serviceName}`
-    : 'Select an AI provider to get started';
+    try {
+      setIsLoading(true);
+      let targetFolderId = pendingSuggestion.folderId;
+
+      if (pendingSuggestion.isNewFolder && !targetFolderId) {
+        showStatus(`Creating folder: ${pendingSuggestion.folderPath}`, 'default');
+        targetFolderId = await createFolderPath(
+          pendingSuggestion.folderPath,
+          folderDataRef.current.pathToIdMap,
+          folderDataRef.current.defaultParentId
+        );
+      }
+
+      if (!targetFolderId) {
+        showStatus('Could not determine target folder', 'error');
+        return;
+      }
+
+      showStatus('Saving bookmark...', 'default');
+      await createBookmark(
+        targetFolderId,
+        pendingSuggestion.pageTitle,
+        pendingSuggestion.pageUrl
+      );
+
+      setPendingSuggestion(null);
+      showStatus('Bookmark saved!', 'success');
+    } catch (error) {
+      console.error('Error saving bookmark:', error);
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+      showStatus(`Error: ${errorMessage}`, 'error');
+    } finally {
+      setIsLoading(false);
+    }
+  }, [pendingSuggestion, showStatus]);
+
+  const handleDeclineSuggestion = useCallback((): void => {
+    setPendingSuggestion(null);
+    showStatus('Suggestion declined', 'default');
+  }, [showStatus]);
 
   return (
     <>
@@ -144,26 +198,57 @@ const MainContent = ({ onOpenSettings }: MainContentProps) => {
 
       <main className="main-content">
         <div className="organize-container">
-          <p className={`organize-status ${statusType}`}>
-            {statusMessage || defaultStatusText}
-          </p>
-          <Button
-            className={isLoading ? 'loading' : ''}
-            onClick={handleAddCurrentPage}
-            disabled={isLoading}
-          >
-            {isLoading ? (
-              <>
-                <SpinnerIcon />
-                Analyzing...
-              </>
-            ) : (
-              <>
-                <PlusIcon />
-                Add Current Page
-              </>
-            )}
-          </Button>
+          {statusMessage && (
+            <p className={`organize-status ${statusType}`}>
+              {statusMessage}
+            </p>
+          )}
+          {pendingSuggestion ? (
+            <div className="suggestion-actions">
+              <Button
+                onClick={handleAcceptSuggestion}
+                disabled={isLoading}
+              >
+                {isLoading ? (
+                  <>
+                    <SpinnerIcon />
+                    Saving...
+                  </>
+                ) : (
+                  <>
+                    <CheckIcon />
+                    Accept
+                  </>
+                )}
+              </Button>
+              <Button
+                variant="danger"
+                onClick={handleDeclineSuggestion}
+                disabled={isLoading}
+              >
+                <XIcon />
+                Decline
+              </Button>
+            </div>
+          ) : (
+            <Button
+              className={isLoading ? 'loading' : ''}
+              onClick={handleAddCurrentPage}
+              disabled={isLoading}
+            >
+              {isLoading ? (
+                <>
+                  <SpinnerIcon />
+                  Analyzing...
+                </>
+              ) : (
+                <>
+                  <PlusIcon />
+                  Add Current Page
+                </>
+              )}
+            </Button>
+          )}
         </div>
       </main>
     </>

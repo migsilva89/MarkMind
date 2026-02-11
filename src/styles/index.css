@@ -324,6 +324,11 @@ a:hover {
   color: var(--color-error);
 }
 
+.suggestion-actions {
+  display: flex;
+  gap: var(--spacing-md);
+}
+
 /* Spinner Animation */
 .spinner {
   animation: spin 1s linear infinite;
