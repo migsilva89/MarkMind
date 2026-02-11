@@ -2,6 +2,7 @@ import { type AIOrganizeRequest, type AIOrganizeResponse } from '../../types/ai'
 import { SERVICES } from '../../config/services';
 import { SYSTEM_PROMPT, buildUserPrompt } from './prompt';
 import { callGemini, callOpenAI, callAnthropic, callOpenRouter } from './providers';
+import { debug } from '../../utils/debug';
 
 export const organizeBookmark = async (
   serviceId: string,
@@ -21,7 +22,7 @@ export const organizeBookmark = async (
 
   const userPrompt = buildUserPrompt(request);
 
-  console.log(
+  debug(
     '[AI] Full prompt sent:\n\n--- SYSTEM ---\n' +
       SYSTEM_PROMPT +
       '\n\n--- USER ---\n' +
@@ -54,7 +55,7 @@ export const organizeBookmark = async (
     folderPath = folderPath.replace(/^NEW:\s*/, '').trim();
   }
 
-  console.log('[AI] Response:', { folderPath, isNewFolder });
+  debug('[AI] Response:', { folderPath, isNewFolder });
 
   return {
     folderPath,
