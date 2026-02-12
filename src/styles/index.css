@@ -297,36 +297,25 @@ a:hover {
   flex: 1;
   display: flex;
   flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  padding: var(--spacing-4xl);
-}
-
-.organize-container {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
+  padding: var(--spacing-2xl);
   gap: var(--spacing-2xl);
-  text-align: center;
+  overflow-y: auto;
 }
 
-.organize-status {
-  font-size: var(--font-size-sm);
-  color: var(--color-text-muted);
-}
-
-.organize-status.success {
-  color: var(--color-success);
-}
-
-.organize-status.error {
-  color: var(--color-error);
-}
-
-.suggestion-actions {
+/* ========================================
+   Tab Placeholder (for future tabs)
+   ======================================== */
+.tab-placeholder {
+  flex: 1;
   display: flex;
-  gap: var(--spacing-md);
+  align-items: center;
+  justify-content: center;
+}
+
+.tab-placeholder-text {
+  font-size: var(--font-size-sm);
+  color: var(--color-text-light);
+  font-weight: var(--font-weight-medium);
 }
 
 /* Spinner Animation */
