@@ -1,0 +1,124 @@
+.current-page-card {
+  background-color: var(--color-white);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-xl);
+  padding: var(--spacing-2xl);
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-xl);
+}
+
+.current-page-card-header {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-md);
+}
+
+.current-page-card-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border-radius: var(--radius-full);
+  background-color: var(--color-surface);
+  color: var(--color-text-muted);
+}
+
+.current-page-card-label {
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-text);
+}
+
+.current-page-card-body {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-xs);
+}
+
+.current-page-card-title {
+  font-size: var(--font-size-base);
+  font-weight: var(--font-weight-medium);
+  color: var(--color-text);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.current-page-card-url {
+  font-size: var(--font-size-2xs);
+  color: var(--color-text-light);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.current-page-card-error {
+  font-size: var(--font-size-sm);
+  color: var(--color-text-muted);
+}
+
+/* Loading placeholder shimmer */
+.current-page-card-title-placeholder,
+.current-page-card-url-placeholder {
+  height: var(--spacing-2xl);
+  border-radius: var(--radius-sm);
+  background: linear-gradient(
+    90deg,
+    var(--color-surface) 25%,
+    var(--color-surface-hover) 50%,
+    var(--color-surface) 75%
+  );
+  background-size: 200% 100%;
+  animation: shimmer 1.5s ease-in-out infinite;
+}
+
+.current-page-card-title-placeholder {
+  width: 80%;
+}
+
+.current-page-card-url-placeholder {
+  width: 60%;
+  height: var(--spacing-xl);
+}
+
+@keyframes shimmer {
+  0% {
+    background-position: 200% 0;
+  }
+  100% {
+    background-position: -200% 0;
+  }
+}
+
+/* Status message inside card */
+.current-page-card-status {
+  font-size: var(--font-size-xs);
+  color: var(--color-text-muted);
+  text-align: center;
+  padding: var(--spacing-xs) 0;
+}
+
+.current-page-card-status.success {
+  color: var(--color-success);
+}
+
+.current-page-card-status.error {
+  color: var(--color-error);
+}
+
+.current-page-card-status.loading {
+  color: var(--color-text-muted);
+}
+
+/* Actions area */
+.current-page-card-actions {
+  display: flex;
+  flex-direction: column;
+}
+
+.current-page-card-suggestion-actions {
+  display: flex;
+  gap: var(--spacing-md);
+}
