@@ -27,110 +27,88 @@ const CurrentPageCard = ({
   onOrganize,
   onAccept,
   onDecline,
-}: CurrentPageCardProps) => {
-  if (isLoadingPage) {
-    return (
-      <div className="current-page-card">
-        <div className="current-page-card-header">
-          <div className="current-page-card-icon">
-            <GlobeIcon width={14} height={14} />
-          </div>
-          <span className="current-page-card-label">Current Page</span>
-        </div>
-        <div className="current-page-card-body">
-          <p className="current-page-card-title-placeholder" />
-          <p className="current-page-card-url-placeholder" />
-        </div>
+}: CurrentPageCardProps) => (
+  <div className="current-page-card">
+    <div className="current-page-card-header">
+      <div className="current-page-card-icon">
+        <GlobeIcon width={14} height={14} />
       </div>
-    );
-  }
+      <span className="current-page-card-label">Current Page</span>
+    </div>
 
-  if (!currentPage) {
-    return (
-      <div className="current-page-card">
-        <div className="current-page-card-header">
-          <div className="current-page-card-icon">
-            <GlobeIcon width={14} height={14} />
-          </div>
-          <span className="current-page-card-label">Current Page</span>
-        </div>
-        <div className="current-page-card-body">
-          <p className="current-page-card-error">Could not load page information</p>
-        </div>
-      </div>
-    );
-  }
-
-  return (
-    <div className="current-page-card">
-      <div className="current-page-card-header">
-        <div className="current-page-card-icon">
-          <GlobeIcon width={14} height={14} />
-        </div>
-        <span className="current-page-card-label">Current Page</span>
-      </div>
-
+    {isLoadingPage ? (
       <div className="current-page-card-body">
-        <p className="current-page-card-title">{currentPage.title}</p>
-        <p className="current-page-card-url">{currentPage.url}</p>
+        <p className="current-page-card-title-placeholder" />
+        <p className="current-page-card-url-placeholder" />
       </div>
+    ) : !currentPage ? (
+      <div className="current-page-card-body">
+        <p className="current-page-card-error">Could not load page information</p>
+      </div>
+    ) : (
+      <>
+        <div className="current-page-card-body">
+          <p className="current-page-card-title">{currentPage.title}</p>
+          <p className="current-page-card-url">{currentPage.url}</p>
+        </div>
 
-      {statusMessage && (
-        <p className={`current-page-card-status ${statusType}`}>
-          {statusMessage}
-        </p>
-      )}
+        {statusMessage && (
+          <p className={`current-page-card-status ${statusType}`}>
+            {statusMessage}
+          </p>
+        )}
 
-      <div className="current-page-card-actions">
-        {pendingSuggestion ? (
-          <div className="current-page-card-suggestion-actions">
+        <div className="current-page-card-actions">
+          {pendingSuggestion ? (
+            <div className="current-page-card-suggestion-actions">
+              <Button
+                onClick={onAccept}
+                disabled={isOrganizing}
+                fullWidth
+              >
+                {isOrganizing ? (
+                  <>
+                    <SpinnerIcon />
+                    Saving...
+                  </>
+                ) : (
+                  <>
+                    <CheckIcon />
+                    Accept
+                  </>
+                )}
+              </Button>
+              <Button
+                variant="danger"
+                onClick={onDecline}
+                disabled={isOrganizing}
+                fullWidth
+              >
+                <XIcon />
+                Decline
+              </Button>
+            </div>
+          ) : (
             <Button
-              onClick={onAccept}
+              onClick={onOrganize}
               disabled={isOrganizing}
+              className={isOrganizing ? 'loading' : ''}
               fullWidth
             >
               {isOrganizing ? (
                 <>
                   <SpinnerIcon />
-                  Saving...
+                  {statusMessage || 'Analyzing...'}
                 </>
               ) : (
-                <>
-                  <CheckIcon />
-                  Accept
-                </>
+                'Organize this page'
               )}
             </Button>
-            <Button
-              variant="danger"
-              onClick={onDecline}
-              disabled={isOrganizing}
-              fullWidth
-            >
-              <XIcon />
-              Decline
-            </Button>
-          </div>
-        ) : (
-          <Button
-            onClick={onOrganize}
-            disabled={isOrganizing}
-            className={isOrganizing ? 'loading' : ''}
-            fullWidth
-          >
-            {isOrganizing ? (
-              <>
-                <SpinnerIcon />
-                {statusMessage || 'Analyzing...'}
-              </>
-            ) : (
-              'Organize this page'
-            )}
-          </Button>
-        )}
-      </div>
-    </div>
-  );
-};
+          )}
+        </div>
+      </>
+    )}
+  </div>
+);
 
 export default CurrentPageCard;
