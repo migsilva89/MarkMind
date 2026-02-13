@@ -49,18 +49,29 @@ src/
 ├── components/          # React components (ONE per file)
 │   ├── ApiKeyPanel/
 │   ├── Button/
+│   ├── CurrentPageCard/ # Page info card with dynamic organize/accept/decline
 │   ├── icons/
-│   ├── MainContent/
-│   └── ServiceSelector/
+│   ├── MainContent/     # Thin orchestrator (header + tabs + active tab routing)
+│   ├── ServiceSelector/
+│   ├── TabNavigation/   # Ghost pill tab bar (Home, Organize, Insights, Discover)
+│   └── tabs/            # One component per tab content
+│       ├── HomeTab.tsx         # CurrentPageCard + organize flow
+│       ├── OrganizeTab.tsx     # Placeholder (future)
+│       ├── InsightsTab.tsx     # Placeholder (future)
+│       └── DiscoverTab.tsx     # Placeholder (future)
 ├── hooks/               # Custom React hooks (folder per hook)
-│   └── apiKeyPanel/
-│       ├── useApiKeyPanel.ts   # Main hook
-│       ├── types.ts            # Hook-specific types
-│       ├── index.ts            # Exports
-│       └── handlers/           # Separated handlers
-│           ├── handleApiKeySave.ts
-│           ├── handleApiKeyTest.ts
-│           └── ...
+│   ├── apiKeyPanel/
+│   │   ├── useApiKeyPanel.ts   # Main hook
+│   │   ├── types.ts            # Hook-specific types
+│   │   ├── index.ts            # Exports
+│   │   └── handlers/           # Separated handlers
+│   │       ├── handleApiKeySave.ts
+│   │       ├── handleApiKeyTest.ts
+│   │       └── ...
+│   └── useOrganizeBookmark/    # Bookmark organize logic (reusable across tabs)
+│       ├── useOrganizeBookmark.ts
+│       ├── types.ts
+│       └── index.ts
 ├── services/            # External API and Chrome API wrappers
 │   ├── ai/              # AI organization service
 │   │   ├── index.ts     # organizeBookmark (orchestration)
@@ -73,6 +84,8 @@ src/
 │   ├── bookmarks.ts     # Chrome Bookmarks API wrapper
 │   └── pageMetadata.ts  # Page metadata extraction (title, h1, meta)
 ├── config/              # Configuration DATA only
+│   ├── services.ts      # AI provider configurations
+│   └── loadingMessages.ts # Fun rotating loading messages for AI analysis
 ├── types/               # TypeScript types/interfaces
 ├── utils/               # Reusable utility functions
 ├── styles/              # Design tokens (CSS variables)
@@ -130,6 +143,7 @@ src/
 | File | Purpose |
 |------|---------|
 | `src/config/services.ts` | AI provider configurations (data only) |
+| `src/config/loadingMessages.ts` | Fun rotating loading messages during AI analysis |
 | `src/services/ai/` | AI bookmark organization (prompt, providers, orchestration) |
 | `src/services/ai/providers/` | One file per AI provider (gemini, openai, anthropic, openRouter) |
 | `src/services/bookmarks.ts` | Chrome Bookmarks API wrapper (getTree, create, search, createFolderPath) |
@@ -143,6 +157,11 @@ src/
 | `src/utils/debug.ts` | Debug logging (silent in production builds) |
 | `src/styles/index.css` | Design tokens (all CSS variables) |
 | `src/hooks/apiKeyPanel/` | API key panel hook (folder with handlers) |
+| `src/hooks/useOrganizeBookmark/` | Organize logic hook (reusable across tabs) |
+| `src/components/MainContent/` | Thin orchestrator (header + tabs + active tab routing) |
+| `src/components/TabNavigation/` | Ghost pill tab bar (config-driven, easy to add tabs) |
+| `src/components/CurrentPageCard/` | Page info card with dynamic organize/accept/decline |
+| `src/components/tabs/` | One component per tab (HomeTab, OrganizeTab, InsightsTab, DiscoverTab) |
 
 ---
 
