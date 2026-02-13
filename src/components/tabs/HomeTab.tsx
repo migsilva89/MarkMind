@@ -9,6 +9,7 @@ const HomeTab = () => {
     statusMessage,
     statusType,
     pendingSuggestion,
+    existingBookmarkPath,
     handleOrganizePage,
     handleAcceptSuggestion,
     handleDeclineSuggestion,
@@ -22,6 +23,7 @@ const HomeTab = () => {
       statusMessage={statusMessage}
       statusType={statusType}
       pendingSuggestion={pendingSuggestion}
+      existingBookmarkPath={existingBookmarkPath}
       onOrganize={handleOrganizePage}
       onAccept={handleAcceptSuggestion}
       onDecline={handleDeclineSuggestion}
