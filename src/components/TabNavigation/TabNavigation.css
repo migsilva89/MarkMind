@@ -1,0 +1,15 @@
+.tab-navigation {
+  display: flex;
+  gap: var(--spacing-sm);
+  padding: var(--spacing-md) var(--spacing-xl);
+  border-bottom: 1px solid var(--color-border);
+  background-color: var(--color-white);
+}
+
+.tab-navigation-button {
+  flex: 1;
+  justify-content: center;
+  padding: var(--spacing-md) var(--spacing-md);
+  font-size: var(--font-size-xs);
+  gap: var(--spacing-xs);
+}
