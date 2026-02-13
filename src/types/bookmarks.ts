@@ -16,6 +16,12 @@ export interface PendingSuggestion {
   isNewFolder: boolean;
 }
 
+export interface FolderDisplaySegment {
+  name: string;
+  isEllipsis: boolean;
+  depth: number;
+}
+
 export interface ChromeBookmarkNode {
   id: string;
   title: string;
