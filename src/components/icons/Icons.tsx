@@ -279,7 +279,7 @@ export const BugIcon = ({ width = 14, height = 14 }: IconProps) => (
       strokeLinecap="round"
       strokeLinejoin="round"
       strokeWidth="2"
-      d="M12 12m-3 0a3 3 0 106 0 3 3 0 10-6 0M12 9V6m0 12v-3M5.636 5.636l2.121 2.121m8.486 8.486l2.121 2.121M3 12h3m12 0h3M5.636 18.364l2.121-2.121m8.486-8.486l2.121-2.121"
+      d="M12 12v4m0-4a4 4 0 00-4 4v1a4 4 0 008 0v-1a4 4 0 00-4-4zm0 0V8m0 0a2 2 0 10-.001-4.001A2 2 0 0012 8zm-4 4H3m18 0h-5m-8 4H3m18 0h-5M9 8l-2-2m8 2l2-2"
     />
   </svg>
 );

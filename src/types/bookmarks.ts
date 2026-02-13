@@ -3,6 +3,7 @@ export type FolderPathMap = Record<string, string>;
 export interface FolderDataForAI {
   textTree: string;
   pathToIdMap: FolderPathMap;
+  idToPathMap: Record<string, string>;
   defaultParentId: string;
   maxDepth: number;
   totalFolderCount: number;

@@ -117,7 +117,7 @@ export const useOrganizeBookmark = (): UseOrganizeBookmarkReturn => {
 
       if (existingBookmark) {
         const folderPath = existingBookmark.parentId
-          ? findFolderPathById(folderData.pathToIdMap, existingBookmark.parentId)
+          ? findFolderPathById(folderData.idToPathMap, existingBookmark.parentId)
           : null;
 
         if (folderPath) {
