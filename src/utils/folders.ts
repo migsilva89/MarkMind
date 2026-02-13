@@ -1,6 +1,7 @@
 import {
   type ChromeBookmarkNode,
   type FolderDataForAI,
+  type FolderDisplaySegment,
   type FolderPathMap,
 } from '../types/bookmarks';
 import { getBookmarkTree } from '../services/bookmarks';
@@ -46,6 +47,37 @@ const buildTreeLines = (
     const isLast = index === folderChildren.length - 1;
     buildTreeLines(child, currentPath, childPrefix, isLast, depth + 1, lines, pathMap, stats);
   });
+};
+
+const MAX_VISIBLE_SEGMENTS = 3;
+
+export const getDisplaySegments = (folderPath: string): FolderDisplaySegment[] => {
+  const segments = folderPath.split('/').filter(Boolean);
+
+  if (segments.length === 0) {
+    return [];
+  }
+
+  if (segments.length <= MAX_VISIBLE_SEGMENTS) {
+    return segments.map((name, index) => ({
+      name,
+      isEllipsis: false,
+      depth: index,
+    }));
+  }
+
+  // Deep path: show first → ellipsis → last two
+  return [
+    { name: segments[0], isEllipsis: false, depth: 0 },
+    { name: '\u22EF', isEllipsis: true, depth: 1 },
+    { name: segments[segments.length - 2], isEllipsis: false, depth: 1 },
+    { name: segments[segments.length - 1], isEllipsis: false, depth: 2 },
+  ];
+};
+
+export const findFolderPathById = (pathToIdMap: FolderPathMap, folderId: string): string | null => {
+  const entry = Object.entries(pathToIdMap).find(([, id]) => id === folderId);
+  return entry ? entry[0] : null;
 };
 
 export const getFolderDataForAI = async (): Promise<FolderDataForAI> => {
