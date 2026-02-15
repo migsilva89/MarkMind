@@ -46,6 +46,24 @@
   white-space: nowrap;
 }
 
+.current-page-card-description {
+  font-size: var(--font-size-xs);
+  color: var(--color-text-secondary);
+  line-height: var(--line-height-normal);
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.current-page-card-h1 {
+  font-size: var(--font-size-xs);
+  color: var(--color-text-muted);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
 .current-page-card-url {
   font-size: var(--font-size-2xs);
   color: var(--color-text-light);
@@ -61,6 +79,7 @@
 
 /* Loading placeholder shimmer */
 .current-page-card-title-placeholder,
+.current-page-card-description-placeholder,
 .current-page-card-url-placeholder {
   height: var(--spacing-2xl);
   border-radius: var(--radius-sm);
@@ -76,6 +95,11 @@
 
 .current-page-card-title-placeholder {
   width: 80%;
+}
+
+.current-page-card-description-placeholder {
+  width: 90%;
+  height: var(--spacing-xl);
 }
 
 .current-page-card-url-placeholder {

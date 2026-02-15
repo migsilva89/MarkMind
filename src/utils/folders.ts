@@ -1,6 +1,7 @@
 import {
   type ChromeBookmarkNode,
   type FolderDataForAI,
+  type FolderDisplaySegment,
   type FolderPathMap,
 } from '../types/bookmarks';
 import { getBookmarkTree } from '../services/bookmarks';
@@ -48,11 +49,49 @@ const buildTreeLines = (
   });
 };
 
+const MAX_VISIBLE_SEGMENTS = 3;
+
+export const getDisplaySegments = (folderPath: string): FolderDisplaySegment[] => {
+  const segments = folderPath.split('/').filter(Boolean);
+
+  if (segments.length === 0) {
+    return [];
+  }
+
+  if (segments.length <= MAX_VISIBLE_SEGMENTS) {
+    return segments.map((name, index) => ({
+      name,
+      isEllipsis: false,
+      depth: index,
+    }));
+  }
+
+  // Deep path: show first → ellipsis → last two (sequential depths for correct indentation)
+  return [
+    { name: segments[0], isEllipsis: false, depth: 0 },
+    { name: '\u22EF', isEllipsis: true, depth: 1 },
+    { name: segments[segments.length - 2], isEllipsis: false, depth: 2 },
+    { name: segments[segments.length - 1], isEllipsis: false, depth: 3 },
+  ];
+};
+
+export const buildIdToPathMap = (pathToIdMap: FolderPathMap): Record<string, string> => {
+  const idToPathMap: Record<string, string> = {};
+  for (const [path, id] of Object.entries(pathToIdMap)) {
+    idToPathMap[id] = path;
+  }
+  return idToPathMap;
+};
+
+export const findFolderPathById = (idToPathMap: Record<string, string>, folderId: string): string | null => {
+  return idToPathMap[folderId] ?? null;
+};
+
 export const getFolderDataForAI = async (): Promise<FolderDataForAI> => {
   const tree = await getBookmarkTree();
 
   if (!tree || tree.length === 0) {
-    return { textTree: '', pathToIdMap: {}, defaultParentId: '', maxDepth: 0, totalFolderCount: 0 };
+    return { textTree: '', pathToIdMap: {}, idToPathMap: {}, defaultParentId: '', maxDepth: 0, totalFolderCount: 0 };
   }
 
   const rootNode = tree[0];
@@ -74,6 +113,7 @@ export const getFolderDataForAI = async (): Promise<FolderDataForAI> => {
   return {
     textTree: lines.join('\n'),
     pathToIdMap,
+    idToPathMap: buildIdToPathMap(pathToIdMap),
     defaultParentId,
     maxDepth: stats.maxDepth,
     totalFolderCount: stats.totalCount,

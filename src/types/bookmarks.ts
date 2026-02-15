@@ -3,6 +3,7 @@ export type FolderPathMap = Record<string, string>;
 export interface FolderDataForAI {
   textTree: string;
   pathToIdMap: FolderPathMap;
+  idToPathMap: Record<string, string>;
   defaultParentId: string;
   maxDepth: number;
   totalFolderCount: number;
@@ -14,6 +15,12 @@ export interface PendingSuggestion {
   folderPath: string;
   folderId: string | null;
   isNewFolder: boolean;
+}
+
+export interface FolderDisplaySegment {
+  name: string;
+  isEllipsis: boolean;
+  depth: number;
 }
 
 export interface ChromeBookmarkNode {

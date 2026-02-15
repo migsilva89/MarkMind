@@ -4,10 +4,10 @@ import { LOADING_MESSAGES, getNextLoadingMessage } from '../../config/loadingMes
 import { type StatusType } from '../../types/common';
 import { type FolderDataForAI, type PendingSuggestion } from '../../types/bookmarks';
 import { type PageMetadata } from '../../types/pages';
-import { getFolderDataForAI } from '../../utils/folders';
+import { getFolderDataForAI, findFolderPathById } from '../../utils/folders';
 import { organizeBookmark } from '../../services/ai';
 import { getCurrentPageData } from '../../services/pageMetadata';
-import { getBookmarkById, findBookmarkByUrl, createBookmark, createFolderPath } from '../../services/bookmarks';
+import { findBookmarkByUrl, createBookmark, createFolderPath } from '../../services/bookmarks';
 import { type UseOrganizeBookmarkReturn } from './types';
 
 const LOADING_MESSAGE_INTERVAL_MS = 2000;
@@ -21,6 +21,7 @@ export const useOrganizeBookmark = (): UseOrganizeBookmarkReturn => {
   const [statusMessage, setStatusMessage] = useState('');
   const [statusType, setStatusType] = useState<StatusType>('default');
   const [pendingSuggestion, setPendingSuggestion] = useState<PendingSuggestion | null>(null);
+  const [existingBookmarkPath, setExistingBookmarkPath] = useState<string | null>(null);
 
   const statusTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const loadingMessageIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
@@ -115,11 +116,16 @@ export const useOrganizeBookmark = (): UseOrganizeBookmarkReturn => {
       const existingBookmark = await findBookmarkByUrl(currentPageData.url);
 
       if (existingBookmark) {
-        const parentFolder = existingBookmark.parentId
-          ? await getBookmarkById(existingBookmark.parentId)
+        const folderPath = existingBookmark.parentId
+          ? findFolderPathById(folderData.idToPathMap, existingBookmark.parentId)
           : null;
-        const folderName = parentFolder?.title || 'unknown folder';
-        showStatus(`Already bookmarked in: ${folderName}`, 'error');
+
+        if (folderPath) {
+          setExistingBookmarkPath(folderPath);
+          clearLoadingMessages();
+        } else {
+          showStatus('Already bookmarked (folder not found in tree)', 'error');
+        }
         return;
       }
 
@@ -222,6 +228,7 @@ export const useOrganizeBookmark = (): UseOrganizeBookmarkReturn => {
     statusMessage,
     statusType,
     pendingSuggestion,
+    existingBookmarkPath,
     handleOrganizePage,
     handleAcceptSuggestion,
     handleDeclineSuggestion,

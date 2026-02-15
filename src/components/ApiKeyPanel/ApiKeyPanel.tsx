@@ -9,8 +9,8 @@ import {
   CloseIcon,
   KeyIcon,
   ShieldIcon,
-  WarningIcon,
 } from '../icons/Icons';
+import Footer from '../Footer/Footer';
 import './ApiKeyPanel.css';
 
 interface ApiKeyPanelProps {
@@ -179,18 +179,7 @@ const ApiKeyPanel = ({
           )}
         </div>
 
-        <footer className="api-key-panel-footer">
-          <span className="footer-version">MarkMind v{chrome.runtime.getManifest().version}</span>
-          <a
-            href="https://github.com/migsilva89/MarkMind/issues"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="footer-bug-link"
-          >
-            <WarningIcon />
-            Report a Bug
-          </a>
-        </footer>
+        <Footer />
       </div>
     </div>
   );

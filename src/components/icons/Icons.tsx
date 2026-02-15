@@ -250,6 +250,40 @@ export const CompassIcon = ({ width = 14, height = 14 }: IconProps) => (
   </svg>
 );
 
+export const DocumentIcon = ({ width = 14, height = 14 }: IconProps) => (
+  <svg
+    fill="none"
+    stroke="currentColor"
+    viewBox="0 0 24 24"
+    width={width}
+    height={height}
+  >
+    <path
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      strokeWidth="2"
+      d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z"
+    />
+  </svg>
+);
+
+export const BugIcon = ({ width = 14, height = 14 }: IconProps) => (
+  <svg
+    fill="none"
+    stroke="currentColor"
+    viewBox="0 0 24 24"
+    width={width}
+    height={height}
+  >
+    <path
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      strokeWidth="2"
+      d="M12 12v4m0-4a4 4 0 00-4 4v1a4 4 0 008 0v-1a4 4 0 00-4-4zm0 0V8m0 0a2 2 0 10-.001-4.001A2 2 0 0012 8zm-4 4H3m18 0h-5m-8 4H3m18 0h-5M9 8l-2-2m8 2l2-2"
+    />
+  </svg>
+);
+
 export const FolderIcon = ({ width = 14, height = 14 }: IconProps) => (
   <svg
     fill="none"

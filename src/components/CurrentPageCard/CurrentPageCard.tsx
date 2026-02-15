@@ -2,7 +2,9 @@ import { type StatusType } from '../../types/common';
 import { type PendingSuggestion } from '../../types/bookmarks';
 import { type PageMetadata } from '../../types/pages';
 import { GlobeIcon, SpinnerIcon, CheckIcon, XIcon } from '../icons/Icons';
+import { isHeadingSimilarToTitle } from '../../utils/helpers';
 import Button from '../Button/Button';
+import BookmarkTreePath from '../BookmarkTreePath/BookmarkTreePath';
 import './CurrentPageCard.css';
 
 interface CurrentPageCardProps {
@@ -12,6 +14,7 @@ interface CurrentPageCardProps {
   statusMessage: string;
   statusType: StatusType;
   pendingSuggestion: PendingSuggestion | null;
+  existingBookmarkPath: string | null;
   onOrganize: () => void;
   onAccept: () => void;
   onDecline: () => void;
@@ -24,21 +27,27 @@ const CurrentPageCard = ({
   statusMessage,
   statusType,
   pendingSuggestion,
+  existingBookmarkPath,
   onOrganize,
   onAccept,
   onDecline,
-}: CurrentPageCardProps) => (
+}: CurrentPageCardProps) => {
+  const shouldShowH1 = currentPage?.h1
+    && !isHeadingSimilarToTitle(currentPage.title, currentPage.h1);
+
+  return (
   <div className="current-page-card">
     <div className="current-page-card-header">
       <div className="current-page-card-icon">
         <GlobeIcon width={14} height={14} />
       </div>
-      <span className="current-page-card-label">Current Page</span>
+      <span className="current-page-card-label">You're visiting</span>
     </div>
 
     {isLoadingPage ? (
       <div className="current-page-card-body">
         <p className="current-page-card-title-placeholder" />
+        <p className="current-page-card-description-placeholder" />
         <p className="current-page-card-url-placeholder" />
       </div>
     ) : !currentPage ? (
@@ -49,66 +58,92 @@ const CurrentPageCard = ({
       <>
         <div className="current-page-card-body">
           <p className="current-page-card-title">{currentPage.title}</p>
+          {currentPage.description && (
+            <p className="current-page-card-description">{currentPage.description}</p>
+          )}
+          {shouldShowH1 && (
+            <p className="current-page-card-h1">{currentPage.h1}</p>
+          )}
           <p className="current-page-card-url">{currentPage.url}</p>
         </div>
 
-        {statusMessage && (
+        {pendingSuggestion && (
+          <BookmarkTreePath
+            folderPath={pendingSuggestion.folderPath}
+            bookmarkTitle={pendingSuggestion.pageTitle}
+            isNewFolder={pendingSuggestion.isNewFolder}
+          />
+        )}
+
+        {existingBookmarkPath && !pendingSuggestion && (
+          <BookmarkTreePath
+            folderPath={existingBookmarkPath}
+            bookmarkTitle={currentPage.title}
+            isNewFolder={false}
+            label="Already saved in"
+          />
+        )}
+
+        {statusMessage && !pendingSuggestion && !existingBookmarkPath && (
           <p className={`current-page-card-status ${statusType}`}>
             {statusMessage}
           </p>
         )}
 
-        <div className="current-page-card-actions">
-          {pendingSuggestion ? (
-            <div className="current-page-card-suggestion-actions">
+        {!existingBookmarkPath && (
+          <div className="current-page-card-actions">
+            {pendingSuggestion ? (
+              <div className="current-page-card-suggestion-actions">
+                <Button
+                  onClick={onAccept}
+                  disabled={isOrganizing}
+                  fullWidth
+                >
+                  {isOrganizing ? (
+                    <>
+                      <SpinnerIcon />
+                      Saving...
+                    </>
+                  ) : (
+                    <>
+                      <CheckIcon />
+                      Accept
+                    </>
+                  )}
+                </Button>
+                <Button
+                  variant="danger"
+                  onClick={onDecline}
+                  disabled={isOrganizing}
+                  fullWidth
+                >
+                  <XIcon />
+                  Decline
+                </Button>
+              </div>
+            ) : (
               <Button
-                onClick={onAccept}
+                onClick={onOrganize}
                 disabled={isOrganizing}
+                className={isOrganizing ? 'loading' : ''}
                 fullWidth
               >
                 {isOrganizing ? (
                   <>
                     <SpinnerIcon />
-                    Saving...
+                    {statusMessage || 'Analyzing...'}
                   </>
                 ) : (
-                  <>
-                    <CheckIcon />
-                    Accept
-                  </>
+                  'Organize this page'
                 )}
               </Button>
-              <Button
-                variant="danger"
-                onClick={onDecline}
-                disabled={isOrganizing}
-                fullWidth
-              >
-                <XIcon />
-                Decline
-              </Button>
-            </div>
-          ) : (
-            <Button
-              onClick={onOrganize}
-              disabled={isOrganizing}
-              className={isOrganizing ? 'loading' : ''}
-              fullWidth
-            >
-              {isOrganizing ? (
-                <>
-                  <SpinnerIcon />
-                  {statusMessage || 'Analyzing...'}
-                </>
-              ) : (
-                'Organize this page'
-              )}
-            </Button>
-          )}
-        </div>
+            )}
+          </div>
+        )}
       </>
     )}
   </div>
-);
+  );
+};
 
 export default CurrentPageCard;
