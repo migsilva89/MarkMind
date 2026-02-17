@@ -37,11 +37,35 @@
   padding: var(--spacing-xs) var(--spacing-md);
   border-radius: var(--radius-sm);
   font-size: var(--font-size-xs);
+  cursor: pointer;
   transition: background-color var(--transition-fast);
+  text-align: left;
 }
 
 .organize-plan-folder-row:hover {
   background-color: var(--color-surface);
+}
+
+.organize-plan-folder-row.included {
+  background-color: var(--color-surface);
+}
+
+.organize-plan-folder-row.excluded {
+  opacity: 0.5;
+}
+
+.organize-plan-folder-indicator {
+  display: flex;
+  align-items: center;
+  flex-shrink: 0;
+}
+
+.organize-plan-folder-row.included .organize-plan-folder-indicator {
+  color: var(--color-success);
+}
+
+.organize-plan-folder-row.excluded .organize-plan-folder-indicator {
+  color: var(--color-text-light);
 }
 
 .organize-plan-folder-path {
@@ -70,25 +94,6 @@
   padding: var(--spacing-2xs) var(--spacing-sm);
   border-radius: var(--radius-full);
   flex-shrink: 0;
-}
-
-.organize-plan-remove-btn {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: none;
-  border: none;
-  cursor: pointer;
-  color: var(--color-text-light);
-  padding: var(--spacing-2xs);
-  border-radius: var(--radius-sm);
-  flex-shrink: 0;
-  transition: color 0.15s, background-color 0.15s;
-}
-
-.organize-plan-remove-btn:hover {
-  color: var(--color-error);
-  background-color: var(--color-error-bg);
 }
 
 .organize-plan-actions {

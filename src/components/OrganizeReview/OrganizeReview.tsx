@@ -1,6 +1,6 @@
 import { useMemo } from 'react';
 import { type BookmarkAssignment } from '../../types/organize';
-import { groupByRootFolder, getLastSegment, stripRootSegment } from '../../utils/folderDisplay';
+import { getLastSegment } from '../../utils/folderDisplay';
 import { CheckIcon, XIcon } from '../icons/Icons';
 import FolderTreeGroup from '../FolderTreeGroup/FolderTreeGroup';
 import Button from '../Button/Button';
@@ -24,10 +24,23 @@ const OrganizeReview = ({
     [assignments]
   );
 
-  const folderGroups = useMemo(
-    () => groupByRootFolder(assignments, assignment => assignment.suggestedPath),
-    [assignments]
-  );
+  const folderGroups = useMemo(() => {
+    const groupMap = new Map<string, BookmarkAssignment[]>();
+
+    for (const assignment of assignments) {
+      const path = assignment.suggestedPath;
+      if (!groupMap.has(path)) {
+        groupMap.set(path, []);
+      }
+      groupMap.get(path)!.push(assignment);
+    }
+
+    return Array.from(groupMap.entries()).map(([fullPath, items]) => ({
+      fullPath,
+      displayName: getLastSegment(fullPath),
+      items,
+    }));
+  }, [assignments]);
 
   return (
     <div className="organize-review">
@@ -38,34 +51,28 @@ const OrganizeReview = ({
       <div className="organize-review-list">
         {folderGroups.map(group => (
           <FolderTreeGroup
-            key={group.groupName}
-            groupName={group.groupName}
+            key={group.fullPath}
+            groupName={group.displayName}
             itemCount={group.items.length}
-            defaultExpanded
           >
-            {group.items.map(assignment => {
-              const displayPath = getLastSegment(stripRootSegment(assignment.suggestedPath));
-
-              return (
-                <button
-                  key={assignment.bookmarkId}
-                  className={`organize-review-item ${assignment.isApproved ? 'approved' : 'rejected'}`}
-                  onClick={() => onToggleAssignment(assignment.bookmarkId)}
-                >
-                  <span className="organize-review-item-indicator">
-                    {assignment.isApproved
-                      ? <CheckIcon width={10} height={10} />
-                      : <XIcon width={10} height={10} />
-                    }
-                  </span>
-                  <span className="organize-review-item-title">{assignment.bookmarkTitle}</span>
-                  <span className="organize-review-item-folder">{displayPath}</span>
-                  {assignment.isNewFolder && (
-                    <span className="organize-review-new-badge">New</span>
-                  )}
-                </button>
-              );
-            })}
+            {group.items.map(assignment => (
+              <button
+                key={assignment.bookmarkId}
+                className={`organize-review-item ${assignment.isApproved ? 'approved' : 'rejected'}`}
+                onClick={() => onToggleAssignment(assignment.bookmarkId)}
+              >
+                <span className="organize-review-item-indicator">
+                  {assignment.isApproved
+                    ? <CheckIcon width={10} height={10} />
+                    : <XIcon width={10} height={10} />
+                  }
+                </span>
+                <span className="organize-review-item-title">{assignment.bookmarkTitle}</span>
+                {assignment.isNewFolder && (
+                  <span className="organize-review-new-badge">New</span>
+                )}
+              </button>
+            ))}
           </FolderTreeGroup>
         ))}
       </div>

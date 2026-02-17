@@ -41,7 +41,8 @@ const OrganizePlan = ({
   if (!session.folderPlan) return null;
 
   const { folders, summary } = session.folderPlan;
-  const newFolderCount = folders.filter(folder => folder.isNew).length;
+  const includedCount = folders.filter(folder => !folder.isExcluded).length;
+  const newFolderCount = folders.filter(folder => folder.isNew && !folder.isExcluded).length;
 
   const folderGroups = useMemo(
     () => groupByRootFolder(folders, folder => folder.path),
@@ -55,31 +56,34 @@ const OrganizePlan = ({
 
         <div className="organize-plan-folder-list">
           {folderGroups.map(group => {
-            const groupNewCount = group.items.filter(folder => folder.isNew).length;
+            const groupNewCount = group.items.filter(folder => folder.isNew && !folder.isExcluded).length;
 
             return (
               <FolderTreeGroup
                 key={group.groupName}
                 groupName={group.groupName}
-                itemCount={group.items.length}
+                itemCount={group.items.filter(folder => !folder.isExcluded).length}
                 badge={groupNewCount > 0 ? `${groupNewCount} new` : undefined}
               >
                 {group.items.map(folder => {
                   const displayName = getLastSegment(stripRootSegment(folder.path));
 
                   return (
-                    <div key={folder.path} className="organize-plan-folder-row">
+                    <button
+                      key={folder.path}
+                      className={`organize-plan-folder-row ${folder.isExcluded ? 'excluded' : 'included'}`}
+                      onClick={() => onToggleFolder(folder.path)}
+                    >
+                      <span className="organize-plan-folder-indicator">
+                        {folder.isExcluded
+                          ? <XIcon width={10} height={10} />
+                          : <CheckIcon width={10} height={10} />
+                        }
+                      </span>
                       <span className="organize-plan-folder-path">{displayName}</span>
                       <span className="organize-plan-folder-description">{folder.description}</span>
                       {folder.isNew && <span className="organize-plan-new-badge">New</span>}
-                      <button
-                        className="organize-plan-remove-btn"
-                        onClick={() => onToggleFolder(folder.path)}
-                        title="Remove from plan"
-                      >
-                        <XIcon width={10} height={10} />
-                      </button>
-                    </div>
+                    </button>
                   );
                 })}
               </FolderTreeGroup>
@@ -88,14 +92,14 @@ const OrganizePlan = ({
         </div>
 
         <p className="organize-plan-summary">
-          {folders.length} folders ({newFolderCount} new)
+          {includedCount} folder{includedCount !== 1 ? 's' : ''} ({newFolderCount} new)
         </p>
       </div>
 
       <div className="organize-plan-actions">
-        <Button onClick={onApprovePlan} fullWidth>
+        <Button onClick={onApprovePlan} disabled={includedCount === 0} fullWidth>
           <CheckIcon />
-          Approve Plan ({folders.length})
+          Approve Plan ({includedCount})
         </Button>
         <Button onClick={onRejectPlan} fullWidth>
           <RefreshIcon />

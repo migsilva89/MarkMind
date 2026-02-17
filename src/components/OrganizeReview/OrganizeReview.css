@@ -71,12 +71,6 @@
   font-weight: var(--font-weight-medium);
 }
 
-.organize-review-item-folder {
-  font-size: var(--font-size-2xs);
-  color: var(--color-text-light);
-  flex-shrink: 0;
-}
-
 .organize-review-new-badge {
   font-size: var(--font-size-2xs);
   font-weight: var(--font-weight-semibold);
