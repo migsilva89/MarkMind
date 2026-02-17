@@ -115,13 +115,19 @@ export const useBulkOrganize = (): UseBulkOrganizeReturn => {
   }, []);
 
   const updateSession = useCallback(async (updates: Partial<OrganizeSession>): Promise<void> => {
+    let updatedSession: OrganizeSession | null = null;
     setSession(previousSession => {
-      const updatedSession = { ...previousSession, ...updates };
-      saveOrganizeSession(updatedSession).catch(error => {
-        console.error('Error saving organize session:', error);
-      });
+      updatedSession = { ...previousSession, ...updates };
       return updatedSession;
     });
+
+    if (updatedSession) {
+      try {
+        await saveOrganizeSession(updatedSession);
+      } catch (error) {
+        console.error('Error saving organize session:', error);
+      }
+    }
   }, []);
 
   const bookmarkStats = useMemo(() => {
