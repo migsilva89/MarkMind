@@ -161,7 +161,10 @@ chrome.runtime.onMessage.addListener(
   (message: OrganizeMessage, _sender, sendResponse) => {
     switch (message.type) {
       case 'START_BULK_ORGANIZE':
-        handleStartBulkOrganize(message.payload as StartBulkOrganizePayload);
+        handleStartBulkOrganize(message.payload as StartBulkOrganizePayload).catch(error => {
+          console.error('[Background] Error starting bulk organize:', error);
+          notifyPopup('ORGANIZE_ERROR', { errorMessage: 'Failed to start organization.' });
+        });
         break;
 
       case 'PAUSE_BULK_ORGANIZE':
@@ -172,10 +175,11 @@ chrome.runtime.onMessage.addListener(
         isPaused = false;
         loadOrganizeSession().then(session => {
           if (session && session.status === 'assigning') {
-            processBatches(session);
+            return processBatches(session);
           }
         }).catch(error => {
           console.error('[Background] Error resuming:', error);
+          notifyPopup('ORGANIZE_ERROR', { errorMessage: 'Failed to resume organization.' });
         });
         break;
 
