@@ -302,6 +302,32 @@ export const useBulkOrganize = (): UseBulkOrganizeReturn => {
     });
   }, [updateSession]);
 
+  const handleTogglePlanFolder = useCallback((folderPath: string): void => {
+    setSession(previousSession => {
+      if (!previousSession.folderPlan) return previousSession;
+
+      const currentFolders = previousSession.folderPlan.folders;
+      const isExcluded = !currentFolders.some(folder => folder.path === folderPath);
+
+      let updatedFolders;
+      if (isExcluded) {
+        // Re-include: we can't restore removed folders, so this only works for toggling off
+        return previousSession;
+      } else {
+        updatedFolders = currentFolders.filter(folder => folder.path !== folderPath);
+      }
+
+      const updatedSession = {
+        ...previousSession,
+        folderPlan: { ...previousSession.folderPlan, folders: updatedFolders },
+      };
+      saveOrganizeSession(updatedSession).catch(error => {
+        console.error('Error saving folder toggle:', error);
+      });
+      return updatedSession;
+    });
+  }, []);
+
   const handleStartAssigning = useCallback((): void => {
     console.log('[BulkOrganize] Resuming assignment from existing session');
     startLoadingMessages();
@@ -441,6 +467,7 @@ export const useBulkOrganize = (): UseBulkOrganizeReturn => {
     handleStartPlanning,
     handleApprovePlan,
     handleRejectPlan,
+    handleTogglePlanFolder,
     handleStartAssigning,
     handlePause,
     handleResume,

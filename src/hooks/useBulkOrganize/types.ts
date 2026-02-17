@@ -14,6 +14,7 @@ export interface UseBulkOrganizeReturn {
   handleStartPlanning: () => Promise<void>;
   handleApprovePlan: () => Promise<void>;
   handleRejectPlan: () => void;
+  handleTogglePlanFolder: (folderPath: string) => void;
   handleStartAssigning: () => void;
   handlePause: () => void;
   handleResume: () => void;
