@@ -1,0 +1,78 @@
+import { type FolderPathMap } from './bookmarks';
+
+export type OrganizeSessionStatus =
+  | 'idle'
+  | 'scanning'
+  | 'selecting'
+  | 'planning'
+  | 'reviewing_plan'
+  | 'assigning'
+  | 'reviewing_assignments'
+  | 'applying'
+  | 'completed'
+  | 'error';
+
+export interface CompactBookmark {
+  id: string;
+  title: string;
+  url: string;
+  currentFolderPath: string;
+  currentFolderId: string;
+}
+
+export interface ProposedFolder {
+  path: string;
+  description: string;
+  isNew: boolean;
+}
+
+export interface FolderPlan {
+  folders: ProposedFolder[];
+  summary: string;
+}
+
+export interface BookmarkAssignment {
+  bookmarkId: string;
+  bookmarkTitle: string;
+  bookmarkUrl: string;
+  currentPath: string;
+  suggestedPath: string;
+  suggestedFolderId: string | null;
+  isNewFolder: boolean;
+  isApproved: boolean;
+}
+
+export interface BatchProgress {
+  totalBatches: number;
+  completedBatches: number;
+  totalBookmarks: number;
+  processedBookmarks: number;
+  failedBatches: number[];
+}
+
+export interface OrganizeSummary {
+  folderPath: string;
+  bookmarkCount: number;
+  isNewFolder: boolean;
+}
+
+export interface OrganizeSession {
+  status: OrganizeSessionStatus;
+  allBookmarks: CompactBookmark[];
+  selectedFolderIds: string[] | null;
+  bookmarksToOrganize: CompactBookmark[];
+  folderPlan: FolderPlan | null;
+  folderTree: string;
+  batches: CompactBookmark[][];
+  batchProgress: BatchProgress;
+  assignments: BookmarkAssignment[];
+  appliedCount: number;
+  skippedCount: number;
+  errorMessage: string | null;
+  startedAt: number | null;
+  completedAt: number | null;
+  // Stored so service worker can resume without popup context
+  serviceId: string;
+  pathToIdMap: FolderPathMap;
+  defaultParentId: string;
+}

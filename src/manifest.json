@@ -16,11 +16,16 @@
       "128": "assets/icons/icon128.png"
     }
   },
+  "background": {
+    "service_worker": "src/background.ts",
+    "type": "module"
+  },
   "permissions": [
     "bookmarks",
     "activeTab",
     "storage",
-    "scripting"
+    "scripting",
+    "alarms"
   ],
   "host_permissions": [
     "https://generativelanguage.googleapis.com/*",

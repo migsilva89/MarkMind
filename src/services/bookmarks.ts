@@ -67,6 +67,21 @@ export const createBookmark = async (
   });
 };
 
+export const moveBookmark = async (
+  bookmarkId: string,
+  destinationFolderId: string
+): Promise<ChromeBookmarkNode> => {
+  return new Promise((resolve, reject) => {
+    chrome.bookmarks.move(bookmarkId, { parentId: destinationFolderId }, (result) => {
+      if (chrome.runtime.lastError) {
+        reject(new Error(chrome.runtime.lastError.message));
+        return;
+      }
+      resolve(result as ChromeBookmarkNode);
+    });
+  });
+};
+
 export const createFolderPath = async (
   folderPath: string,
   pathToIdMap: FolderPathMap,
