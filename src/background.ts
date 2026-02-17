@@ -1,5 +1,5 @@
 import { type OrganizeMessage, type StartBulkOrganizePayload } from './types/messaging';
-import { type OrganizeSession } from './types/organize';
+import { type OrganizeSession, type BookmarkAssignment } from './types/organize';
 import { assignBookmarkBatch } from './services/ai/bulkOrganize';
 import { saveOrganizeSession, loadOrganizeSession } from './services/organizeSession';
 const KEEPALIVE_ALARM_NAME = 'organize-keepalive';
@@ -13,6 +13,36 @@ const notifyPopup = (type: string, payload?: unknown): void => {
   });
 };
 
+const recordBatchSuccess = async (
+  currentSession: OrganizeSession,
+  batchAssignments: BookmarkAssignment[],
+  batchIndex: number,
+  batchSize: number,
+): Promise<OrganizeSession> => {
+  const updatedAssignments = [...currentSession.assignments, ...batchAssignments];
+
+  const updatedProgress = {
+    ...currentSession.batchProgress,
+    completedBatches: batchIndex + 1,
+    processedBookmarks: currentSession.batchProgress.processedBookmarks + batchSize,
+  };
+
+  const updatedSession: OrganizeSession = {
+    ...currentSession,
+    batchProgress: updatedProgress,
+    assignments: updatedAssignments,
+  };
+
+  await saveOrganizeSession(updatedSession);
+
+  notifyPopup('ORGANIZE_BATCH_COMPLETE', {
+    batchProgress: updatedProgress,
+    latestAssignments: batchAssignments,
+  });
+
+  return updatedSession;
+};
+
 const processBatches = async (session: OrganizeSession): Promise<void> => {
   const { batches, serviceId, folderPlan, pathToIdMap, batchProgress } = session;
 
@@ -22,7 +52,6 @@ const processBatches = async (session: OrganizeSession): Promise<void> => {
   }
 
   let currentSession = { ...session };
-  const allAssignments = [...currentSession.assignments];
 
   for (let batchIndex = batchProgress.completedBatches; batchIndex < batches.length; batchIndex++) {
     if (isPaused) {
@@ -33,64 +62,14 @@ const processBatches = async (session: OrganizeSession): Promise<void> => {
     const batch = batches[batchIndex];
 
     try {
-      const batchAssignments = await assignBookmarkBatch(
-        serviceId,
-        batch,
-        folderPlan,
-        pathToIdMap
-      );
-
-      allAssignments.push(...batchAssignments);
-
-      const updatedProgress = {
-        ...currentSession.batchProgress,
-        completedBatches: batchIndex + 1,
-        processedBookmarks: currentSession.batchProgress.processedBookmarks + batch.length,
-      };
-
-      currentSession = {
-        ...currentSession,
-        batchProgress: updatedProgress,
-        assignments: allAssignments,
-      };
-
-      await saveOrganizeSession(currentSession);
-
-      notifyPopup('ORGANIZE_BATCH_COMPLETE', {
-        batchProgress: updatedProgress,
-        latestAssignments: batchAssignments,
-      });
+      const batchAssignments = await assignBookmarkBatch(serviceId, batch, folderPlan, pathToIdMap);
+      currentSession = await recordBatchSuccess(currentSession, batchAssignments, batchIndex, batch.length);
     } catch (error) {
       console.error(`[Background] Batch ${batchIndex} failed:`, error);
 
       try {
-        const retryAssignments = await assignBookmarkBatch(
-          serviceId,
-          batch,
-          folderPlan,
-          pathToIdMap
-        );
-
-        allAssignments.push(...retryAssignments);
-
-        const updatedProgress = {
-          ...currentSession.batchProgress,
-          completedBatches: batchIndex + 1,
-          processedBookmarks: currentSession.batchProgress.processedBookmarks + batch.length,
-        };
-
-        currentSession = {
-          ...currentSession,
-          batchProgress: updatedProgress,
-          assignments: allAssignments,
-        };
-
-        await saveOrganizeSession(currentSession);
-
-        notifyPopup('ORGANIZE_BATCH_COMPLETE', {
-          batchProgress: updatedProgress,
-          latestAssignments: retryAssignments,
-        });
+        const retryAssignments = await assignBookmarkBatch(serviceId, batch, folderPlan, pathToIdMap);
+        currentSession = await recordBatchSuccess(currentSession, retryAssignments, batchIndex, batch.length);
       } catch (retryError) {
         console.error(`[Background] Batch ${batchIndex} retry failed:`, retryError);
 
@@ -123,7 +102,7 @@ const processBatches = async (session: OrganizeSession): Promise<void> => {
   await saveOrganizeSession(currentSession);
 
   notifyPopup('ORGANIZE_COMPLETE', {
-    assignments: allAssignments,
+    assignments: currentSession.assignments,
     batchProgress: currentSession.batchProgress,
   });
 
