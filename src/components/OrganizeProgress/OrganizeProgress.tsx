@@ -41,6 +41,10 @@ const OrganizeProgress = ({ session, statusMessage }: OrganizeProgressProps) => 
           {batchProgress.failedBatches.length} batch{batchProgress.failedBatches.length > 1 ? 'es' : ''} failed — will retry
         </p>
       )}
+
+      <p className="organize-progress-hint">
+        Feel free to close this popup — MarkMind keeps organizing in the background. Come back anytime to check progress.
+      </p>
     </OrganizeStatusView>
   );
 };

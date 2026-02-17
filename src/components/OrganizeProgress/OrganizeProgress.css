@@ -28,3 +28,11 @@
   font-size: var(--font-size-xs);
   color: var(--color-warning);
 }
+
+.organize-progress-hint {
+  font-size: var(--font-size-xs);
+  color: var(--color-text-light);
+  text-align: center;
+  line-height: var(--line-height-normal);
+  margin-top: var(--spacing-xl);
+}
