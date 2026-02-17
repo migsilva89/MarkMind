@@ -2,8 +2,6 @@ import { type OrganizeMessage, type StartBulkOrganizePayload } from './types/mes
 import { type OrganizeSession } from './types/organize';
 import { assignBookmarkBatch } from './services/ai/bulkOrganize';
 import { saveOrganizeSession, loadOrganizeSession } from './services/organizeSession';
-import { debug } from './utils/debug';
-
 const KEEPALIVE_ALARM_NAME = 'organize-keepalive';
 const KEEPALIVE_INTERVAL_MINUTES = 0.4;
 
@@ -17,8 +15,10 @@ const notifyPopup = (type: string, payload?: unknown): void => {
 
 const processBatches = async (session: OrganizeSession): Promise<void> => {
   const { batches, serviceId, folderPlan, pathToIdMap, batchProgress } = session;
+  console.log('[Background] Starting batch processing —', batches.length, 'batches, serviceId:', serviceId);
 
   if (!folderPlan) {
+    console.log('[Background] No folder plan found — aborting');
     notifyPopup('ORGANIZE_ERROR', { errorMessage: 'No folder plan found' });
     return;
   }
@@ -27,8 +27,9 @@ const processBatches = async (session: OrganizeSession): Promise<void> => {
   const allAssignments = [...currentSession.assignments];
 
   for (let batchIndex = batchProgress.completedBatches; batchIndex < batches.length; batchIndex++) {
+    console.log('[Background] Processing batch', batchIndex + 1, 'of', batches.length);
     if (isPaused) {
-      debug('[Background] Paused at batch:', batchIndex);
+      console.log('[Background] Paused at batch:', batchIndex);
       await saveOrganizeSession(currentSession);
       return;
     }
@@ -43,6 +44,7 @@ const processBatches = async (session: OrganizeSession): Promise<void> => {
         pathToIdMap
       );
 
+      console.log('[Background] Batch', batchIndex + 1, 'complete —', batchAssignments.length, 'assignments');
       allAssignments.push(...batchAssignments);
 
       const updatedProgress = {
@@ -66,9 +68,8 @@ const processBatches = async (session: OrganizeSession): Promise<void> => {
     } catch (error) {
       console.error(`[Background] Batch ${batchIndex} failed:`, error);
 
-      // Retry once
       try {
-        debug('[Background] Retrying batch:', batchIndex);
+        console.log('[Background] Retrying batch:', batchIndex);
         const retryAssignments = await assignBookmarkBatch(
           serviceId,
           batch,
@@ -121,6 +122,8 @@ const processBatches = async (session: OrganizeSession): Promise<void> => {
     }
   }
 
+  console.log('[Background] All batches complete —', allAssignments.length, 'total assignments');
+
   currentSession = {
     ...currentSession,
     status: 'reviewing_assignments',
@@ -137,14 +140,17 @@ const processBatches = async (session: OrganizeSession): Promise<void> => {
 
 const handleStartBulkOrganize = async (payload: StartBulkOrganizePayload): Promise<void> => {
   isPaused = false;
+  console.log('[Background] START_BULK_ORGANIZE received — loading session from storage');
 
   const session = await loadOrganizeSession();
   if (!session) {
+    console.log('[Background] No session found in storage — aborting');
     notifyPopup('ORGANIZE_ERROR', { errorMessage: 'No session found' });
     return;
   }
 
-  // Keepalive alarm prevents service worker from being killed
+  console.log('[Background] Session loaded — status:', session.status, 'batches:', session.batches.length);
+
   chrome.alarms.create(KEEPALIVE_ALARM_NAME, {
     periodInMinutes: KEEPALIVE_INTERVAL_MINUTES,
   });
@@ -165,7 +171,7 @@ const handleStartBulkOrganize = async (payload: StartBulkOrganizePayload): Promi
 
 chrome.runtime.onMessage.addListener(
   (message: OrganizeMessage, _sender, sendResponse) => {
-    debug('[Background] Received message:', message.type);
+    console.log('[Background] Received message:', message.type);
 
     switch (message.type) {
       case 'START_BULK_ORGANIZE':
@@ -174,12 +180,12 @@ chrome.runtime.onMessage.addListener(
 
       case 'PAUSE_BULK_ORGANIZE':
         isPaused = true;
-        debug('[Background] Pausing batch processing');
+        console.log('[Background] Pausing batch processing');
         break;
 
       case 'RESUME_BULK_ORGANIZE':
         isPaused = false;
-        debug('[Background] Resuming batch processing');
+        console.log('[Background] Resuming batch processing');
         loadOrganizeSession().then(session => {
           if (session && session.status === 'assigning') {
             processBatches(session);
@@ -206,6 +212,6 @@ chrome.runtime.onMessage.addListener(
 
 chrome.alarms.onAlarm.addListener((alarm) => {
   if (alarm.name === KEEPALIVE_ALARM_NAME) {
-    debug('[Background] Keepalive ping');
+    console.log('[Background] Keepalive ping');
   }
 });

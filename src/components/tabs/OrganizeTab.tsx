@@ -1,6 +1,8 @@
 import { useBulkOrganize } from '../../hooks/useBulkOrganize';
 import OrganizeScan from '../OrganizeScan/OrganizeScan';
 import OrganizePlan from '../OrganizePlan/OrganizePlan';
+import { SpinnerIcon } from '../icons/Icons';
+import './OrganizeTab.css';
 
 const OrganizeTab = () => {
   const {
@@ -43,6 +45,23 @@ const OrganizeTab = () => {
           onApprovePlan={handleApprovePlan}
           onRejectPlan={handleRejectPlan}
         />
+      );
+
+    case 'assigning':
+      return (
+        <div className="organize-assigning">
+          <SpinnerIcon width={20} height={20} />
+          <p className="organize-assigning-status">
+            {statusType === 'loading' && statusMessage
+              ? statusMessage
+              : 'Assigning bookmarks to folders...'}
+          </p>
+          {session.batchProgress.totalBatches > 0 && (
+            <p className="organize-assigning-progress">
+              Batch {session.batchProgress.completedBatches} of {session.batchProgress.totalBatches}
+            </p>
+          )}
+        </div>
       );
 
     default:

@@ -8,7 +8,6 @@ import { getFolderDataForAI, buildIdToPathMap } from '../../utils/folders';
 import { planFolderStructure } from '../../services/ai/bulkOrganize';
 import { saveOrganizeSession, loadOrganizeSession, clearOrganizeSession, getInitialSession } from '../../services/organizeSession';
 import { moveBookmark, createFolderPath } from '../../services/bookmarks';
-import { debug } from '../../utils/debug';
 import { type UseBulkOrganizeReturn } from './types';
 
 const LOADING_MESSAGE_INTERVAL_MS = 2000;
@@ -29,7 +28,7 @@ export const useBulkOrganize = (): UseBulkOrganizeReturn => {
         const savedSession = await loadOrganizeSession();
         if (savedSession && savedSession.status !== 'idle') {
           setSession(savedSession);
-          debug('[BulkOrganize] Resumed session:', savedSession.status);
+          console.log('[BulkOrganize] Resumed session:', savedSession.status);
         }
       } catch (error) {
         console.error('Error resuming organize session:', error);
@@ -51,7 +50,7 @@ export const useBulkOrganize = (): UseBulkOrganizeReturn => {
   // Listen for service worker messages
   useEffect(() => {
     const handleMessage = (message: { type: string; payload?: unknown }): void => {
-      debug('[BulkOrganize] Received message:', message.type);
+      console.log('[BulkOrganize] Received message:', message.type);
 
       if (message.type === 'ORGANIZE_BATCH_COMPLETE') {
         const payload = message.payload as {
@@ -253,20 +252,48 @@ export const useBulkOrganize = (): UseBulkOrganizeReturn => {
     }
   }, [session.selectedFolderIds, session.allBookmarks, session.folderTree, updateSession, startLoadingMessages, clearLoadingMessages]);
 
-  const handleApprovePlan = useCallback((): void => {
-    const batches = createBatches(session.bookmarksToOrganize, BATCH_SIZE);
+  const handleApprovePlan = useCallback(async (): Promise<void> => {
+    try {
+      const batches = createBatches(session.bookmarksToOrganize, BATCH_SIZE);
+      console.log('[BulkOrganize] Plan approved —', batches.length, 'batches,', session.bookmarksToOrganize.length, 'bookmarks');
 
-    updateSession({
-      batches,
-      batchProgress: {
-        totalBatches: batches.length,
-        completedBatches: 0,
-        totalBookmarks: session.bookmarksToOrganize.length,
-        processedBookmarks: 0,
-        failedBatches: [],
-      },
-    });
-  }, [session.bookmarksToOrganize, updateSession]);
+      const assigningSession: OrganizeSession = {
+        ...session,
+        status: 'assigning',
+        batches,
+        assignments: [],
+        batchProgress: {
+          totalBatches: batches.length,
+          completedBatches: 0,
+          totalBookmarks: session.bookmarksToOrganize.length,
+          processedBookmarks: 0,
+          failedBatches: [],
+        },
+      };
+
+      setSession(assigningSession);
+      await saveOrganizeSession(assigningSession);
+      startLoadingMessages();
+
+      console.log('[BulkOrganize] Session saved, sending START_BULK_ORGANIZE to service worker');
+      chrome.runtime.sendMessage({
+        type: 'START_BULK_ORGANIZE',
+        payload: {
+          serviceId: session.serviceId,
+          bookmarks: session.bookmarksToOrganize,
+          approvedPlan: session.folderPlan,
+          folderTree: session.folderTree,
+          pathToIdMap: session.pathToIdMap,
+          defaultParentId: session.defaultParentId,
+        },
+      }).catch(error => {
+        console.error('Error starting bulk organize:', error);
+      });
+    } catch (error) {
+      console.error('Error approving plan:', error);
+      clearLoadingMessages();
+    }
+  }, [session, startLoadingMessages, clearLoadingMessages]);
 
   const handleRejectPlan = useCallback((): void => {
     updateSession({
@@ -276,24 +303,15 @@ export const useBulkOrganize = (): UseBulkOrganizeReturn => {
   }, [updateSession]);
 
   const handleStartAssigning = useCallback((): void => {
+    console.log('[BulkOrganize] Resuming assignment from existing session');
     startLoadingMessages();
 
-    updateSession({ status: 'assigning', assignments: [] });
-
     chrome.runtime.sendMessage({
-      type: 'START_BULK_ORGANIZE',
-      payload: {
-        serviceId: session.serviceId,
-        bookmarks: session.bookmarksToOrganize,
-        approvedPlan: session.folderPlan,
-        folderTree: session.folderTree,
-        pathToIdMap: session.pathToIdMap,
-        defaultParentId: session.defaultParentId,
-      },
+      type: 'RESUME_BULK_ORGANIZE',
     }).catch(error => {
-      console.error('Error starting bulk organize:', error);
+      console.error('Error resuming bulk organize:', error);
     });
-  }, [session, startLoadingMessages, updateSession]);
+  }, [startLoadingMessages]);
 
   const handlePause = useCallback((): void => {
     chrome.runtime.sendMessage({ type: 'PAUSE_BULK_ORGANIZE' }).catch(error => {
@@ -372,7 +390,7 @@ export const useBulkOrganize = (): UseBulkOrganizeReturn => {
           }
 
           if (!targetFolderId) {
-            debug('[BulkOrganize] Skipping — no folder ID for:', assignment.suggestedPath);
+            console.log('[BulkOrganize] Skipping — no folder ID for:', assignment.suggestedPath);
             skippedCount += 1;
             continue;
           }

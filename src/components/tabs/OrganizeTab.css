@@ -1,0 +1,18 @@
+.organize-assigning {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--spacing-md);
+  padding: var(--spacing-4xl);
+}
+
+.organize-assigning-status {
+  font-size: var(--font-size-sm);
+  color: var(--color-text-muted);
+  text-align: center;
+}
+
+.organize-assigning-progress {
+  font-size: var(--font-size-xs);
+  color: var(--color-text-light);
+}
