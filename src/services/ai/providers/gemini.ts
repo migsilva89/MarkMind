@@ -3,7 +3,8 @@ import { extractApiErrorMessage } from '../../../utils/helpers';
 export const callGemini = async (
   apiKey: string,
   systemPrompt: string,
-  userPrompt: string
+  userPrompt: string,
+  maxTokens?: number
 ): Promise<string> => {
   const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`;
 
@@ -13,6 +14,9 @@ export const callGemini = async (
     body: JSON.stringify({
       systemInstruction: { parts: [{ text: systemPrompt }] },
       contents: [{ parts: [{ text: userPrompt }] }],
+      ...(maxTokens !== undefined && {
+        generationConfig: { maxOutputTokens: maxTokens },
+      }),
     }),
   });
 
