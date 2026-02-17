@@ -135,21 +135,16 @@ export const useBulkOrganize = (): UseBulkOrganizeReturn => {
 
       const folderData = await getFolderDataForAI();
       const idToPathMap = buildIdToPathMap(folderData.pathToIdMap);
-      const allBookmarks = flattenAllBookmarks(
-        await (async () => {
-          const tree = await new Promise<chrome.bookmarks.BookmarkTreeNode[]>((resolve, reject) => {
-            chrome.bookmarks.getTree((tree) => {
-              if (chrome.runtime.lastError) {
-                reject(new Error(chrome.runtime.lastError.message));
-                return;
-              }
-              resolve(tree);
-            });
-          });
-          return tree;
-        })(),
-        idToPathMap
-      );
+      const bookmarkTree = await new Promise<chrome.bookmarks.BookmarkTreeNode[]>((resolve, reject) => {
+        chrome.bookmarks.getTree((tree) => {
+          if (chrome.runtime.lastError) {
+            reject(new Error(chrome.runtime.lastError.message));
+            return;
+          }
+          resolve(tree);
+        });
+      });
+      const allBookmarks = flattenAllBookmarks(bookmarkTree, idToPathMap);
 
       const folderIds = [...new Set(allBookmarks.map(bookmark => bookmark.currentFolderId))];
 
