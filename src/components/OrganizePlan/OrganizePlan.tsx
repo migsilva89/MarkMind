@@ -25,6 +25,13 @@ const OrganizePlan = ({
   onRejectPlan,
   onToggleFolder,
 }: OrganizePlanProps) => {
+  const folders = session.folderPlan?.folders ?? [];
+
+  const folderGroups = useMemo(
+    () => groupByRootFolder(folders, folder => folder.path),
+    [folders]
+  );
+
   if (session.status === 'planning') {
     return (
       <div className="organize-plan">
@@ -40,14 +47,9 @@ const OrganizePlan = ({
 
   if (!session.folderPlan) return null;
 
-  const { folders, summary } = session.folderPlan;
+  const { summary } = session.folderPlan;
   const includedCount = folders.filter(folder => !folder.isExcluded).length;
   const newFolderCount = folders.filter(folder => folder.isNew && !folder.isExcluded).length;
-
-  const folderGroups = useMemo(
-    () => groupByRootFolder(folders, folder => folder.path),
-    [folders]
-  );
 
   return (
     <div className="organize-plan">

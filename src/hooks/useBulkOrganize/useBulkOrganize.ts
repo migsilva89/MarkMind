@@ -28,7 +28,9 @@ export const useBulkOrganize = (): UseBulkOrganizeReturn => {
         const savedSession = await loadOrganizeSession();
         if (savedSession && savedSession.status !== 'idle') {
           setSession(savedSession);
-          console.log('[BulkOrganize] Resumed session:', savedSession.status);
+          if (savedSession.status === 'assigning') {
+            startLoadingMessages();
+          }
         }
       } catch (error) {
         console.error('Error resuming organize session:', error);
@@ -50,8 +52,6 @@ export const useBulkOrganize = (): UseBulkOrganizeReturn => {
   // Listen for service worker messages
   useEffect(() => {
     const handleMessage = (message: { type: string; payload?: unknown }): void => {
-      console.log('[BulkOrganize] Received message:', message.type);
-
       if (message.type === 'ORGANIZE_BATCH_COMPLETE') {
         const payload = message.payload as {
           batchProgress: OrganizeSession['batchProgress'];
@@ -254,7 +254,6 @@ export const useBulkOrganize = (): UseBulkOrganizeReturn => {
   const handleApprovePlan = useCallback(async (): Promise<void> => {
     try {
       const batches = createBatches(session.bookmarksToOrganize, BATCH_SIZE);
-      console.log('[BulkOrganize] Plan approved —', batches.length, 'batches,', session.bookmarksToOrganize.length, 'bookmarks');
 
       const assigningSession: OrganizeSession = {
         ...session,
@@ -279,7 +278,6 @@ export const useBulkOrganize = (): UseBulkOrganizeReturn => {
         folders: session.folderPlan.folders.filter(folder => !folder.isExcluded),
       } : session.folderPlan;
 
-      console.log('[BulkOrganize] Session saved, sending START_BULK_ORGANIZE to service worker');
       chrome.runtime.sendMessage({
         type: 'START_BULK_ORGANIZE',
         payload: {
@@ -328,7 +326,6 @@ export const useBulkOrganize = (): UseBulkOrganizeReturn => {
   }, []);
 
   const handleStartAssigning = useCallback((): void => {
-    console.log('[BulkOrganize] Resuming assignment from existing session');
     startLoadingMessages();
 
     chrome.runtime.sendMessage({
@@ -415,7 +412,6 @@ export const useBulkOrganize = (): UseBulkOrganizeReturn => {
           }
 
           if (!targetFolderId) {
-            console.log('[BulkOrganize] Skipping — no folder ID for:', assignment.suggestedPath);
             skippedCount += 1;
             continue;
           }
