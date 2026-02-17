@@ -135,11 +135,11 @@ export const parseAssignments = (
 
 export const planFolderStructure = async (
   serviceId: string,
-  bookmarkTitles: string[],
+  bookmarks: CompactBookmark[],
   folderTree: string
 ): Promise<FolderPlan> => {
   const apiKey = await getApiKey(serviceId);
-  const userPrompt = buildBulkPlanningUserPrompt(bookmarkTitles, folderTree);
+  const userPrompt = buildBulkPlanningUserPrompt(bookmarks, folderTree);
 
   debug(
     '[BulkOrganize] Planning prompt:\n\n--- SYSTEM ---\n' +

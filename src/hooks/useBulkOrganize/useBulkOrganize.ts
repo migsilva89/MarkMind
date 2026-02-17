@@ -232,8 +232,7 @@ export const useBulkOrganize = (): UseBulkOrganizeReturn => {
         return;
       }
 
-      const bookmarkTitles = bookmarksToOrganize.map(bookmark => bookmark.title);
-      const folderPlan = await planFolderStructure(serviceId, bookmarkTitles, session.folderTree);
+      const folderPlan = await planFolderStructure(serviceId, bookmarksToOrganize, session.folderTree);
 
       clearLoadingMessages();
 
