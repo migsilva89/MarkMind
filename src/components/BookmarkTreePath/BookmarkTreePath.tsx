@@ -1,4 +1,5 @@
 import { DocumentIcon } from '../icons/Icons';
+import { splitFolderPath } from '../../utils/folders';
 import { stripRootSegment } from '../../utils/folderDisplay';
 import FolderTreeGroup from '../FolderTreeGroup/FolderTreeGroup';
 import './BookmarkTreePath.css';
@@ -17,7 +18,7 @@ const BookmarkTreePath = ({
   label = 'Suggested location',
 }: BookmarkTreePathProps) => {
   const cleanPath = stripRootSegment(folderPath);
-  const displayPath = cleanPath.split('/').join(' / ');
+  const displayPath = splitFolderPath(cleanPath).join(' / ');
 
   return (
     <div className="bookmark-tree-path">

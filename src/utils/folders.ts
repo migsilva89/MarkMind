@@ -49,10 +49,14 @@ const buildTreeLines = (
   });
 };
 
+export const splitFolderPath = (path: string): string[] => {
+  return path.split(/(?<!\\)\//).map(segment => segment.replace(/\\\//g, '/'));
+};
+
 const MAX_VISIBLE_SEGMENTS = 3;
 
 export const getDisplaySegments = (folderPath: string): FolderDisplaySegment[] => {
-  const segments = folderPath.split('/').filter(Boolean);
+  const segments = splitFolderPath(folderPath).filter(Boolean);
 
   if (segments.length === 0) {
     return [];
@@ -85,6 +89,18 @@ export const buildIdToPathMap = (pathToIdMap: FolderPathMap): Record<string, str
 
 export const findFolderPathById = (idToPathMap: Record<string, string>, folderId: string): string | null => {
   return idToPathMap[folderId] ?? null;
+};
+
+// AI returns unescaped paths (e.g. "DNS/DOMAIN") but pathToIdMap keys use escaped paths ("DNS\/DOMAIN")
+export const findFolderIdByAIPath = (aiPath: string, pathToIdMap: FolderPathMap): string | undefined => {
+  if (pathToIdMap[aiPath]) return pathToIdMap[aiPath];
+
+  for (const [escapedPath, folderId] of Object.entries(pathToIdMap)) {
+    const unescapedPath = splitFolderPath(escapedPath).join('/');
+    if (unescapedPath === aiPath) return folderId;
+  }
+
+  return undefined;
 };
 
 export const getFolderDataForAI = async (): Promise<FolderDataForAI> => {
