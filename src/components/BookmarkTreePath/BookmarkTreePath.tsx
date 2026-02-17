@@ -54,7 +54,7 @@ const BookmarkTreePath = ({
           );
         })}
         <div
-          className="bookmark-tree-path-row bookmark-tree-path-bookmark"
+          className="bookmark-tree-path-row"
           style={{ paddingLeft: `calc(${(segments[lastFolderIndex]?.depth ?? 0) + 1} * var(--spacing-2xl))` }}
         >
           <DocumentIcon width={12} height={12} />

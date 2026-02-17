@@ -2,8 +2,9 @@ import { useMemo } from 'react';
 import { type OrganizeSession } from '../../types/organize';
 import { type BookmarkStats } from '../../utils/bookmarkScanner';
 import { groupByRootFolder, getLastSegment, stripRootSegment } from '../../utils/folderDisplay';
-import { FolderIcon, SpinnerIcon } from '../icons/Icons';
+import { FolderIcon, SpinnerIcon, CheckIcon } from '../icons/Icons';
 import FolderTreeGroup from '../FolderTreeGroup/FolderTreeGroup';
+import OrganizeStatusView from '../OrganizeStatusView/OrganizeStatusView';
 import Button from '../Button/Button';
 import './OrganizeScan.css';
 
@@ -70,10 +71,10 @@ const OrganizeScan = ({
   if (session.status === 'scanning') {
     return (
       <div className="organize-scan">
-        <div className="organize-scan-loading">
-          <SpinnerIcon width={20} height={20} />
-          Scanning your bookmarks...
-        </div>
+        <OrganizeStatusView
+          icon={<SpinnerIcon width={20} height={20} />}
+          title="Scanning your bookmarks..."
+        />
       </div>
     );
   }
@@ -102,25 +103,23 @@ const OrganizeScan = ({
                   key={group.groupName}
                   groupName={group.groupName}
                   itemCount={groupBookmarkCount}
-                  defaultExpanded
                 >
                   {group.items.map(folder => {
                     const isSelected = session.selectedFolderIds?.includes(folder.folderId) ?? false;
                     const displayName = getLastSegment(stripRootSegment(folder.folderPath));
 
                     return (
-                      <Button
+                      <button
                         key={folder.folderId}
-                        active={isSelected}
-                        compact
+                        className={`organize-scan-folder-row ${isSelected ? 'selected' : ''}`}
                         onClick={() => onToggleFolder(folder.folderId)}
-                        fullWidth
                       >
-                        <span className="organize-scan-folder-item">
-                          <span className="organize-scan-folder-path">{displayName}</span>
-                          <span className="organize-scan-folder-count">{folder.bookmarkCount}</span>
+                        <span className="organize-scan-folder-check">
+                          {isSelected && <CheckIcon width={10} height={10} />}
                         </span>
-                      </Button>
+                        <span className="organize-scan-folder-path">{displayName}</span>
+                        <span className="organize-scan-folder-count">{folder.bookmarkCount}</span>
+                      </button>
                     );
                   })}
                 </FolderTreeGroup>

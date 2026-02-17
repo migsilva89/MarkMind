@@ -1,0 +1,30 @@
+.organize-progress-bar-container {
+  width: 100%;
+  height: var(--spacing-sm);
+  background-color: var(--color-surface);
+  border-radius: var(--radius-full);
+  overflow: hidden;
+}
+
+.organize-progress-bar-fill {
+  height: 100%;
+  background-color: var(--color-primary);
+  border-radius: var(--radius-full);
+  transition: width var(--transition-normal);
+}
+
+.organize-progress-percent {
+  font-size: var(--font-size-lg);
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-text);
+}
+
+.organize-progress-detail {
+  font-size: var(--font-size-xs);
+  color: var(--color-text-light);
+}
+
+.organize-progress-failed {
+  font-size: var(--font-size-xs);
+  color: var(--color-warning);
+}

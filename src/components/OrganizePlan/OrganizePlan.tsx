@@ -4,6 +4,7 @@ import { type OrganizeSession } from '../../types/organize';
 import { groupByRootFolder, getLastSegment, stripRootSegment } from '../../utils/folderDisplay';
 import { SpinnerIcon, RefreshIcon, CheckIcon, XIcon } from '../icons/Icons';
 import FolderTreeGroup from '../FolderTreeGroup/FolderTreeGroup';
+import OrganizeStatusView from '../OrganizeStatusView/OrganizeStatusView';
 import Button from '../Button/Button';
 import './OrganizePlan.css';
 
@@ -27,12 +28,12 @@ const OrganizePlan = ({
   if (session.status === 'planning') {
     return (
       <div className="organize-plan">
-        <div className="organize-plan-loading">
-          <SpinnerIcon width={20} height={20} />
-          {statusType === 'loading' && statusMessage
+        <OrganizeStatusView
+          icon={<SpinnerIcon width={20} height={20} />}
+          title={statusType === 'loading' && statusMessage
             ? statusMessage
             : 'Analyzing your bookmarks...'}
-        </div>
+        />
       </div>
     );
   }
@@ -67,7 +68,7 @@ const OrganizePlan = ({
                   const displayName = getLastSegment(stripRootSegment(folder.path));
 
                   return (
-                    <div key={folder.path} className="organize-plan-folder-item">
+                    <div key={folder.path} className="organize-plan-folder-row">
                       <span className="organize-plan-folder-path">{displayName}</span>
                       <span className="organize-plan-folder-description">{folder.description}</span>
                       {folder.isNew && <span className="organize-plan-new-badge">New</span>}

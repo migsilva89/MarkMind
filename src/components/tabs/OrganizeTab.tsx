@@ -1,8 +1,12 @@
 import { useBulkOrganize } from '../../hooks/useBulkOrganize';
+import { SpinnerIcon } from '../icons/Icons';
 import OrganizeScan from '../OrganizeScan/OrganizeScan';
 import OrganizePlan from '../OrganizePlan/OrganizePlan';
-import { SpinnerIcon } from '../icons/Icons';
-import './OrganizeTab.css';
+import OrganizeProgress from '../OrganizeProgress/OrganizeProgress';
+import OrganizeReview from '../OrganizeReview/OrganizeReview';
+import OrganizeComplete from '../OrganizeComplete/OrganizeComplete';
+import OrganizeError from '../OrganizeError/OrganizeError';
+import OrganizeStatusView from '../OrganizeStatusView/OrganizeStatusView';
 
 const OrganizeTab = () => {
   const {
@@ -18,6 +22,9 @@ const OrganizeTab = () => {
     handleApprovePlan,
     handleRejectPlan,
     handleTogglePlanFolder,
+    handleToggleAssignment,
+    handleApplyMoves,
+    handleReset,
   } = useBulkOrganize();
 
   switch (session.status) {
@@ -51,27 +58,49 @@ const OrganizeTab = () => {
 
     case 'assigning':
       return (
-        <div className="organize-assigning">
-          <SpinnerIcon width={20} height={20} />
-          <p className="organize-assigning-status">
-            {statusType === 'loading' && statusMessage
-              ? statusMessage
-              : 'Assigning bookmarks to folders...'}
-          </p>
-          {session.batchProgress.totalBatches > 0 && (
-            <p className="organize-assigning-progress">
-              Batch {session.batchProgress.completedBatches} of {session.batchProgress.totalBatches}
-            </p>
-          )}
-        </div>
+        <OrganizeProgress
+          session={session}
+          statusMessage={statusMessage}
+        />
+      );
+
+    case 'reviewing_assignments':
+      return (
+        <OrganizeReview
+          assignments={session.assignments}
+          onToggleAssignment={handleToggleAssignment}
+          onApplyMoves={handleApplyMoves}
+          onReset={handleReset}
+        />
+      );
+
+    case 'applying':
+      return (
+        <OrganizeStatusView
+          icon={<SpinnerIcon width={20} height={20} />}
+          title="Moving bookmarks..."
+          description="Please wait while your bookmarks are being reorganized"
+        />
+      );
+
+    case 'completed':
+      return (
+        <OrganizeComplete
+          session={session}
+          onReset={handleReset}
+        />
+      );
+
+    case 'error':
+      return (
+        <OrganizeError
+          errorMessage={session.errorMessage}
+          onReset={handleReset}
+        />
       );
 
     default:
-      return (
-        <div className="tab-placeholder">
-          <p className="tab-placeholder-text">Processing...</p>
-        </div>
-      );
+      return null;
   }
 };
 

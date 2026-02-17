@@ -26,11 +26,13 @@
   display: flex;
   align-items: center;
   gap: var(--spacing-sm);
-  color: var(--color-text-secondary);
+  padding: var(--spacing-xs) var(--spacing-md);
+  border-radius: var(--radius-sm);
+  color: var(--color-text-muted);
+  font-size: var(--font-size-xs);
 }
 
 .bookmark-tree-path-folder-name {
-  font-size: var(--font-size-sm);
   font-weight: var(--font-weight-medium);
   color: var(--color-text);
   overflow: hidden;
@@ -39,26 +41,15 @@
 }
 
 .bookmark-tree-path-ellipsis {
-  font-size: var(--font-size-sm);
   color: var(--color-text-light);
-  padding-left: var(--spacing-xs);
 }
 
 .bookmark-tree-path-row-target {
-  background-color: var(--color-surface-hover);
-  border-left: 2px solid var(--color-primary);
-  margin-left: calc(-1 * var(--spacing-sm));
-  padding-left: var(--spacing-sm);
-  padding-right: var(--spacing-sm);
-  border-radius: var(--radius-sm);
+  background-color: var(--color-surface);
 }
 
 .bookmark-tree-path-row-new {
-  background-color: var(--color-success-bg);
-  border-left: 2px dashed var(--color-success);
-  margin-left: calc(-1 * var(--spacing-sm));
-  padding-right: var(--spacing-sm);
-  border-radius: var(--radius-sm);
+  background-color: var(--color-surface);
 }
 
 .bookmark-tree-path-new-badge {
@@ -68,11 +59,9 @@
   font-size: var(--font-size-2xs);
   font-weight: var(--font-weight-semibold);
   color: var(--color-success);
-  background-color: var(--color-white);
-  border: 1px solid var(--color-success);
+  background-color: var(--color-success-bg);
   padding: var(--spacing-2xs) var(--spacing-sm);
   border-radius: var(--radius-full);
-  line-height: var(--line-height-tight);
   flex-shrink: 0;
 }
 
@@ -82,12 +71,7 @@
   font-weight: var(--font-weight-medium);
 }
 
-.bookmark-tree-path-bookmark {
-  color: var(--color-text-muted);
-}
-
 .bookmark-tree-path-bookmark-title {
-  font-size: var(--font-size-xs);
   font-weight: var(--font-weight-normal);
   color: var(--color-text-muted);
   overflow: hidden;
