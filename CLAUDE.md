@@ -54,9 +54,18 @@ src/
 │   ├── MainContent/     # Thin orchestrator (header + tabs + active tab routing)
 │   ├── ServiceSelector/
 │   ├── TabNavigation/   # Ghost pill tab bar (Home, Organize, Insights, Discover)
+│   ├── BookmarkTreePath/ # Suggested location display (uses FolderTreeGroup)
+│   ├── FolderTreeGroup/ # Expandable group with chevron toggle (shared)
+│   ├── OrganizeScan/    # Scan + folder selection view
+│   ├── OrganizePlan/    # AI plan review with folder toggles
+│   ├── OrganizeProgress/# Batch progress bar + reassurance hint
+│   ├── OrganizeReview/  # Assignment review with approve/reject toggles
+│   ├── OrganizeComplete/# Success summary
+│   ├── OrganizeError/   # Error display + retry
+│   ├── OrganizeStatusView/ # Reusable status layout (icon + title + children)
 │   └── tabs/            # One component per tab content
 │       ├── HomeTab.tsx         # CurrentPageCard + organize flow
-│       ├── OrganizeTab.tsx     # Placeholder (future)
+│       ├── OrganizeTab.tsx     # Bulk organize orchestrator (state → component)
 │       ├── InsightsTab.tsx     # Placeholder (future)
 │       └── DiscoverTab.tsx     # Placeholder (future)
 ├── hooks/               # Custom React hooks (folder per hook)
@@ -68,26 +77,38 @@ src/
 │   │       ├── handleApiKeySave.ts
 │   │       ├── handleApiKeyTest.ts
 │   │       └── ...
-│   └── useOrganizeBookmark/    # Bookmark organize logic (reusable across tabs)
-│       ├── useOrganizeBookmark.ts
+│   ├── useOrganizeBookmark/    # Single-bookmark organize logic (Home tab)
+│   │   ├── useOrganizeBookmark.ts
+│   │   ├── types.ts
+│   │   └── index.ts
+│   └── useBulkOrganize/       # Bulk organize state machine (Organize tab)
+│       ├── useBulkOrganize.ts
 │       ├── types.ts
 │       └── index.ts
 ├── services/            # External API and Chrome API wrappers
 │   ├── ai/              # AI organization service
-│   │   ├── index.ts     # organizeBookmark (orchestration)
-│   │   ├── prompt.ts    # System prompt + user prompt builder
+│   │   ├── index.ts     # organizeBookmark — single-bookmark orchestration
+│   │   ├── prompt.ts    # Single-bookmark prompts
+│   │   ├── bulkOrganize.ts # Bulk orchestration (plan + assign)
+│   │   ├── bulkPrompt.ts   # Bulk prompts (planning + assignment)
 │   │   └── providers/   # One file per AI provider
 │   │       ├── gemini.ts
 │   │       ├── openai.ts
 │   │       ├── anthropic.ts
 │   │       └── openRouter.ts
 │   ├── bookmarks.ts     # Chrome Bookmarks API wrapper
+│   ├── organizeSession.ts # Session persistence to chrome.storage.local
 │   └── pageMetadata.ts  # Page metadata extraction (title, h1, meta)
 ├── config/              # Configuration DATA only
 │   ├── services.ts      # AI provider configurations
 │   └── loadingMessages.ts # Fun rotating loading messages for AI analysis
+├── background.ts        # Service worker — batch processing for bulk organize
 ├── types/               # TypeScript types/interfaces
+│   ├── organize.ts      # OrganizeSession state machine, CompactBookmark, FolderPlan
+│   └── messaging.ts     # Popup ↔ service worker message types
 ├── utils/               # Reusable utility functions
+│   ├── bookmarkScanner.ts # Flatten, filter, batch bookmark utilities
+│   └── folderDisplay.ts   # Path display helpers (stripRoot, getLastSegment)
 ├── styles/              # Design tokens (CSS variables)
 ├── pages/               # Page-level components
 └── App.tsx              # Root component only
@@ -157,10 +178,18 @@ src/
 | `src/utils/debug.ts` | Debug logging (silent in production builds) |
 | `src/styles/index.css` | Design tokens (all CSS variables) |
 | `src/hooks/apiKeyPanel/` | API key panel hook (folder with handlers) |
-| `src/hooks/useOrganizeBookmark/` | Organize logic hook (reusable across tabs) |
+| `src/hooks/useOrganizeBookmark/` | Single-bookmark organize hook (Home tab) |
+| `src/hooks/useBulkOrganize/` | Bulk organize state machine hook (Organize tab) |
+| `src/services/ai/bulkOrganize.ts` | Bulk AI orchestration (planFolderStructure, assignBookmarkBatch) |
+| `src/services/ai/bulkPrompt.ts` | Two-phase prompts: planning (folder structure) + assignment (per batch) |
+| `src/services/organizeSession.ts` | Session persistence (save/load/clear from chrome.storage.local) |
+| `src/background.ts` | Service worker — batch processing, retry, keepalive alarm |
+| `src/types/organize.ts` | OrganizeSession, state machine types, CompactBookmark, FolderPlan |
+| `src/types/messaging.ts` | Popup ↔ service worker message types |
 | `src/components/MainContent/` | Thin orchestrator (header + tabs + active tab routing) |
 | `src/components/TabNavigation/` | Ghost pill tab bar (config-driven, easy to add tabs) |
 | `src/components/CurrentPageCard/` | Page info card with dynamic organize/accept/decline |
+| `src/components/FolderTreeGroup/` | Shared expandable group component (used in scan, plan, review, Home) |
 | `src/components/tabs/` | One component per tab (HomeTab, OrganizeTab, InsightsTab, DiscoverTab) |
 
 ---
@@ -169,7 +198,7 @@ src/
 
 ### Storage Keys
 ```typescript
-geminiApiKey, openaiApiKey, anthropicApiKey, openrouterApiKey, selectedService
+geminiApiKey, openaiApiKey, anthropicApiKey, openrouterApiKey, selectedService, organizeSession
 ```
 
 ### Design Token Prefixes
