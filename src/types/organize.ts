@@ -24,6 +24,7 @@ export interface ProposedFolder {
   path: string;
   description: string;
   isNew: boolean;
+  isExcluded: boolean;
 }
 
 export interface FolderPlan {

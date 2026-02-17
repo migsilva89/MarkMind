@@ -75,6 +75,7 @@ export const parseFolderPlan = (responseText: string): FolderPlan => {
       path: String(folder.path ?? ''),
       description: String(folder.description ?? ''),
       isNew: Boolean(folder.isNew),
+      isExcluded: false,
     }));
 
     return {

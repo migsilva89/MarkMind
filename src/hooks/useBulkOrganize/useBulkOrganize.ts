@@ -274,13 +274,18 @@ export const useBulkOrganize = (): UseBulkOrganizeReturn => {
       await saveOrganizeSession(assigningSession);
       startLoadingMessages();
 
+      const approvedPlan = session.folderPlan ? {
+        ...session.folderPlan,
+        folders: session.folderPlan.folders.filter(folder => !folder.isExcluded),
+      } : session.folderPlan;
+
       console.log('[BulkOrganize] Session saved, sending START_BULK_ORGANIZE to service worker');
       chrome.runtime.sendMessage({
         type: 'START_BULK_ORGANIZE',
         payload: {
           serviceId: session.serviceId,
           bookmarks: session.bookmarksToOrganize,
-          approvedPlan: session.folderPlan,
+          approvedPlan,
           folderTree: session.folderTree,
           pathToIdMap: session.pathToIdMap,
           defaultParentId: session.defaultParentId,
@@ -305,16 +310,11 @@ export const useBulkOrganize = (): UseBulkOrganizeReturn => {
     setSession(previousSession => {
       if (!previousSession.folderPlan) return previousSession;
 
-      const currentFolders = previousSession.folderPlan.folders;
-      const isExcluded = !currentFolders.some(folder => folder.path === folderPath);
-
-      let updatedFolders;
-      if (isExcluded) {
-        // Re-include: we can't restore removed folders, so this only works for toggling off
-        return previousSession;
-      } else {
-        updatedFolders = currentFolders.filter(folder => folder.path !== folderPath);
-      }
+      const updatedFolders = previousSession.folderPlan.folders.map(folder =>
+        folder.path === folderPath
+          ? { ...folder, isExcluded: !folder.isExcluded }
+          : folder
+      );
 
       const updatedSession = {
         ...previousSession,
