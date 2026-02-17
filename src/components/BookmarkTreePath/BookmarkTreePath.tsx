@@ -1,5 +1,6 @@
-import { FolderIcon, DocumentIcon, PlusIcon } from '../icons/Icons';
-import { getDisplaySegments } from '../../utils/folders';
+import { DocumentIcon } from '../icons/Icons';
+import { stripRootSegment } from '../../utils/folderDisplay';
+import FolderTreeGroup from '../FolderTreeGroup/FolderTreeGroup';
 import './BookmarkTreePath.css';
 
 interface BookmarkTreePathProps {
@@ -15,52 +16,23 @@ const BookmarkTreePath = ({
   isNewFolder,
   label = 'Suggested location',
 }: BookmarkTreePathProps) => {
-  const segments = getDisplaySegments(folderPath);
-  const lastFolderIndex = segments.length - 1;
-
-  const getTargetRowClass = (index: number): string => {
-    if (index !== lastFolderIndex) return '';
-    return isNewFolder ? ' bookmark-tree-path-row-new' : ' bookmark-tree-path-row-target';
-  };
+  const cleanPath = stripRootSegment(folderPath);
+  const displayPath = cleanPath.split('/').join(' / ');
 
   return (
     <div className="bookmark-tree-path">
       <span className="bookmark-tree-path-label">{label}</span>
-      <div className="bookmark-tree-path-tree">
-        {segments.map((segment, index) => {
-          const isNewFolderRow = isNewFolder && index === lastFolderIndex;
-
-          return (
-            <div
-              key={`${segment.name}-${index}`}
-              className={`bookmark-tree-path-row${getTargetRowClass(index)}`}
-              style={{ paddingLeft: `calc(${segment.depth} * var(--spacing-2xl))` }}
-            >
-              {segment.isEllipsis ? (
-                <span className="bookmark-tree-path-ellipsis">{segment.name}</span>
-              ) : (
-                <>
-                  <FolderIcon width={12} height={12} />
-                  <span className="bookmark-tree-path-folder-name">{segment.name}</span>
-                  {isNewFolderRow && (
-                    <span className="bookmark-tree-path-new-badge">
-                      <PlusIcon width={8} height={8} />
-                      New
-                    </span>
-                  )}
-                </>
-              )}
-            </div>
-          );
-        })}
-        <div
-          className="bookmark-tree-path-row"
-          style={{ paddingLeft: `calc(${(segments[lastFolderIndex]?.depth ?? 0) + 1} * var(--spacing-2xl))` }}
-        >
-          <DocumentIcon width={12} height={12} />
+      <FolderTreeGroup
+        groupName={displayPath}
+        itemCount={1}
+        badge={isNewFolder ? 'New' : undefined}
+        defaultExpanded
+      >
+        <div className="bookmark-tree-path-item">
+          <DocumentIcon width={10} height={10} />
           <span className="bookmark-tree-path-bookmark-title">{bookmarkTitle}</span>
         </div>
-      </div>
+      </FolderTreeGroup>
       {isNewFolder && (
         <span className="bookmark-tree-path-new-hint">This folder will be created for you</span>
       )}
