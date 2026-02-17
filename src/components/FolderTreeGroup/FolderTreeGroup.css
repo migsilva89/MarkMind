@@ -1,0 +1,55 @@
+.folder-tree-group-header {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-md);
+  padding: var(--spacing-md) var(--spacing-xl);
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  width: 100%;
+  text-align: left;
+  font-size: var(--font-size-xs);
+  color: var(--color-text);
+  font-weight: var(--font-weight-medium);
+  transition: background-color 0.15s;
+}
+
+.folder-tree-group-header:hover {
+  background: var(--color-surface-hover);
+}
+
+.folder-tree-chevron {
+  display: flex;
+  align-items: center;
+  transition: transform 0.15s;
+  color: var(--color-text-muted);
+  flex-shrink: 0;
+}
+
+.folder-tree-chevron.expanded {
+  transform: rotate(90deg);
+}
+
+.folder-tree-group-name {
+  flex: 1;
+}
+
+.folder-tree-group-badge {
+  font-size: var(--font-size-2xs);
+  color: var(--color-text-light);
+  flex-shrink: 0;
+}
+
+.folder-tree-group-count {
+  font-size: var(--font-size-2xs);
+  color: var(--color-text-light);
+  flex-shrink: 0;
+}
+
+.folder-tree-group-children {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-2xs);
+  padding-left: var(--spacing-2xl);
+}

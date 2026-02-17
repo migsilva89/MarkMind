@@ -1,6 +1,9 @@
+import { useMemo } from 'react';
 import { type StatusType } from '../../types/common';
 import { type OrganizeSession } from '../../types/organize';
-import { SpinnerIcon, RefreshIcon, CheckIcon } from '../icons/Icons';
+import { groupByRootFolder, getLastSegment, stripRootSegment } from '../../utils/folderDisplay';
+import { SpinnerIcon, RefreshIcon, CheckIcon, XIcon } from '../icons/Icons';
+import FolderTreeGroup from '../FolderTreeGroup/FolderTreeGroup';
 import Button from '../Button/Button';
 import './OrganizePlan.css';
 
@@ -10,6 +13,7 @@ interface OrganizePlanProps {
   statusType: StatusType;
   onApprovePlan: () => void;
   onRejectPlan: () => void;
+  onToggleFolder: (folderPath: string) => void;
 }
 
 const OrganizePlan = ({
@@ -18,6 +22,7 @@ const OrganizePlan = ({
   statusType,
   onApprovePlan,
   onRejectPlan,
+  onToggleFolder,
 }: OrganizePlanProps) => {
   if (session.status === 'planning') {
     return (
@@ -37,19 +42,48 @@ const OrganizePlan = ({
   const { folders, summary } = session.folderPlan;
   const newFolderCount = folders.filter(folder => folder.isNew).length;
 
+  const folderGroups = useMemo(
+    () => groupByRootFolder(folders, folder => folder.path),
+    [folders]
+  );
+
   return (
     <div className="organize-plan">
       <div className="organize-plan-review">
         <p className="organize-plan-summary">{summary}</p>
 
         <div className="organize-plan-folder-list">
-          {folders.map(folder => (
-            <div key={folder.path} className="organize-plan-folder-item">
-              <span className="organize-plan-folder-path">{folder.path}</span>
-              <span className="organize-plan-folder-description">{folder.description}</span>
-              {folder.isNew && <span className="organize-plan-new-badge">New</span>}
-            </div>
-          ))}
+          {folderGroups.map(group => {
+            const groupNewCount = group.items.filter(folder => folder.isNew).length;
+
+            return (
+              <FolderTreeGroup
+                key={group.groupName}
+                groupName={group.groupName}
+                itemCount={group.items.length}
+                badge={groupNewCount > 0 ? `${groupNewCount} new` : undefined}
+              >
+                {group.items.map(folder => {
+                  const displayName = getLastSegment(stripRootSegment(folder.path));
+
+                  return (
+                    <div key={folder.path} className="organize-plan-folder-item">
+                      <span className="organize-plan-folder-path">{displayName}</span>
+                      <span className="organize-plan-folder-description">{folder.description}</span>
+                      {folder.isNew && <span className="organize-plan-new-badge">New</span>}
+                      <button
+                        className="organize-plan-remove-btn"
+                        onClick={() => onToggleFolder(folder.path)}
+                        title="Remove from plan"
+                      >
+                        <XIcon width={10} height={10} />
+                      </button>
+                    </div>
+                  );
+                })}
+              </FolderTreeGroup>
+            );
+          })}
         </div>
 
         <p className="organize-plan-summary">
@@ -60,7 +94,7 @@ const OrganizePlan = ({
       <div className="organize-plan-actions">
         <Button onClick={onApprovePlan} fullWidth>
           <CheckIcon />
-          Approve Plan
+          Approve Plan ({folders.length})
         </Button>
         <Button onClick={onRejectPlan} fullWidth>
           <RefreshIcon />

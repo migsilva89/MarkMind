@@ -36,18 +36,18 @@
   display: flex;
   flex-direction: column;
   gap: var(--spacing-xs);
-  max-height: 300px;
+  max-height: 350px;
   overflow-y: auto;
 }
 
 .organize-plan-folder-item {
   display: flex;
   align-items: center;
-  gap: var(--spacing-md);
-  padding: var(--spacing-md) var(--spacing-xl);
+  gap: var(--spacing-sm);
+  padding: var(--spacing-xs) var(--spacing-xl);
   border: 1px solid var(--color-border);
-  border-radius: var(--radius-md);
-  font-size: var(--font-size-xs);
+  border-radius: var(--radius-full);
+  font-size: var(--font-size-2xs);
 }
 
 .organize-plan-folder-path {
@@ -76,6 +76,25 @@
   padding: var(--spacing-2xs) var(--spacing-sm);
   border-radius: var(--radius-full);
   flex-shrink: 0;
+}
+
+.organize-plan-remove-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: var(--color-text-light);
+  padding: var(--spacing-2xs);
+  border-radius: var(--radius-sm);
+  flex-shrink: 0;
+  transition: color 0.15s, background-color 0.15s;
+}
+
+.organize-plan-remove-btn:hover {
+  color: var(--color-error);
+  background-color: var(--color-error-bg);
 }
 
 .organize-plan-actions {

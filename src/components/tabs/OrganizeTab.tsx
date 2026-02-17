@@ -17,6 +17,7 @@ const OrganizeTab = () => {
     handleStartPlanning,
     handleApprovePlan,
     handleRejectPlan,
+    handleTogglePlanFolder,
   } = useBulkOrganize();
 
   switch (session.status) {
@@ -44,6 +45,7 @@ const OrganizeTab = () => {
           statusType={statusType}
           onApprovePlan={handleApprovePlan}
           onRejectPlan={handleRejectPlan}
+          onToggleFolder={handleTogglePlanFolder}
         />
       );
 
