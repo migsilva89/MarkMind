@@ -19,6 +19,7 @@ const OrganizeTab = () => {
     handleSelectAllFolders,
     handleDeselectAllFolders,
     handleStartPlanning,
+    handleCancelPlanning,
     handleApprovePlan,
     handleRejectPlan,
     handleTogglePlanFolder,
@@ -52,6 +53,7 @@ const OrganizeTab = () => {
           statusType={statusType}
           onApprovePlan={handleApprovePlan}
           onRejectPlan={handleRejectPlan}
+          onCancelPlanning={handleCancelPlanning}
           onToggleFolder={handleTogglePlanFolder}
         />
       );

@@ -14,6 +14,7 @@ interface OrganizePlanProps {
   statusType: StatusType;
   onApprovePlan: () => void;
   onRejectPlan: () => void;
+  onCancelPlanning: () => void;
   onToggleFolder: (folderPath: string) => void;
 }
 
@@ -23,6 +24,7 @@ const OrganizePlan = ({
   statusType,
   onApprovePlan,
   onRejectPlan,
+  onCancelPlanning,
   onToggleFolder,
 }: OrganizePlanProps) => {
   const folders = session.folderPlan?.folders ?? [];
@@ -41,6 +43,10 @@ const OrganizePlan = ({
             ? statusMessage
             : 'Analyzing your bookmarks...'}
         />
+        <Button onClick={onCancelPlanning} fullWidth>
+          <XIcon width={12} height={12} />
+          Cancel
+        </Button>
       </div>
     );
   }
