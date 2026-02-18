@@ -20,17 +20,40 @@ export const useBulkOrganize = (): UseBulkOrganizeReturn => {
 
   const loadingMessageIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const loadingMessageIndexRef = useRef(0);
+  const planningCancelledRef = useRef(false);
 
   // Resume session from storage on mount
   useEffect(() => {
     const resumeSession = async (): Promise<void> => {
       try {
         const savedSession = await loadOrganizeSession();
-        if (savedSession && savedSession.status !== 'idle') {
-          setSession(savedSession);
-          if (savedSession.status === 'assigning') {
-            startLoadingMessages();
-          }
+        if (!savedSession || savedSession.status === 'idle') return;
+
+        // These states run in popup context — if popup closed mid-operation, reset to last safe state
+        if (savedSession.status === 'scanning') {
+          const resetSession = { ...savedSession, status: 'idle' as const };
+          setSession(resetSession);
+          await saveOrganizeSession(resetSession);
+          return;
+        }
+
+        if (savedSession.status === 'planning') {
+          const resetSession = { ...savedSession, status: 'selecting' as const, folderPlan: null };
+          setSession(resetSession);
+          await saveOrganizeSession(resetSession);
+          return;
+        }
+
+        if (savedSession.status === 'applying') {
+          const resetSession = { ...savedSession, status: 'reviewing_assignments' as const };
+          setSession(resetSession);
+          await saveOrganizeSession(resetSession);
+          return;
+        }
+
+        setSession(savedSession);
+        if (savedSession.status === 'assigning') {
+          startLoadingMessages();
         }
       } catch (error) {
         console.error('Error resuming organize session:', error);
@@ -216,6 +239,8 @@ export const useBulkOrganize = (): UseBulkOrganizeReturn => {
       const bookmarksToOrganize = filterBookmarksByFolders(session.allBookmarks, selectedFolderIds);
       if (bookmarksToOrganize.length === 0) return;
 
+      planningCancelledRef.current = false;
+
       await updateSession({
         status: 'planning',
         bookmarksToOrganize,
@@ -235,6 +260,8 @@ export const useBulkOrganize = (): UseBulkOrganizeReturn => {
 
       const folderPlan = await planFolderStructure(serviceId, bookmarksToOrganize, session.folderTree);
 
+      if (planningCancelledRef.current) return;
+
       clearLoadingMessages();
 
       await updateSession({
@@ -243,6 +270,7 @@ export const useBulkOrganize = (): UseBulkOrganizeReturn => {
         serviceId,
       });
     } catch (error) {
+      if (planningCancelledRef.current) return;
       console.error('Error planning folder structure:', error);
       clearLoadingMessages();
       await updateSession({
@@ -251,6 +279,15 @@ export const useBulkOrganize = (): UseBulkOrganizeReturn => {
       });
     }
   }, [session.selectedFolderIds, session.allBookmarks, session.folderTree, updateSession, startLoadingMessages, clearLoadingMessages]);
+
+  const handleCancelPlanning = useCallback((): void => {
+    planningCancelledRef.current = true;
+    clearLoadingMessages();
+    updateSession({
+      status: 'selecting',
+      folderPlan: null,
+    });
+  }, [clearLoadingMessages, updateSession]);
 
   const handleApprovePlan = useCallback(async (): Promise<void> => {
     try {
@@ -461,6 +498,7 @@ export const useBulkOrganize = (): UseBulkOrganizeReturn => {
     handleSelectAllFolders,
     handleDeselectAllFolders,
     handleStartPlanning,
+    handleCancelPlanning,
     handleApprovePlan,
     handleRejectPlan,
     handleTogglePlanFolder,
