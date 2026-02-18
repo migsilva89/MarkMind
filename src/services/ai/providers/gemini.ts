@@ -28,6 +28,12 @@ export const callGemini = async (
   }
 
   const data = await response.json();
+  const finishReason = data?.candidates?.[0]?.finishReason;
+
+  if (finishReason === 'MAX_TOKENS') {
+    throw new Error('Gemini response was truncated — the model ran out of output tokens. Please try again.');
+  }
+
   const text = data?.candidates?.[0]?.content?.parts?.[0]?.text;
 
   if (!text) {

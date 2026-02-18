@@ -10,8 +10,10 @@ import {
 import { callGemini, callOpenAI, callAnthropic, callOpenRouter } from './providers';
 import { debug } from '../../utils/debug';
 
-const PLANNING_MAX_TOKENS = 4096;
-const ASSIGNMENT_MAX_TOKENS = 1500;
+// Gemini 2.5 Flash uses "thinking" tokens that count against maxOutputTokens,
+// so these budgets must be high enough for both thinking and the actual response
+const PLANNING_MAX_TOKENS = 16384;
+const ASSIGNMENT_MAX_TOKENS = 8192;
 
 const getApiKey = async (serviceId: string): Promise<string> => {
   const service = SERVICES[serviceId];

@@ -30,6 +30,11 @@ export const callOpenAI = async (
   }
 
   const data = await response.json();
+
+  if (data?.choices?.[0]?.finish_reason === 'length') {
+    throw new Error('OpenAI response was truncated — the model ran out of output tokens. Please try again.');
+  }
+
   const text = data?.choices?.[0]?.message?.content;
 
   if (!text) {

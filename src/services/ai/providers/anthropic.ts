@@ -30,6 +30,11 @@ export const callAnthropic = async (
   }
 
   const data = await response.json();
+
+  if (data?.stop_reason === 'max_tokens') {
+    throw new Error('Anthropic response was truncated — the model ran out of output tokens. Please try again.');
+  }
+
   const text = data?.content?.[0]?.text;
 
   if (!text) {
