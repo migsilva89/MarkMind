@@ -2,7 +2,6 @@ import { useBulkOrganize } from '../../hooks/useBulkOrganize';
 import { SpinnerIcon } from '../icons/Icons';
 import OrganizeScan from '../OrganizeScan/OrganizeScan';
 import OrganizePlan from '../OrganizePlan/OrganizePlan';
-import OrganizeProgress from '../OrganizeProgress/OrganizeProgress';
 import OrganizeReview from '../OrganizeReview/OrganizeReview';
 import OrganizeComplete from '../OrganizeComplete/OrganizeComplete';
 import OrganizeError from '../OrganizeError/OrganizeError';
@@ -18,8 +17,7 @@ const OrganizeTab = () => {
     handleToggleFolder,
     handleSelectAllFolders,
     handleDeselectAllFolders,
-    handleStartPlanning,
-    handleCancelPlanning,
+    handleStartOrganizing,
     handleApprovePlan,
     handleRejectPlan,
     handleTogglePlanFolder,
@@ -40,29 +38,28 @@ const OrganizeTab = () => {
           onToggleFolder={handleToggleFolder}
           onSelectAll={handleSelectAllFolders}
           onDeselectAll={handleDeselectAllFolders}
-          onStartPlanning={handleStartPlanning}
+          onStartPlanning={handleStartOrganizing}
         />
       );
 
-    case 'planning':
+    case 'organizing':
+      return (
+        <OrganizeStatusView
+          icon={<SpinnerIcon width={24} height={24} />}
+          title={statusType === 'loading' && statusMessage
+            ? statusMessage
+            : 'Analyzing your bookmarks...'}
+          description="Feel free to close this popup — MarkMind keeps organizing in the background. Come back anytime to check progress."
+        />
+      );
+
     case 'reviewing_plan':
       return (
         <OrganizePlan
           session={session}
-          statusMessage={statusMessage}
-          statusType={statusType}
           onApprovePlan={handleApprovePlan}
           onRejectPlan={handleRejectPlan}
-          onCancelPlanning={handleCancelPlanning}
           onToggleFolder={handleTogglePlanFolder}
-        />
-      );
-
-    case 'assigning':
-      return (
-        <OrganizeProgress
-          session={session}
-          statusMessage={statusMessage}
         />
       );
 

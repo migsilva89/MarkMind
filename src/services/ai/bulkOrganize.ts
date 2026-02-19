@@ -1,19 +1,14 @@
-import { type FolderPlan, type BookmarkAssignment, type CompactBookmark } from '../../types/organize';
+import { type FolderPlan, type BookmarkAssignment, type CompactBookmark, type BulkOrganizeResult } from '../../types/organize';
 import { type FolderPathMap } from '../../types/bookmarks';
 import { SERVICES } from '../../config/services';
-import {
-  BULK_PLANNING_SYSTEM_PROMPT,
-  BULK_ASSIGNMENT_SYSTEM_PROMPT,
-  buildBulkPlanningUserPrompt,
-  buildBulkAssignmentUserPrompt,
-} from './bulkPrompt';
+import { BULK_ORGANIZE_SYSTEM_PROMPT, buildBulkOrganizeUserPrompt } from './bulkPrompt';
 import { callGemini, callOpenAI, callAnthropic, callOpenRouter } from './providers';
 import { debug } from '../../utils/debug';
 
 // Gemini 2.5 Flash uses "thinking" tokens that count against maxOutputTokens,
-// so these budgets must be high enough for both thinking and the actual response
-const PLANNING_MAX_TOKENS = 16384;
-const ASSIGNMENT_MAX_TOKENS = 8192;
+// so this budget must be high enough for both thinking and the full response.
+// 65536 = Gemini 2.5 Flash max. Other providers cap at their own limits.
+const ORGANIZE_MAX_TOKENS = 65536;
 
 const getApiKey = async (serviceId: string): Promise<string> => {
   const service = SERVICES[serviceId];
@@ -63,7 +58,11 @@ const extractJsonFromResponse = (responseText: string): string => {
   return trimmed;
 };
 
-export const parseFolderPlan = (responseText: string): FolderPlan => {
+const parseBulkOrganizeResponse = (
+  responseText: string,
+  bookmarks: CompactBookmark[],
+  pathToIdMap: FolderPathMap
+): BulkOrganizeResult => {
   const jsonText = extractJsonFromResponse(responseText);
 
   try {
@@ -73,6 +72,10 @@ export const parseFolderPlan = (responseText: string): FolderPlan => {
       throw new Error('Response missing "folders" array');
     }
 
+    if (!Array.isArray(parsed.assignments)) {
+      throw new Error('Response missing "assignments" array');
+    }
+
     const folders = parsed.folders.map((folder: Record<string, unknown>) => ({
       path: String(folder.path ?? ''),
       description: String(folder.description ?? ''),
@@ -80,37 +83,17 @@ export const parseFolderPlan = (responseText: string): FolderPlan => {
       isExcluded: false,
     }));
 
-    return {
+    const folderPlan: FolderPlan = {
       folders,
       summary: String(parsed.summary ?? ''),
     };
-  } catch (error) {
-    console.error('Failed to parse folder plan:', error, '\nResponse:', responseText);
-    throw new Error('Failed to parse AI folder plan response');
-  }
-};
 
-export const parseAssignments = (
-  responseText: string,
-  batch: CompactBookmark[],
-  approvedPlan: FolderPlan,
-  pathToIdMap: FolderPathMap
-): BookmarkAssignment[] => {
-  const jsonText = extractJsonFromResponse(responseText);
-
-  try {
-    const parsed = JSON.parse(jsonText);
-
-    if (!Array.isArray(parsed)) {
-      throw new Error('Response is not an array');
-    }
-
-    const bookmarkMap = new Map(batch.map(bookmark => [bookmark.id, bookmark]));
+    const bookmarkMap = new Map(bookmarks.map(bookmark => [bookmark.id, bookmark]));
     const newFolderPaths = new Set(
-      approvedPlan.folders.filter(folder => folder.isNew).map(folder => folder.path)
+      folders.filter((folder: { isNew: boolean }) => folder.isNew).map((folder: { path: string }) => folder.path)
     );
 
-    return parsed.map((entry: Record<string, unknown>) => {
+    const assignments: BookmarkAssignment[] = parsed.assignments.map((entry: Record<string, unknown>) => {
       const bookmarkId = String(entry.bookmarkId ?? '');
       const suggestedPath = String(entry.suggestedPath ?? '');
       const bookmark = bookmarkMap.get(bookmarkId);
@@ -130,52 +113,26 @@ export const parseAssignments = (
         isApproved: true,
       };
     });
+
+    return { folderPlan, assignments };
   } catch (error) {
-    console.error('Failed to parse assignments:', error, '\nResponse:', responseText);
-    throw new Error('Failed to parse AI assignment response');
+    console.error('Failed to parse bulk organize response:', error, '\nResponse:', responseText);
+    throw new Error('Failed to parse AI response');
   }
 };
 
-export const planFolderStructure = async (
+export const organizeBookmarks = async (
   serviceId: string,
   bookmarks: CompactBookmark[],
-  folderTree: string
-): Promise<FolderPlan> => {
-  const apiKey = await getApiKey(serviceId);
-  const userPrompt = buildBulkPlanningUserPrompt(bookmarks, folderTree);
-
-  debug(
-    '[BulkOrganize] Planning prompt:\n\n--- SYSTEM ---\n' +
-      BULK_PLANNING_SYSTEM_PROMPT +
-      '\n\n--- USER ---\n' +
-      userPrompt
-  );
-
-  const responseText = await callProvider(
-    serviceId,
-    apiKey,
-    BULK_PLANNING_SYSTEM_PROMPT,
-    userPrompt,
-    PLANNING_MAX_TOKENS
-  );
-
-  debug('[BulkOrganize] Planning response:', responseText);
-
-  return parseFolderPlan(responseText);
-};
-
-export const assignBookmarkBatch = async (
-  serviceId: string,
-  batch: CompactBookmark[],
-  approvedPlan: FolderPlan,
+  folderTree: string,
   pathToIdMap: FolderPathMap
-): Promise<BookmarkAssignment[]> => {
+): Promise<BulkOrganizeResult> => {
   const apiKey = await getApiKey(serviceId);
-  const userPrompt = buildBulkAssignmentUserPrompt(batch, approvedPlan);
+  const userPrompt = buildBulkOrganizeUserPrompt(bookmarks, folderTree);
 
   debug(
-    '[BulkOrganize] Assignment prompt:\n\n--- SYSTEM ---\n' +
-      BULK_ASSIGNMENT_SYSTEM_PROMPT +
+    '[BulkOrganize] Prompt:\n\n--- SYSTEM ---\n' +
+      BULK_ORGANIZE_SYSTEM_PROMPT +
       '\n\n--- USER ---\n' +
       userPrompt
   );
@@ -183,12 +140,12 @@ export const assignBookmarkBatch = async (
   const responseText = await callProvider(
     serviceId,
     apiKey,
-    BULK_ASSIGNMENT_SYSTEM_PROMPT,
+    BULK_ORGANIZE_SYSTEM_PROMPT,
     userPrompt,
-    ASSIGNMENT_MAX_TOKENS
+    ORGANIZE_MAX_TOKENS
   );
 
-  debug('[BulkOrganize] Assignment response:', responseText);
+  debug('[BulkOrganize] Response:', responseText);
 
-  return parseAssignments(responseText, batch, approvedPlan, pathToIdMap);
+  return parseBulkOrganizeResponse(responseText, bookmarks, pathToIdMap);
 };

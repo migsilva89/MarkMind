@@ -1,30 +1,22 @@
 import { useMemo } from 'react';
-import { type StatusType } from '../../types/common';
 import { type OrganizeSession } from '../../types/organize';
 import { groupByRootFolder, getLastSegment, stripRootSegment } from '../../utils/folderDisplay';
-import { SpinnerIcon, RefreshIcon, CheckIcon, XIcon } from '../icons/Icons';
+import { RefreshIcon, CheckIcon, XIcon } from '../icons/Icons';
 import FolderTreeGroup from '../FolderTreeGroup/FolderTreeGroup';
-import OrganizeStatusView from '../OrganizeStatusView/OrganizeStatusView';
 import Button from '../Button/Button';
 import './OrganizePlan.css';
 
 interface OrganizePlanProps {
   session: OrganizeSession;
-  statusMessage: string;
-  statusType: StatusType;
   onApprovePlan: () => void;
   onRejectPlan: () => void;
-  onCancelPlanning: () => void;
   onToggleFolder: (folderPath: string) => void;
 }
 
 const OrganizePlan = ({
   session,
-  statusMessage,
-  statusType,
   onApprovePlan,
   onRejectPlan,
-  onCancelPlanning,
   onToggleFolder,
 }: OrganizePlanProps) => {
   const folders = session.folderPlan?.folders ?? [];
@@ -33,23 +25,6 @@ const OrganizePlan = ({
     () => groupByRootFolder(folders, folder => folder.path),
     [folders]
   );
-
-  if (session.status === 'planning') {
-    return (
-      <div className="organize-plan">
-        <OrganizeStatusView
-          icon={<SpinnerIcon width={20} height={20} />}
-          title={statusType === 'loading' && statusMessage
-            ? statusMessage
-            : 'Analyzing your bookmarks...'}
-        />
-        <Button onClick={onCancelPlanning} fullWidth>
-          <XIcon width={12} height={12} />
-          Cancel
-        </Button>
-      </div>
-    );
-  }
 
   if (!session.folderPlan) return null;
 

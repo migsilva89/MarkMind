@@ -38,17 +38,6 @@ export const filterBookmarksByFolders = (
   return bookmarks.filter(bookmark => selectedSet.has(bookmark.currentFolderId));
 };
 
-export const createBatches = (
-  bookmarks: CompactBookmark[],
-  batchSize: number
-): CompactBookmark[][] => {
-  const batches: CompactBookmark[][] = [];
-  for (let startIndex = 0; startIndex < bookmarks.length; startIndex += batchSize) {
-    batches.push(bookmarks.slice(startIndex, startIndex + batchSize));
-  }
-  return batches;
-};
-
 export interface BookmarkStats {
   totalBookmarks: number;
   totalFolders: number;

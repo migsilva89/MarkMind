@@ -4,9 +4,8 @@ export type OrganizeSessionStatus =
   | 'idle'
   | 'scanning'
   | 'selecting'
-  | 'planning'
+  | 'organizing'
   | 'reviewing_plan'
-  | 'assigning'
   | 'reviewing_assignments'
   | 'applying'
   | 'completed'
@@ -43,12 +42,9 @@ export interface BookmarkAssignment {
   isApproved: boolean;
 }
 
-export interface BatchProgress {
-  totalBatches: number;
-  completedBatches: number;
-  totalBookmarks: number;
-  processedBookmarks: number;
-  failedBatches: number[];
+export interface BulkOrganizeResult {
+  folderPlan: FolderPlan;
+  assignments: BookmarkAssignment[];
 }
 
 export interface OrganizeSummary {
@@ -64,8 +60,6 @@ export interface OrganizeSession {
   bookmarksToOrganize: CompactBookmark[];
   folderPlan: FolderPlan | null;
   folderTree: string;
-  batches: CompactBookmark[][];
-  batchProgress: BatchProgress;
   assignments: BookmarkAssignment[];
   appliedCount: number;
   skippedCount: number;

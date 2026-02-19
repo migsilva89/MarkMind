@@ -2,16 +2,14 @@ import { useState, useEffect, useCallback, useRef, useMemo } from 'react';
 import { SELECTED_SERVICE_STORAGE_KEY } from '../../config/services';
 import { LOADING_MESSAGES, getNextLoadingMessage } from '../../config/loadingMessages';
 import { type StatusType } from '../../types/common';
-import { type OrganizeSession } from '../../types/organize';
-import { getBookmarkStats, flattenAllBookmarks, filterBookmarksByFolders, createBatches } from '../../utils/bookmarkScanner';
+import { type OrganizeSession, type BulkOrganizeResult } from '../../types/organize';
+import { getBookmarkStats, flattenAllBookmarks, filterBookmarksByFolders } from '../../utils/bookmarkScanner';
 import { getFolderDataForAI, buildIdToPathMap } from '../../utils/folders';
-import { planFolderStructure } from '../../services/ai/bulkOrganize';
 import { saveOrganizeSession, loadOrganizeSession, clearOrganizeSession, getInitialSession } from '../../services/organizeSession';
 import { moveBookmark, createFolderPath } from '../../services/bookmarks';
 import { type UseBulkOrganizeReturn } from './types';
 
 const LOADING_MESSAGE_INTERVAL_MS = 2000;
-const BATCH_SIZE = 25;
 
 export const useBulkOrganize = (): UseBulkOrganizeReturn => {
   const [session, setSession] = useState<OrganizeSession>(getInitialSession());
@@ -20,7 +18,6 @@ export const useBulkOrganize = (): UseBulkOrganizeReturn => {
 
   const loadingMessageIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const loadingMessageIndexRef = useRef(0);
-  const planningCancelledRef = useRef(false);
 
   // Resume session from storage on mount
   useEffect(() => {
@@ -29,7 +26,7 @@ export const useBulkOrganize = (): UseBulkOrganizeReturn => {
         const savedSession = await loadOrganizeSession();
         if (!savedSession || savedSession.status === 'idle') return;
 
-        // These states run in popup context — if popup closed mid-operation, reset to last safe state
+        // Scanning runs in popup context — if popup closed mid-scan, reset to idle
         if (savedSession.status === 'scanning') {
           const resetSession = { ...savedSession, status: 'idle' as const };
           setSession(resetSession);
@@ -37,13 +34,7 @@ export const useBulkOrganize = (): UseBulkOrganizeReturn => {
           return;
         }
 
-        if (savedSession.status === 'planning') {
-          const resetSession = { ...savedSession, status: 'selecting' as const, folderPlan: null };
-          setSession(resetSession);
-          await saveOrganizeSession(resetSession);
-          return;
-        }
-
+        // Applying runs in popup context — if popup closed mid-apply, reset to review
         if (savedSession.status === 'applying') {
           const resetSession = { ...savedSession, status: 'reviewing_assignments' as const };
           setSession(resetSession);
@@ -52,7 +43,9 @@ export const useBulkOrganize = (): UseBulkOrganizeReturn => {
         }
 
         setSession(savedSession);
-        if (savedSession.status === 'assigning') {
+
+        // AI call runs in service worker — show loading messages while waiting
+        if (savedSession.status === 'organizing') {
           startLoadingMessages();
         }
       } catch (error) {
@@ -75,29 +68,14 @@ export const useBulkOrganize = (): UseBulkOrganizeReturn => {
   // Listen for service worker messages
   useEffect(() => {
     const handleMessage = (message: { type: string; payload?: unknown }): void => {
-      if (message.type === 'ORGANIZE_BATCH_COMPLETE') {
-        const payload = message.payload as {
-          batchProgress: OrganizeSession['batchProgress'];
-          latestAssignments: OrganizeSession['assignments'];
-        };
-        setSession(previousSession => ({
-          ...previousSession,
-          batchProgress: payload.batchProgress,
-          assignments: [...previousSession.assignments, ...payload.latestAssignments],
-        }));
-      }
-
       if (message.type === 'ORGANIZE_COMPLETE') {
-        const payload = message.payload as {
-          assignments: OrganizeSession['assignments'];
-          batchProgress: OrganizeSession['batchProgress'];
-        };
+        const payload = message.payload as { result: BulkOrganizeResult };
         clearLoadingMessages();
         setSession(previousSession => ({
           ...previousSession,
-          status: 'reviewing_assignments',
-          assignments: payload.assignments,
-          batchProgress: payload.batchProgress,
+          status: 'reviewing_plan',
+          folderPlan: payload.result.folderPlan,
+          assignments: payload.result.assignments,
         }));
       }
 
@@ -231,7 +209,7 @@ export const useBulkOrganize = (): UseBulkOrganizeReturn => {
     });
   }, []);
 
-  const handleStartPlanning = useCallback(async (): Promise<void> => {
+  const handleStartOrganizing = useCallback(async (): Promise<void> => {
     try {
       const selectedFolderIds = session.selectedFolderIds ?? [];
       if (selectedFolderIds.length === 0) return;
@@ -239,106 +217,70 @@ export const useBulkOrganize = (): UseBulkOrganizeReturn => {
       const bookmarksToOrganize = filterBookmarksByFolders(session.allBookmarks, selectedFolderIds);
       if (bookmarksToOrganize.length === 0) return;
 
-      planningCancelledRef.current = false;
-
-      await updateSession({
-        status: 'planning',
-        bookmarksToOrganize,
-      });
-
-      startLoadingMessages();
-
       let serviceId = '';
       const storageResult = await chrome.storage.local.get([SELECTED_SERVICE_STORAGE_KEY]);
       serviceId = storageResult[SELECTED_SERVICE_STORAGE_KEY] ?? '';
 
       if (!serviceId) {
-        clearLoadingMessages();
         await updateSession({ status: 'error', errorMessage: 'No AI provider selected' });
         return;
       }
 
-      const folderPlan = await planFolderStructure(serviceId, bookmarksToOrganize, session.folderTree);
-
-      if (planningCancelledRef.current) return;
-
-      clearLoadingMessages();
-
       await updateSession({
-        status: 'reviewing_plan',
-        folderPlan,
+        status: 'organizing',
+        bookmarksToOrganize,
         serviceId,
       });
-    } catch (error) {
-      if (planningCancelledRef.current) return;
-      console.error('Error planning folder structure:', error);
-      clearLoadingMessages();
-      await updateSession({
-        status: 'error',
-        errorMessage: error instanceof Error ? error.message : 'Failed to plan folder structure',
-      });
-    }
-  }, [session.selectedFolderIds, session.allBookmarks, session.folderTree, updateSession, startLoadingMessages, clearLoadingMessages]);
 
-  const handleCancelPlanning = useCallback((): void => {
-    planningCancelledRef.current = true;
-    clearLoadingMessages();
-    updateSession({
-      status: 'selecting',
-      folderPlan: null,
-    });
-  }, [clearLoadingMessages, updateSession]);
-
-  const handleApprovePlan = useCallback(async (): Promise<void> => {
-    try {
-      const batches = createBatches(session.bookmarksToOrganize, BATCH_SIZE);
-
-      const assigningSession: OrganizeSession = {
-        ...session,
-        status: 'assigning',
-        batches,
-        assignments: [],
-        batchProgress: {
-          totalBatches: batches.length,
-          completedBatches: 0,
-          totalBookmarks: session.bookmarksToOrganize.length,
-          processedBookmarks: 0,
-          failedBatches: [],
-        },
-      };
-
-      setSession(assigningSession);
-      await saveOrganizeSession(assigningSession);
       startLoadingMessages();
 
-      const approvedPlan = session.folderPlan ? {
-        ...session.folderPlan,
-        folders: session.folderPlan.folders.filter(folder => !folder.isExcluded),
-      } : session.folderPlan;
-
       chrome.runtime.sendMessage({
-        type: 'START_BULK_ORGANIZE',
+        type: 'START_ORGANIZE',
         payload: {
-          serviceId: session.serviceId,
-          bookmarks: session.bookmarksToOrganize,
-          approvedPlan,
+          serviceId,
+          bookmarks: bookmarksToOrganize,
           folderTree: session.folderTree,
           pathToIdMap: session.pathToIdMap,
           defaultParentId: session.defaultParentId,
         },
       }).catch(error => {
-        console.error('Error starting bulk organize:', error);
+        console.error('Error starting organize:', error);
       });
     } catch (error) {
-      console.error('Error approving plan:', error);
+      console.error('Error starting organize:', error);
       clearLoadingMessages();
+      await updateSession({
+        status: 'error',
+        errorMessage: error instanceof Error ? error.message : 'Failed to start organization',
+      });
     }
-  }, [session, startLoadingMessages, clearLoadingMessages]);
+  }, [session.selectedFolderIds, session.allBookmarks, session.folderTree, session.pathToIdMap, session.defaultParentId, updateSession, startLoadingMessages, clearLoadingMessages]);
+
+  const handleApprovePlan = useCallback((): void => {
+    if (!session.folderPlan) return;
+
+    const excludedPaths = new Set(
+      session.folderPlan.folders
+        .filter(folder => folder.isExcluded)
+        .map(folder => folder.path)
+    );
+
+    // Filter out assignments for excluded folders
+    const filteredAssignments = excludedPaths.size > 0
+      ? session.assignments.filter(assignment => !excludedPaths.has(assignment.suggestedPath))
+      : session.assignments;
+
+    updateSession({
+      status: 'reviewing_assignments',
+      assignments: filteredAssignments,
+    });
+  }, [session.folderPlan, session.assignments, updateSession]);
 
   const handleRejectPlan = useCallback((): void => {
     updateSession({
       status: 'selecting',
       folderPlan: null,
+      assignments: [],
     });
   }, [updateSession]);
 
@@ -360,28 +302,6 @@ export const useBulkOrganize = (): UseBulkOrganizeReturn => {
         console.error('Error saving folder toggle:', error);
       });
       return updatedSession;
-    });
-  }, []);
-
-  const handleStartAssigning = useCallback((): void => {
-    startLoadingMessages();
-
-    chrome.runtime.sendMessage({
-      type: 'RESUME_BULK_ORGANIZE',
-    }).catch(error => {
-      console.error('Error resuming bulk organize:', error);
-    });
-  }, [startLoadingMessages]);
-
-  const handlePause = useCallback((): void => {
-    chrome.runtime.sendMessage({ type: 'PAUSE_BULK_ORGANIZE' }).catch(error => {
-      console.error('Error pausing bulk organize:', error);
-    });
-  }, []);
-
-  const handleResume = useCallback((): void => {
-    chrome.runtime.sendMessage({ type: 'RESUME_BULK_ORGANIZE' }).catch(error => {
-      console.error('Error resuming bulk organize:', error);
     });
   }, []);
 
@@ -497,14 +417,10 @@ export const useBulkOrganize = (): UseBulkOrganizeReturn => {
     handleToggleFolder,
     handleSelectAllFolders,
     handleDeselectAllFolders,
-    handleStartPlanning,
-    handleCancelPlanning,
+    handleStartOrganizing,
     handleApprovePlan,
     handleRejectPlan,
     handleTogglePlanFolder,
-    handleStartAssigning,
-    handlePause,
-    handleResume,
     handleToggleAssignment,
     handleApproveAllAssignments,
     handleRejectAllAssignments,
