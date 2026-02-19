@@ -4,8 +4,8 @@ import Button from '../Button/Button';
 import TabNavigation from '../TabNavigation/TabNavigation';
 import HomeTab from '../tabs/HomeTab';
 import OrganizeTab from '../tabs/OrganizeTab';
-import InsightsTab from '../tabs/InsightsTab';
 import DiscoverTab from '../tabs/DiscoverTab';
+import BlogTab from '../tabs/BlogTab';
 import Footer from '../Footer/Footer';
 
 interface MainContentProps {
@@ -22,15 +22,15 @@ const MainContent = ({ onOpenSettings }: MainContentProps) => {
   const renderActiveTab = () => {
     switch (activeTab) {
       case 'home':
-        return <HomeTab />;
+        return <HomeTab onTabChange={handleTabChange} onOpenSettings={onOpenSettings} />;
       case 'organize':
         return <OrganizeTab />;
-      case 'insights':
-        return <InsightsTab />;
       case 'discover':
         return <DiscoverTab />;
+      case 'blog':
+        return <BlogTab />;
       default:
-        return <HomeTab />;
+        return <HomeTab onTabChange={handleTabChange} onOpenSettings={onOpenSettings} />;
     }
   };
 
