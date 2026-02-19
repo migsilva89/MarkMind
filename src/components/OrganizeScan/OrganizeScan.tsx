@@ -1,6 +1,6 @@
 import { useMemo } from 'react';
 import { type OrganizeSession } from '../../types/organize';
-import { type BookmarkStats } from '../../utils/bookmarkScanner';
+import { type BookmarkStats } from '../../types/bookmarks';
 import { groupByRootFolder, getLastSegment, stripRootSegment } from '../../utils/folderDisplay';
 import { FolderIcon, SpinnerIcon, CheckIcon } from '../icons/Icons';
 import FolderTreeGroup from '../FolderTreeGroup/FolderTreeGroup';

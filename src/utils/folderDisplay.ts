@@ -1,3 +1,4 @@
+import { type FolderGroup } from '../types/bookmarks';
 import { splitFolderPath } from './folders';
 
 export const stripRootSegment = (path: string): string => {
@@ -10,11 +11,6 @@ export const getLastSegment = (path: string): string => {
   const segments = splitFolderPath(path);
   return segments[segments.length - 1];
 };
-
-export interface FolderGroup<T> {
-  groupName: string;
-  items: T[];
-}
 
 export const groupByRootFolder = <T>(
   items: T[],

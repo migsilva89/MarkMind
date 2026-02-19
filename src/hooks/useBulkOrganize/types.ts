@@ -1,6 +1,6 @@
 import { type StatusType } from '../../types/common';
 import { type OrganizeSession } from '../../types/organize';
-import { type BookmarkStats } from '../../utils/bookmarkScanner';
+import { type BookmarkStats } from '../../types/bookmarks';
 
 export interface UseBulkOrganizeReturn {
   session: OrganizeSession;

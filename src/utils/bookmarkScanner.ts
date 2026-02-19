@@ -1,4 +1,4 @@
-import { type ChromeBookmarkNode } from '../types/bookmarks';
+import { type ChromeBookmarkNode, type BookmarkStats } from '../types/bookmarks';
 import { type CompactBookmark } from '../types/organize';
 
 const traverseBookmarks = (
@@ -37,12 +37,6 @@ export const filterBookmarksByFolders = (
   const selectedSet = new Set(selectedFolderIds);
   return bookmarks.filter(bookmark => selectedSet.has(bookmark.currentFolderId));
 };
-
-export interface BookmarkStats {
-  totalBookmarks: number;
-  totalFolders: number;
-  byFolder: Map<string, number>;
-}
 
 export const getBookmarkStats = (bookmarks: CompactBookmark[]): BookmarkStats => {
   const byFolder = new Map<string, number>();
