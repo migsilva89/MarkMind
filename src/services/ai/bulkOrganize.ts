@@ -1,51 +1,13 @@
 import { type FolderPlan, type BookmarkAssignment, type CompactBookmark, type BulkOrganizeResult } from '../../types/organize';
 import { type FolderPathMap } from '../../types/bookmarks';
-import { SERVICES } from '../../config/services';
 import { BULK_ORGANIZE_SYSTEM_PROMPT, buildBulkOrganizeUserPrompt } from './bulkPrompt';
-import { callGemini, callOpenAI, callAnthropic, callOpenRouter } from './providers';
+import { getApiKey, callProvider } from './providerUtils';
 import { debug } from '../../utils/debug';
 
 // Gemini 2.5 Flash uses "thinking" tokens that count against maxOutputTokens,
 // so this budget must be high enough for both thinking and the full response.
 // 65536 = Gemini 2.5 Flash max. Other providers cap at their own limits.
 const ORGANIZE_MAX_TOKENS = 65536;
-
-const getApiKey = async (serviceId: string): Promise<string> => {
-  const service = SERVICES[serviceId];
-  if (!service) {
-    throw new Error(`Unknown service: ${serviceId}`);
-  }
-
-  const storageResult = await chrome.storage.local.get([service.storageKey]);
-  const apiKey = storageResult[service.storageKey];
-
-  if (!apiKey) {
-    throw new Error(`No API key found for ${service.name}`);
-  }
-
-  return apiKey;
-};
-
-const callProvider = async (
-  serviceId: string,
-  apiKey: string,
-  systemPrompt: string,
-  userPrompt: string,
-  maxTokens: number
-): Promise<string> => {
-  switch (serviceId) {
-    case 'google':
-      return callGemini(apiKey, systemPrompt, userPrompt, maxTokens);
-    case 'openai':
-      return callOpenAI(apiKey, systemPrompt, userPrompt, maxTokens);
-    case 'anthropic':
-      return callAnthropic(apiKey, systemPrompt, userPrompt, maxTokens);
-    case 'openrouter':
-      return callOpenRouter(apiKey, systemPrompt, userPrompt, maxTokens);
-    default:
-      throw new Error(`Unsupported service: ${serviceId}`);
-  }
-};
 
 const extractJsonFromResponse = (responseText: string): string => {
   const trimmed = responseText.trim();
