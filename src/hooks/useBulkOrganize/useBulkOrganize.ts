@@ -16,6 +16,11 @@ export const useBulkOrganize = (): UseBulkOrganizeReturn => {
   const [statusMessage, setStatusMessage] = useState('');
   const [statusType, setStatusType] = useState<StatusType>('default');
 
+  // Ref always holds the latest session — avoids stale closures in handlers
+  // and race conditions when multiple updates happen before React re-renders
+  const sessionRef = useRef<OrganizeSession>(session);
+  sessionRef.current = session;
+
   const loadingMessageIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const loadingMessageIndexRef = useRef(0);
 
@@ -116,18 +121,14 @@ export const useBulkOrganize = (): UseBulkOrganizeReturn => {
   }, []);
 
   const updateSession = useCallback(async (updates: Partial<OrganizeSession>): Promise<void> => {
-    let updatedSession: OrganizeSession | null = null;
-    setSession(previousSession => {
-      updatedSession = { ...previousSession, ...updates };
-      return updatedSession;
-    });
+    const updatedSession = { ...sessionRef.current, ...updates };
+    sessionRef.current = updatedSession;
+    setSession(updatedSession);
 
-    if (updatedSession) {
-      try {
-        await saveOrganizeSession(updatedSession);
-      } catch (error) {
-        console.error('Error saving organize session:', error);
-      }
+    try {
+      await saveOrganizeSession(updatedSession);
+    } catch (error) {
+      console.error('Error saving organize session:', error);
     }
   }, []);
 
@@ -211,15 +212,15 @@ export const useBulkOrganize = (): UseBulkOrganizeReturn => {
 
   const handleStartOrganizing = useCallback(async (): Promise<void> => {
     try {
-      const selectedFolderIds = session.selectedFolderIds ?? [];
+      const currentSession = sessionRef.current;
+      const selectedFolderIds = currentSession.selectedFolderIds ?? [];
       if (selectedFolderIds.length === 0) return;
 
-      const bookmarksToOrganize = filterBookmarksByFolders(session.allBookmarks, selectedFolderIds);
+      const bookmarksToOrganize = filterBookmarksByFolders(currentSession.allBookmarks, selectedFolderIds);
       if (bookmarksToOrganize.length === 0) return;
 
-      let serviceId = '';
       const storageResult = await chrome.storage.local.get([SELECTED_SERVICE_STORAGE_KEY]);
-      serviceId = storageResult[SELECTED_SERVICE_STORAGE_KEY] ?? '';
+      const serviceId = storageResult[SELECTED_SERVICE_STORAGE_KEY] ?? '';
 
       if (!serviceId) {
         await updateSession({ status: 'error', errorMessage: 'No AI provider selected' });
@@ -239,9 +240,9 @@ export const useBulkOrganize = (): UseBulkOrganizeReturn => {
         payload: {
           serviceId,
           bookmarks: bookmarksToOrganize,
-          folderTree: session.folderTree,
-          pathToIdMap: session.pathToIdMap,
-          defaultParentId: session.defaultParentId,
+          folderTree: currentSession.folderTree,
+          pathToIdMap: currentSession.pathToIdMap,
+          defaultParentId: currentSession.defaultParentId,
         },
       }).catch(error => {
         console.error('Error starting organize:', error);
@@ -254,27 +255,27 @@ export const useBulkOrganize = (): UseBulkOrganizeReturn => {
         errorMessage: error instanceof Error ? error.message : 'Failed to start organization',
       });
     }
-  }, [session.selectedFolderIds, session.allBookmarks, session.folderTree, session.pathToIdMap, session.defaultParentId, updateSession, startLoadingMessages, clearLoadingMessages]);
+  }, [updateSession, startLoadingMessages, clearLoadingMessages]);
 
   const handleApprovePlan = useCallback((): void => {
-    if (!session.folderPlan) return;
+    const currentSession = sessionRef.current;
+    if (!currentSession.folderPlan) return;
 
     const excludedPaths = new Set(
-      session.folderPlan.folders
+      currentSession.folderPlan.folders
         .filter(folder => folder.isExcluded)
         .map(folder => folder.path)
     );
 
-    // Filter out assignments for excluded folders
     const filteredAssignments = excludedPaths.size > 0
-      ? session.assignments.filter(assignment => !excludedPaths.has(assignment.suggestedPath))
-      : session.assignments;
+      ? currentSession.assignments.filter(assignment => !excludedPaths.has(assignment.suggestedPath))
+      : currentSession.assignments;
 
     updateSession({
       status: 'reviewing_assignments',
       assignments: filteredAssignments,
     });
-  }, [session.folderPlan, session.assignments, updateSession]);
+  }, [updateSession]);
 
   const handleRejectPlan = useCallback((): void => {
     updateSession({
@@ -350,12 +351,13 @@ export const useBulkOrganize = (): UseBulkOrganizeReturn => {
 
   const handleApplyMoves = useCallback(async (): Promise<void> => {
     try {
+      const currentSession = sessionRef.current;
       await updateSession({ status: 'applying', startedAt: Date.now() });
 
-      const approvedAssignments = session.assignments.filter(assignment => assignment.isApproved);
+      const approvedAssignments = currentSession.assignments.filter(assignment => assignment.isApproved);
       let appliedCount = 0;
       let skippedCount = 0;
-      const mutablePathToIdMap = { ...session.pathToIdMap };
+      const mutablePathToIdMap = { ...currentSession.pathToIdMap };
 
       for (const assignment of approvedAssignments) {
         try {
@@ -365,7 +367,7 @@ export const useBulkOrganize = (): UseBulkOrganizeReturn => {
             targetFolderId = await createFolderPath(
               assignment.suggestedPath,
               mutablePathToIdMap,
-              session.defaultParentId
+              currentSession.defaultParentId
             );
           }
 
@@ -382,7 +384,7 @@ export const useBulkOrganize = (): UseBulkOrganizeReturn => {
         }
       }
 
-      const rejectedCount = session.assignments.length - approvedAssignments.length;
+      const rejectedCount = currentSession.assignments.length - approvedAssignments.length;
 
       await updateSession({
         status: 'completed',
@@ -398,7 +400,7 @@ export const useBulkOrganize = (): UseBulkOrganizeReturn => {
         errorMessage: error instanceof Error ? error.message : 'Failed to apply bookmark moves',
       });
     }
-  }, [session.assignments, session.pathToIdMap, session.defaultParentId, updateSession]);
+  }, [updateSession]);
 
   const handleReset = useCallback((): void => {
     clearLoadingMessages();
