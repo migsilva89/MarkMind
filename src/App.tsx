@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback } from 'react';
 import ApiKeyPanel from './components/ApiKeyPanel/ApiKeyPanel';
 import MainContent from './components/MainContent/MainContent';
 import { SERVICES } from './config/services';
+import { initSelectedState } from './services/selectedState';
 
 const App = () => {
   const [showApiKeyPanel, setShowApiKeyPanel] = useState(false);
@@ -19,6 +20,8 @@ const App = () => {
     if (!hasKey) {
       setShowApiKeyPanel(true);
     }
+
+    await initSelectedState();
   }, []);
 
   useEffect(() => {
