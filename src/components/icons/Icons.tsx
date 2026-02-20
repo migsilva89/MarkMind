@@ -44,17 +44,6 @@ export const ArrowRightIcon = ({ width = 14, height = 14 }: IconProps) => (
   </svg>
 );
 
-export const CloseIcon = () => (
-  <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
-    <path
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      strokeWidth="2"
-      d="M6 18L18 6M6 6l12 12"
-    />
-  </svg>
-);
-
 export const KeyIcon = () => (
   <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
     <path
@@ -144,6 +133,23 @@ export const PlusIcon = ({ width = 14, height = 14 }: IconProps) => (
       strokeLinejoin="round"
       strokeWidth="2"
       d="M12 4v16m8-8H4"
+    />
+  </svg>
+);
+
+export const CheckCircleIcon = ({ width = 14, height = 14 }: IconProps) => (
+  <svg
+    fill="none"
+    stroke="currentColor"
+    viewBox="0 0 24 24"
+    width={width}
+    height={height}
+  >
+    <path
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      strokeWidth="2"
+      d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
     />
   </svg>
 );
@@ -280,6 +286,40 @@ export const BugIcon = ({ width = 14, height = 14 }: IconProps) => (
       strokeLinejoin="round"
       strokeWidth="2"
       d="M12 12v4m0-4a4 4 0 00-4 4v1a4 4 0 008 0v-1a4 4 0 00-4-4zm0 0V8m0 0a2 2 0 10-.001-4.001A2 2 0 0012 8zm-4 4H3m18 0h-5m-8 4H3m18 0h-5M9 8l-2-2m8 2l2-2"
+    />
+  </svg>
+);
+
+export const ChevronDownIcon = ({ width = 14, height = 14 }: IconProps) => (
+  <svg
+    fill="none"
+    stroke="currentColor"
+    viewBox="0 0 24 24"
+    width={width}
+    height={height}
+  >
+    <path
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      strokeWidth="2"
+      d="M19 9l-7 7-7-7"
+    />
+  </svg>
+);
+
+export const InfoIcon = ({ width = 14, height = 14 }: IconProps) => (
+  <svg
+    fill="none"
+    stroke="currentColor"
+    viewBox="0 0 24 24"
+    width={width}
+    height={height}
+  >
+    <path
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      strokeWidth="2"
+      d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
     />
   </svg>
 );
