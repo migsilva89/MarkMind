@@ -6,9 +6,10 @@ import {
   StarIcon,
   ArrowLeftIcon,
   ArrowRightIcon,
-  CloseIcon,
   KeyIcon,
   ShieldIcon,
+  CheckCircleIcon,
+  InfoIcon,
 } from '../icons/Icons';
 import Footer from '../Footer/Footer';
 import './ApiKeyPanel.css';
@@ -29,20 +30,29 @@ const ApiKeyPanel = ({
   const {
     currentService,
     apiKeyInput,
+    selectedModel,
     hasExistingKey,
+    isEditingKey,
     status,
+    buttonError,
     handleServiceChange,
+    handleModelChange,
     handleApiKeyInputChange,
     handleApiKeySave,
     handleApiKeyInputKeyDown,
-    handleApiKeyTest,
     handleApiKeyRemove,
+    handleStartEditingKey,
+    handleCancelEditing,
     handleOverlayClick,
     handleGoToApp,
     handlePanelClose,
   } = useApiKeyPanel({ isOpen, canClose, onClose });
 
   if (!isOpen) return null;
+
+  const hasModelSelected = selectedModel !== '';
+  const showApiKeyCard = hasModelSelected || hasExistingKey;
+  const showConfiguredState = hasExistingKey && !isEditingKey;
 
   return (
     <div className="api-key-panel active">
@@ -80,9 +90,6 @@ const ApiKeyPanel = ({
                 </Button>
                 <h2 className="header-title">Settings</h2>
               </div>
-              <Button variant="icon" onClick={handlePanelClose} title="Close">
-                <CloseIcon />
-              </Button>
             </div>
           )}
         </header>
@@ -95,59 +102,108 @@ const ApiKeyPanel = ({
             </div>
           )}
 
-          <ServiceSelector onServiceChange={handleServiceChange} />
+          <ServiceSelector
+            onServiceChange={handleServiceChange}
+            onModelChange={handleModelChange}
+          />
 
-          <div className="api-key-card">
-            <div className="api-key-card-header">
-              <div className="api-key-icon">
-                <KeyIcon />
-              </div>
-              <div className="api-key-titles">
-                <h3 className="api-key-title">{currentService.label}</h3>
-                <p className="api-key-subtitle">Required for AI features</p>
-              </div>
-            </div>
-
-            <input
-              type="password"
-              value={apiKeyInput}
-              onChange={handleApiKeyInputChange}
-              onKeyDown={handleApiKeyInputKeyDown}
-              placeholder={hasExistingKey ? '••••••••••••••••' : currentService.placeholder}
-              autoComplete="off"
-            />
-
-            <div className="api-key-actions">
-              <Button variant="primary" onClick={handleApiKeySave} className="btn-save">
-                {hasExistingKey ? 'Update API Key' : 'Save API Key'}
-              </Button>
-              {hasExistingKey && (
-                <Button onClick={handleApiKeyTest}>
-                  Test API
-                </Button>
+          {showApiKeyCard && (
+            <div className="api-key-card">
+              {currentService.freeTierNote && (
+                <div className="api-key-card-info-trigger">
+                  <InfoIcon width={12} height={12} />
+                  <div className="api-key-card-info-tooltip">
+                    {currentService.freeTierNote}
+                  </div>
+                </div>
               )}
-            </div>
+              {showConfiguredState ? (
+                <div className="api-key-configured">
+                  <div className="api-key-configured-badge">
+                    <CheckCircleIcon width={20} height={20} />
+                    <div className="api-key-configured-info">
+                      <h3 className="api-key-configured-title">API Key Configured</h3>
+                      <p className="api-key-configured-subtitle">You're all set!</p>
+                    </div>
+                  </div>
 
-            <p className="api-key-help">
-              Get your API key at{' '}
-              <a
-                href={currentService.helpLink}
-                target="_blank"
-                rel="noopener noreferrer"
-              >
-                {currentService.helpLinkText}
-              </a>
-            </p>
-          </div>
+                  <Button onClick={handleGoToApp} className="btn-go-to-app">
+                    Start Organizing Bookmarks
+                    <ArrowRightIcon />
+                  </Button>
 
-          {status.type && (
-            <div className={`status-container ${status.type}`}>
-              <div className={`status ${status.type}`}>{status.message}</div>
-              {status.showGoToApp && (
-                <Button onClick={handleGoToApp} className="btn-go-to-app">
-                  Start Organizing Bookmarks
-                  <ArrowRightIcon />
-                </Button>
+                  <button
+                    className="api-key-change-link"
+                    onClick={handleStartEditingKey}
+                    type="button"
+                  >
+                    Change API Key
+                  </button>
+                </div>
+              ) : (
+                <>
+                  <div className="api-key-card-header">
+                    <div className="api-key-icon">
+                      <KeyIcon />
+                    </div>
+                    <div className="api-key-titles">
+                      <h3 className="api-key-title">{currentService.label}</h3>
+                      <p className="api-key-subtitle">Required for AI features</p>
+                    </div>
+                  </div>
+
+                  <input
+                    type="password"
+                    value={apiKeyInput}
+                    onChange={handleApiKeyInputChange}
+                    onKeyDown={handleApiKeyInputKeyDown}
+                    placeholder={hasExistingKey ? '••••••••••••••••' : currentService.placeholder}
+                    autoComplete="off"
+                  />
+
+                  <div className="api-key-actions">
+                    <Button
+                      variant="primary"
+                      onClick={handleApiKeySave}
+                      className={`btn-save${buttonError ? ' btn-save-error' : ''}`}
+                    >
+                      {buttonError || (hasExistingKey ? 'Update API Key' : 'Save API Key')}
+                    </Button>
+                  </div>
+
+                  {hasExistingKey && isEditingKey && (
+                    <button
+                      className="api-key-change-link"
+                      onClick={handleCancelEditing}
+                      type="button"
+                    >
+                      Cancel
+                    </button>
+                  )}
+
+                  {status.type && (
+                    <div className="api-key-card-status">
+                      <div className={`status ${status.type}`}>{status.message}</div>
+                      {status.showGoToApp && (
+                        <Button onClick={handleGoToApp} className="btn-go-to-app">
+                          Start Organizing Bookmarks
+                          <ArrowRightIcon />
+                        </Button>
+                      )}
+                    </div>
+                  )}
+
+                  <p className="api-key-help">
+                    Get your API key at{' '}
+                    <a
+                      href={currentService.helpLink}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                    >
+                      {currentService.helpLinkText}
+                    </a>
+                  </p>
+                </>
               )}
             </div>
           )}
@@ -169,7 +225,7 @@ const ApiKeyPanel = ({
             </p>
           </div>
 
-          {hasExistingKey && (
+          {showApiKeyCard && hasExistingKey && (
             <div className="danger-zone">
               <h3 className="danger-zone-title">Danger Zone</h3>
               <Button variant="danger" fullWidth onClick={handleApiKeyRemove}>
