@@ -10,6 +10,7 @@ import { moveBookmark, createFolderPath } from '../../services/bookmarks';
 import { type UseBulkOrganizeReturn } from './types';
 
 const LOADING_MESSAGE_INTERVAL_MS = 2000;
+const DEBOUNCE_SAVE_MS = 500;
 
 export const useBulkOrganize = (): UseBulkOrganizeReturn => {
   const [session, setSession] = useState<OrganizeSession>(getInitialSession());
@@ -23,6 +24,39 @@ export const useBulkOrganize = (): UseBulkOrganizeReturn => {
 
   const loadingMessageIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const loadingMessageIndexRef = useRef(0);
+  const debouncedSaveRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  const clearLoadingMessages = useCallback((): void => {
+    if (loadingMessageIntervalRef.current) {
+      clearInterval(loadingMessageIntervalRef.current);
+      loadingMessageIntervalRef.current = null;
+    }
+    setStatusMessage('');
+    setStatusType('default');
+  }, []);
+
+  const startLoadingMessages = useCallback((): void => {
+    loadingMessageIndexRef.current = 0;
+    setStatusMessage(LOADING_MESSAGES[0]);
+    setStatusType('loading');
+
+    loadingMessageIntervalRef.current = setInterval(() => {
+      const { message, nextIndex } = getNextLoadingMessage(loadingMessageIndexRef.current);
+      loadingMessageIndexRef.current = nextIndex;
+      setStatusMessage(message);
+    }, LOADING_MESSAGE_INTERVAL_MS);
+  }, []);
+
+  const debouncedSaveSession = useCallback((sessionToSave: OrganizeSession): void => {
+    if (debouncedSaveRef.current) {
+      clearTimeout(debouncedSaveRef.current);
+    }
+    debouncedSaveRef.current = setTimeout(() => {
+      saveOrganizeSession(sessionToSave).catch(error => {
+        console.error('Error saving session:', error);
+      });
+    }, DEBOUNCE_SAVE_MS);
+  }, []);
 
   // Resume session from storage on mount
   useEffect(() => {
@@ -59,13 +93,16 @@ export const useBulkOrganize = (): UseBulkOrganizeReturn => {
     };
 
     resumeSession();
-  }, []);
+  }, [startLoadingMessages]);
 
-  // Cleanup loading message interval on unmount
+  // Cleanup timers on unmount
   useEffect(() => {
     return () => {
       if (loadingMessageIntervalRef.current) {
         clearInterval(loadingMessageIntervalRef.current);
+      }
+      if (debouncedSaveRef.current) {
+        clearTimeout(debouncedSaveRef.current);
       }
     };
   }, []);
@@ -97,28 +134,7 @@ export const useBulkOrganize = (): UseBulkOrganizeReturn => {
 
     chrome.runtime.onMessage.addListener(handleMessage);
     return () => chrome.runtime.onMessage.removeListener(handleMessage);
-  }, []);
-
-  const clearLoadingMessages = useCallback((): void => {
-    if (loadingMessageIntervalRef.current) {
-      clearInterval(loadingMessageIntervalRef.current);
-      loadingMessageIntervalRef.current = null;
-    }
-    setStatusMessage('');
-    setStatusType('default');
-  }, []);
-
-  const startLoadingMessages = useCallback((): void => {
-    loadingMessageIndexRef.current = 0;
-    setStatusMessage(LOADING_MESSAGES[0]);
-    setStatusType('loading');
-
-    loadingMessageIntervalRef.current = setInterval(() => {
-      const { message, nextIndex } = getNextLoadingMessage(loadingMessageIndexRef.current);
-      loadingMessageIndexRef.current = nextIndex;
-      setStatusMessage(message);
-    }, LOADING_MESSAGE_INTERVAL_MS);
-  }, []);
+  }, [clearLoadingMessages]);
 
   const updateSession = useCallback(async (updates: Partial<OrganizeSession>): Promise<void> => {
     const updatedSession = { ...sessionRef.current, ...updates };
@@ -182,12 +198,10 @@ export const useBulkOrganize = (): UseBulkOrganizeReturn => {
         : [...currentSelected, folderId];
 
       const updatedSession = { ...previousSession, selectedFolderIds: updatedFolderIds };
-      saveOrganizeSession(updatedSession).catch(error => {
-        console.error('Error saving folder selection:', error);
-      });
+      debouncedSaveSession(updatedSession);
       return updatedSession;
     });
-  }, []);
+  }, [debouncedSaveSession]);
 
   const handleSelectAllFolders = useCallback((): void => {
     setSession(previousSession => {
@@ -244,8 +258,13 @@ export const useBulkOrganize = (): UseBulkOrganizeReturn => {
           pathToIdMap: currentSession.pathToIdMap,
           defaultParentId: currentSession.defaultParentId,
         },
-      }).catch(error => {
+      }).catch(async (error) => {
         console.error('Error starting organize:', error);
+        clearLoadingMessages();
+        await updateSession({
+          status: 'error',
+          errorMessage: 'Failed to connect to background service. Please reload the extension.',
+        });
       });
     } catch (error) {
       console.error('Error starting organize:', error);
@@ -299,12 +318,10 @@ export const useBulkOrganize = (): UseBulkOrganizeReturn => {
         ...previousSession,
         folderPlan: { ...previousSession.folderPlan, folders: updatedFolders },
       };
-      saveOrganizeSession(updatedSession).catch(error => {
-        console.error('Error saving folder toggle:', error);
-      });
+      debouncedSaveSession(updatedSession);
       return updatedSession;
     });
-  }, []);
+  }, [debouncedSaveSession]);
 
   const handleToggleAssignment = useCallback((bookmarkId: string): void => {
     setSession(previousSession => {
@@ -314,45 +331,15 @@ export const useBulkOrganize = (): UseBulkOrganizeReturn => {
           : assignment
       );
       const updatedSession = { ...previousSession, assignments: updatedAssignments };
-      saveOrganizeSession(updatedSession).catch(error => {
-        console.error('Error saving assignment toggle:', error);
-      });
+      debouncedSaveSession(updatedSession);
       return updatedSession;
     });
-  }, []);
-
-  const handleApproveAllAssignments = useCallback((): void => {
-    setSession(previousSession => {
-      const updatedAssignments = previousSession.assignments.map(assignment => ({
-        ...assignment,
-        isApproved: true,
-      }));
-      const updatedSession = { ...previousSession, assignments: updatedAssignments };
-      saveOrganizeSession(updatedSession).catch(error => {
-        console.error('Error saving approve all:', error);
-      });
-      return updatedSession;
-    });
-  }, []);
-
-  const handleRejectAllAssignments = useCallback((): void => {
-    setSession(previousSession => {
-      const updatedAssignments = previousSession.assignments.map(assignment => ({
-        ...assignment,
-        isApproved: false,
-      }));
-      const updatedSession = { ...previousSession, assignments: updatedAssignments };
-      saveOrganizeSession(updatedSession).catch(error => {
-        console.error('Error saving reject all:', error);
-      });
-      return updatedSession;
-    });
-  }, []);
+  }, [debouncedSaveSession]);
 
   const handleApplyMoves = useCallback(async (): Promise<void> => {
     try {
-      const currentSession = sessionRef.current;
       await updateSession({ status: 'applying', startedAt: Date.now() });
+      const currentSession = sessionRef.current;
 
       const approvedAssignments = currentSession.assignments.filter(assignment => assignment.isApproved);
       let appliedCount = 0;
@@ -424,8 +411,6 @@ export const useBulkOrganize = (): UseBulkOrganizeReturn => {
     handleRejectPlan,
     handleTogglePlanFolder,
     handleToggleAssignment,
-    handleApproveAllAssignments,
-    handleRejectAllAssignments,
     handleApplyMoves,
     handleReset,
   };
