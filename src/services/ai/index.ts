@@ -6,6 +6,7 @@ import { debug } from '../../utils/debug';
 
 export const organizeBookmark = async (
   serviceId: string,
+  selectedModel: string,
   request: AIOrganizeRequest
 ): Promise<AIOrganizeResponse> => {
   const service = SERVICES[serviceId];
@@ -26,23 +27,25 @@ export const organizeBookmark = async (
     '[AI] Full prompt sent:\n\n--- SYSTEM ---\n' +
       SYSTEM_PROMPT +
       '\n\n--- USER ---\n' +
-      userPrompt
+      userPrompt +
+      '\n\n--- MODEL ---\n' +
+      selectedModel
   );
 
   let folderPath: string;
 
   switch (serviceId) {
     case 'google':
-      folderPath = await callGemini(apiKey, SYSTEM_PROMPT, userPrompt);
+      folderPath = await callGemini(apiKey, SYSTEM_PROMPT, userPrompt, selectedModel);
       break;
     case 'openai':
-      folderPath = await callOpenAI(apiKey, SYSTEM_PROMPT, userPrompt);
+      folderPath = await callOpenAI(apiKey, SYSTEM_PROMPT, userPrompt, selectedModel);
       break;
     case 'anthropic':
-      folderPath = await callAnthropic(apiKey, SYSTEM_PROMPT, userPrompt);
+      folderPath = await callAnthropic(apiKey, SYSTEM_PROMPT, userPrompt, selectedModel);
       break;
     case 'openrouter':
-      folderPath = await callOpenRouter(apiKey, SYSTEM_PROMPT, userPrompt);
+      folderPath = await callOpenRouter(apiKey, SYSTEM_PROMPT, userPrompt, selectedModel);
       break;
     default:
       throw new Error(`Unsupported service: ${serviceId}`);

@@ -29,3 +29,40 @@ export const extractApiErrorMessage = (responseBody: string): string | null => {
     return null;
   }
 };
+
+export const throwApiResponseError = async (providerName: string, response: Response): Promise<never> => {
+  const errorBody = await response.text();
+  console.error(`${providerName} API error [${response.status}]:`, errorBody);
+  const rawMessage = extractApiErrorMessage(errorBody);
+  throw new Error(humanizeApiError(rawMessage || `${providerName} error: ${response.status}`, response.status));
+};
+
+export const humanizeApiError = (rawMessage: string, statusCode: number): string => {
+  const lower = rawMessage.toLowerCase();
+
+  if (statusCode === 429 || lower.includes('quota') || lower.includes('rate limit')) {
+    return 'Rate limit reached. Wait a moment or try a different model.';
+  }
+
+  if (statusCode === 401 || lower.includes('unauthorized') || lower.includes('invalid api key') || lower.includes('incorrect api key')) {
+    return 'Invalid API key. Please check your key in Settings.';
+  }
+
+  if (statusCode === 403 || lower.includes('forbidden') || lower.includes('permission')) {
+    return 'Access denied. This model may not be available on your plan.';
+  }
+
+  if (statusCode === 404 || lower.includes('not found') || lower.includes('does not exist')) {
+    return 'Model not available. Try selecting a different model.';
+  }
+
+  if (statusCode >= 500) {
+    return 'AI service temporarily unavailable. Please try again later.';
+  }
+
+  if (rawMessage.length > 120) {
+    return rawMessage.slice(0, 117) + '...';
+  }
+
+  return rawMessage;
+};
