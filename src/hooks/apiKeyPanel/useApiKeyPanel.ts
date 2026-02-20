@@ -87,8 +87,9 @@ export const useApiKeyPanel = ({ isOpen, canClose, onClose }: UseApiKeyPanelProp
       setHasExistingKey,
       setApiKeyInput,
       showStatusMessage,
+      onClose,
     }),
-    [currentService, showStatusMessage]
+    [currentService, showStatusMessage, onClose]
   );
 
   const handleApiKeyInputChange = useCallback(
