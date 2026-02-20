@@ -7,7 +7,6 @@ import {
 } from './types';
 import {
   createHandleApiKeySave,
-  createHandleApiKeyTest,
   createHandleApiKeyRemove,
   createHandleServiceChange,
   createHandlePanelClose,
@@ -18,7 +17,9 @@ export const useApiKeyPanel = ({ isOpen, canClose, onClose }: UseApiKeyPanelProp
     getService(DEFAULT_SERVICE_ID)
   );
   const [apiKeyInput, setApiKeyInput] = useState('');
+  const [selectedModel, setSelectedModel] = useState<string>('');
   const [hasExistingKey, setHasExistingKey] = useState(false);
+  const [isEditingKey, setIsEditingKey] = useState(false);
   const [status, setStatus] = useState<ApiKeyPanelStatusMessage>({
     message: '',
     type: null,
@@ -26,6 +27,8 @@ export const useApiKeyPanel = ({ isOpen, canClose, onClose }: UseApiKeyPanelProp
   });
   const [canClosePanel, setCanClosePanel] = useState(canClose);
   const autoCloseTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const [buttonError, setButtonError] = useState('');
+  const buttonErrorTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const checkExistingApiKey = useCallback(async (service: ServiceConfig): Promise<boolean> => {
     const result = await chrome.storage.local.get([service.storageKey]);
@@ -53,32 +56,55 @@ export const useApiKeyPanel = ({ isOpen, canClose, onClose }: UseApiKeyPanelProp
       setApiKeyInput,
       clearStatus,
       checkExistingApiKey,
+      setSelectedModel,
     }),
     [clearStatus, checkExistingApiKey]
   );
+
+  const handleModelChange = useCallback((modelId: string): void => {
+    setSelectedModel(modelId);
+  }, []);
+
+  const showButtonError = useCallback((message: string): void => {
+    if (buttonErrorTimeoutRef.current) {
+      clearTimeout(buttonErrorTimeoutRef.current);
+    }
+    setButtonError(message);
+    buttonErrorTimeoutRef.current = setTimeout(() => {
+      setButtonError('');
+      buttonErrorTimeoutRef.current = null;
+    }, 3000);
+  }, []);
+
+  const handleStartEditingKey = useCallback((): void => {
+    setIsEditingKey(true);
+    clearStatus();
+  }, [clearStatus]);
+
+  const handleCancelEditing = useCallback((): void => {
+    setIsEditingKey(false);
+    setApiKeyInput('');
+    setButtonError('');
+    clearStatus();
+  }, [clearStatus]);
 
   const handleApiKeySave = useMemo(
     () => createHandleApiKeySave({
       currentService,
       apiKeyInput,
+      selectedModel,
       canClosePanel,
       setHasExistingKey,
       setApiKeyInput,
       setCanClosePanel,
       showStatusMessage,
+      showButtonError,
       autoCloseTimeoutRef,
       handlePanelClose,
-    }),
-    [currentService, apiKeyInput, canClosePanel, showStatusMessage, handlePanelClose]
-  );
-
-  const handleApiKeyTest = useMemo(
-    () => createHandleApiKeyTest({
-      currentService,
-      showStatusMessage,
       setStatus,
+      setIsEditingKey,
     }),
-    [currentService, showStatusMessage]
+    [currentService, apiKeyInput, selectedModel, canClosePanel, showStatusMessage, showButtonError, handlePanelClose]
   );
 
   const handleApiKeyRemove = useMemo(
@@ -123,6 +149,9 @@ export const useApiKeyPanel = ({ isOpen, canClose, onClose }: UseApiKeyPanelProp
       if (autoCloseTimeoutRef.current) {
         clearTimeout(autoCloseTimeoutRef.current);
       }
+      if (buttonErrorTimeoutRef.current) {
+        clearTimeout(buttonErrorTimeoutRef.current);
+      }
     };
   }, []);
 
@@ -139,15 +168,20 @@ export const useApiKeyPanel = ({ isOpen, canClose, onClose }: UseApiKeyPanelProp
   return {
     currentService,
     apiKeyInput,
+    selectedModel,
     hasExistingKey,
+    isEditingKey,
     status,
+    buttonError,
     canClosePanel,
     handleServiceChange,
+    handleModelChange,
     handleApiKeyInputChange,
     handleApiKeySave,
     handleApiKeyInputKeyDown,
-    handleApiKeyTest,
     handleApiKeyRemove,
+    handleStartEditingKey,
+    handleCancelEditing,
     handleOverlayClick,
     handleGoToApp,
     handlePanelClose,
