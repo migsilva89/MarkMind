@@ -24,8 +24,9 @@
   width: 40px;
   height: 40px;
   border-radius: var(--radius-full);
-  background-color: var(--color-surface);
-  color: var(--color-text-muted);
+  background-color: transparent;
+  border: 1px solid var(--color-text);
+  color: var(--color-text);
 }
 
 .organize-scan-intro-title {
