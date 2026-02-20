@@ -47,12 +47,6 @@ export interface BulkOrganizeResult {
   assignments: BookmarkAssignment[];
 }
 
-export interface OrganizeSummary {
-  folderPath: string;
-  bookmarkCount: number;
-  isNewFolder: boolean;
-}
-
 export interface OrganizeSession {
   status: OrganizeSessionStatus;
   allBookmarks: CompactBookmark[];

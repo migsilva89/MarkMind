@@ -9,7 +9,7 @@ export const stripRootSegment = (path: string): string => {
 
 export const getLastSegment = (path: string): string => {
   const segments = splitFolderPath(path);
-  return segments[segments.length - 1];
+  return segments[segments.length - 1] ?? path;
 };
 
 export const groupByRootFolder = <T>(

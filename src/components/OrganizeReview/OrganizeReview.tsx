@@ -56,8 +56,9 @@ const OrganizeReview = ({
             itemCount={group.items.length}
           >
             {group.items.map(assignment => (
-              <button
+              <Button
                 key={assignment.bookmarkId}
+                variant="unstyled"
                 className={`organize-review-item ${assignment.isApproved ? 'approved' : 'rejected'}`}
                 onClick={() => onToggleAssignment(assignment.bookmarkId)}
               >
@@ -71,7 +72,7 @@ const OrganizeReview = ({
                 {assignment.isNewFolder && (
                   <span className="organize-review-new-badge">New</span>
                 )}
-              </button>
+              </Button>
             ))}
           </FolderTreeGroup>
         ))}

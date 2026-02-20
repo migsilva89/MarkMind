@@ -1,7 +1,7 @@
 import './Button.css';
 
 interface ButtonProps {
-  variant?: 'ghost' | 'primary' | 'danger' | 'icon' | 'tab';
+  variant?: 'ghost' | 'primary' | 'danger' | 'icon' | 'tab' | 'unstyled';
   fullWidth?: boolean;
   compact?: boolean;
   active?: boolean;
@@ -24,6 +24,7 @@ const Button = ({
   className = '',
 }: ButtonProps) => {
   const getBaseClass = (): string => {
+    if (variant === 'unstyled') return '';
     if (variant === 'icon') return 'btn-icon';
     if (variant === 'tab') return 'service-tab-pill';
     return 'btn-ghost';

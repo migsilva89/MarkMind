@@ -1,5 +1,6 @@
 import { useState, useCallback, type ReactNode } from 'react';
 import { ArrowRightIcon } from '../icons/Icons';
+import Button from '../Button/Button';
 import './FolderTreeGroup.css';
 
 interface FolderTreeGroupProps {
@@ -25,7 +26,8 @@ const FolderTreeGroup = ({
 
   return (
     <div className="folder-tree-group">
-      <button
+      <Button
+        variant="unstyled"
         className="folder-tree-group-header"
         onClick={handleToggleExpand}
       >
@@ -37,7 +39,7 @@ const FolderTreeGroup = ({
         <span className="folder-tree-group-count">
           {itemCount}
         </span>
-      </button>
+      </Button>
 
       {isExpanded && (
         <div className="folder-tree-group-children">

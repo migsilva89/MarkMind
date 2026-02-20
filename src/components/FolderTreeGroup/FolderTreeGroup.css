@@ -12,7 +12,7 @@
   font-size: var(--font-size-xs);
   color: var(--color-text);
   font-weight: var(--font-weight-medium);
-  transition: background-color 0.15s;
+  transition: background-color var(--transition-fast);
 }
 
 .folder-tree-group-header:hover {
@@ -22,7 +22,7 @@
 .folder-tree-chevron {
   display: flex;
   align-items: center;
-  transition: transform 0.15s;
+  transition: transform var(--transition-fast);
   color: var(--color-text-muted);
   flex-shrink: 0;
 }

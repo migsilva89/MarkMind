@@ -109,8 +109,9 @@ const OrganizeScan = ({
                     const displayName = getLastSegment(stripRootSegment(folder.folderPath));
 
                     return (
-                      <button
+                      <Button
                         key={folder.folderId}
+                        variant="unstyled"
                         className={`organize-scan-folder-row ${isSelected ? 'selected' : ''}`}
                         onClick={() => onToggleFolder(folder.folderId)}
                       >
@@ -119,7 +120,7 @@ const OrganizeScan = ({
                         </span>
                         <span className="organize-scan-folder-path">{displayName}</span>
                         <span className="organize-scan-folder-count">{folder.bookmarkCount}</span>
-                      </button>
+                      </Button>
                     );
                   })}
                 </FolderTreeGroup>
@@ -145,9 +146,9 @@ const OrganizeScan = ({
         <div className="organize-scan-intro-icon">
           <FolderIcon width={20} height={20} />
         </div>
-        <p className="organize-scan-intro-title">Organize All Bookmarks</p>
+        <p className="organize-scan-intro-title">Time to tidy up</p>
         <p className="organize-scan-intro-description">
-          Let AI analyze your bookmarks and suggest the perfect folder structure
+          We'll analyze your bookmarks and organize them into the perfect folder structure for you.
         </p>
         <Button onClick={onStartScan} fullWidth>
           Scan My Bookmarks

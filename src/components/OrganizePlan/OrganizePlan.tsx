@@ -19,7 +19,10 @@ const OrganizePlan = ({
   onRejectPlan,
   onToggleFolder,
 }: OrganizePlanProps) => {
-  const folders = session.folderPlan?.folders ?? [];
+  const folders = useMemo(
+    () => session.folderPlan?.folders ?? [],
+    [session.folderPlan?.folders]
+  );
 
   const folderGroups = useMemo(
     () => groupByRootFolder(folders, folder => folder.path),
@@ -52,8 +55,9 @@ const OrganizePlan = ({
                   const displayName = getLastSegment(stripRootSegment(folder.path));
 
                   return (
-                    <button
+                    <Button
                       key={folder.path}
+                      variant="unstyled"
                       className={`organize-plan-folder-row ${folder.isExcluded ? 'excluded' : 'included'}`}
                       onClick={() => onToggleFolder(folder.path)}
                     >
@@ -66,7 +70,7 @@ const OrganizePlan = ({
                       <span className="organize-plan-folder-path">{displayName}</span>
                       <span className="organize-plan-folder-description">{folder.description}</span>
                       {folder.isNew && <span className="organize-plan-new-badge">New</span>}
-                    </button>
+                    </Button>
                   );
                 })}
               </FolderTreeGroup>
