@@ -1,7 +1,13 @@
+export interface ModelOption {
+  id: string;
+  name: string;
+  isDefault: boolean;
+}
+
 export interface ServiceTestConfig {
-  getEndpoint: (apiKey: string) => string;
+  getEndpoint: (apiKey: string, model?: string) => string;
   getHeaders: (apiKey: string) => Record<string, string>;
-  getBody: () => Record<string, unknown>;
+  getBody: (model: string) => Record<string, unknown>;
   validateResponse: (data: unknown) => boolean;
 }
 
@@ -13,6 +19,8 @@ export interface ServiceConfig {
   placeholder: string;
   helpLink: string;
   helpLinkText: string;
+  models: ModelOption[];
+  freeTierNote?: string;
   validateKey: (key: string) => boolean;
   testConfig: ServiceTestConfig;
 }
