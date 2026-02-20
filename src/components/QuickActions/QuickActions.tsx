@@ -45,7 +45,7 @@ const QuickActions = ({ onTabChange, onOpenSettings }: QuickActionsProps) => {
               onClick={handleCardClick(action.targetTab)}
             >
               <div className={`quick-actions-card-icon quick-actions-card-icon-${action.colorScheme}`}>
-                {ActionIcon && <ActionIcon width={18} height={18} />}
+                {ActionIcon && <ActionIcon width={14} height={14} />}
               </div>
               <h3 className="quick-actions-card-title">{action.title}</h3>
               <p className="quick-actions-card-description">{action.description}</p>

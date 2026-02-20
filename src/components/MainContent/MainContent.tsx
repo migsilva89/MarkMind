@@ -6,8 +6,6 @@ import HomeTab from '../tabs/HomeTab';
 import OrganizeTab from '../tabs/OrganizeTab';
 import DiscoverTab from '../tabs/DiscoverTab';
 import BlogTab from '../tabs/BlogTab';
-import Footer from '../Footer/Footer';
-
 interface MainContentProps {
   onOpenSettings: () => void;
 }
@@ -55,8 +53,6 @@ const MainContent = ({ onOpenSettings }: MainContentProps) => {
       <main className="main-content">
         {renderActiveTab()}
       </main>
-
-      <Footer />
     </>
   );
 };
