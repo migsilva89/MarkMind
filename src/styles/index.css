@@ -38,6 +38,12 @@
   --color-warning: #d97706;           /* amber-600 */
   --color-link: #2563eb;              /* blue-600 */
 
+  /* Accent Colors - Decorative */
+  --color-accent-purple-bg: #f3e8ff;  /* purple-100 - soft lilac */
+  --color-accent-purple: #8b5cf6;     /* violet-500 - light purple */
+  --color-accent-orange-bg: #ffedd5;  /* orange-100 */
+  --color-accent-orange: #ea580c;     /* orange-600 */
+
   /* Spacing Scale */
   --spacing-2xs: 2px;
   --spacing-xs: 4px;
@@ -90,6 +96,7 @@
   /* Transitions */
   --transition-fast: 150ms ease;
   --transition-normal: 200ms ease;
+  --transition-smooth: 300ms ease-out;
 
   /* Layout */
   --popup-width: 400px;

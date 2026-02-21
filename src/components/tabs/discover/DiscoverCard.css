@@ -1,0 +1,113 @@
+/* ========================================
+   Discover Card (shared across sections)
+   ======================================== */
+.discover-card {
+  display: flex;
+  gap: var(--spacing-xl);
+  padding: var(--spacing-2xl);
+  background-color: var(--color-white);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-xl);
+  cursor: pointer;
+  transition: transform var(--transition-fast), background-color var(--transition-smooth);
+}
+
+.discover-card:hover {
+  border-color: var(--color-primary);
+  background-color: var(--color-surface);
+  transform: translateY(-2px);
+}
+
+/* ========================================
+   Card Icon Circle
+   ======================================== */
+.discover-card-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  min-width: 36px;
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--color-primary);
+}
+
+.discover-card-icon-new-feature {
+  background-color: var(--color-success-bg);
+  color: var(--color-success);
+}
+
+.discover-card-icon-update {
+  background-color: var(--color-accent-purple-bg);
+  color: var(--color-accent-purple);
+}
+
+.discover-card-icon-coming-soon {
+  background-color: var(--color-success-bg);
+  color: var(--color-success);
+}
+
+/* ========================================
+   Card Content
+   ======================================== */
+.discover-card-content {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-xs);
+  min-width: 0;
+}
+
+.discover-card-meta {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-md);
+}
+
+/* ========================================
+   Badge
+   ======================================== */
+.discover-card-badge {
+  font-size: var(--font-size-2xs);
+  font-weight: var(--font-weight-semibold);
+  padding: var(--spacing-2xs) var(--spacing-sm);
+  border-radius: var(--radius-sm);
+}
+
+.discover-card-badge-new-feature {
+  background-color: var(--color-success-bg);
+  color: var(--color-success);
+}
+
+.discover-card-badge-update {
+  background-color: var(--color-accent-purple-bg);
+  color: var(--color-accent-purple);
+}
+
+.discover-card-badge-coming-soon {
+  background-color: var(--color-success-bg);
+  color: var(--color-success);
+}
+
+/* ========================================
+   Card Text
+   ======================================== */
+.discover-card-date {
+  font-size: var(--font-size-2xs);
+  color: var(--color-text-light);
+}
+
+.discover-card-title {
+  font-size: var(--font-size-md);
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-text);
+  line-height: var(--line-height-tight);
+  padding-bottom: var(--spacing-xs);
+  border-bottom: 1px solid var(--color-primary);
+  display: inline-block;
+}
+
+.discover-card-description {
+  font-size: var(--font-size-xs);
+  color: var(--color-text-secondary);
+  line-height: var(--line-height-normal);
+}

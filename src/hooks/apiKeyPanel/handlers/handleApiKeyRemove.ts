@@ -2,12 +2,12 @@ import { type ApiKeyPanelHandlerDeps } from '../types';
 
 interface HandleApiKeyRemoveDeps extends Pick<
   ApiKeyPanelHandlerDeps,
-  'currentService' | 'setHasExistingKey' | 'setApiKeyInput' | 'showStatusMessage'
+  'currentService' | 'setHasExistingKey' | 'setApiKeyInput' | 'showStatusMessage' | 'onClose'
 > {}
 
 export const createHandleApiKeyRemove = (deps: HandleApiKeyRemoveDeps) => {
   return async (): Promise<void> => {
-    const { currentService, setHasExistingKey, setApiKeyInput, showStatusMessage } = deps;
+    const { currentService, setHasExistingKey, setApiKeyInput, showStatusMessage, onClose } = deps;
 
     const confirmRemoval = window.confirm(
       'Are you sure you want to remove your API key?'
@@ -17,9 +17,9 @@ export const createHandleApiKeyRemove = (deps: HandleApiKeyRemoveDeps) => {
 
     try {
       await chrome.storage.local.remove([currentService.storageKey]);
-      showStatusMessage('API key removed', 'success');
       setHasExistingKey(false);
       setApiKeyInput('');
+      onClose?.();
     } catch (error) {
       console.error('Failed to remove API key:', error);
       showStatusMessage('Failed to remove API key', 'error');

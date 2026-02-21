@@ -9,7 +9,7 @@
 
 .footer-version {
   font-size: var(--font-size-2xs);
-  color: var(--color-text-light);
+  color: var(--color-text);
 }
 
 .footer-links {
@@ -26,13 +26,8 @@
   background: transparent;
   border: none;
   border-radius: var(--radius-sm);
-  color: var(--color-text-light);
-  cursor: pointer;
-  transition: color var(--transition-fast);
-}
-
-.footer-icon-button:hover {
   color: var(--color-text);
+  cursor: pointer;
 }
 
 .footer-icon-button svg {

@@ -2,7 +2,6 @@ import ServiceSelector from '../ServiceSelector/ServiceSelector';
 import Button from '../Button/Button';
 import { useApiKeyPanel } from '../../hooks/apiKeyPanel';
 import {
-  GitHubIcon,
   StarIcon,
   ArrowLeftIcon,
   ArrowRightIcon,
@@ -59,18 +58,16 @@ const ApiKeyPanel = ({
                 />
                 <h2 className="header-title">MarkMind</h2>
               </div>
-              <div className="header-actions">
-                <a
-                  href="https://github.com/migsilva89/MarkMind"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="github-star-btn"
-                >
-                  <GitHubIcon />
-                  <StarIcon />
-                  <span>Star</span>
-                </a>
-              </div>
+              <a
+                href="https://github.com/migsilva89/MarkMind"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="header-star-link"
+                aria-label="Star us on GitHub"
+              >
+                <StarIcon width={14} height={14} />
+                <span className="header-star-tooltip">Star us on GitHub</span>
+              </a>
             </div>
           ) : (
             <div className="header-settings">
@@ -92,6 +89,9 @@ const ApiKeyPanel = ({
             <div className="welcome-message">
               <p className="welcome-headline">You mark. We mind.</p>
               <p className="welcome-subtext">Connect your AI to begin.</p>
+              <p className="welcome-subtext">
+                Your only setup for the magic to happen.
+              </p>
             </div>
           )}
 
