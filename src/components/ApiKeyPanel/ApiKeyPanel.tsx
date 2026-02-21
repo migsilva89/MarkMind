@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import ServiceSelector from '../ServiceSelector/ServiceSelector';
 import Button from '../Button/Button';
 import { useApiKeyPanel } from '../../hooks/apiKeyPanel';
@@ -47,6 +48,8 @@ const ApiKeyPanel = ({
     handleGoToApp,
     handlePanelClose,
   } = useApiKeyPanel({ isOpen, canClose, onClose });
+
+  const [isTooltipVisible, setIsTooltipVisible] = useState(false);
 
   if (!isOpen) return null;
 
@@ -110,12 +113,26 @@ const ApiKeyPanel = ({
           {showApiKeyCard && (
             <div className="api-key-card">
               {currentService.freeTierNote && (
-                <div className="api-key-card-info-trigger">
+                <button
+                  type="button"
+                  className="api-key-card-info-trigger"
+                  aria-describedby="free-tier-tooltip"
+                  onMouseEnter={() => setIsTooltipVisible(true)}
+                  onMouseLeave={() => setIsTooltipVisible(false)}
+                  onFocus={() => setIsTooltipVisible(true)}
+                  onBlur={() => setIsTooltipVisible(false)}
+                >
                   <InfoIcon width={12} height={12} />
-                  <div className="api-key-card-info-tooltip">
-                    {currentService.freeTierNote}
-                  </div>
-                </div>
+                  {isTooltipVisible && (
+                    <div
+                      id="free-tier-tooltip"
+                      role="tooltip"
+                      className="api-key-card-info-tooltip"
+                    >
+                      {currentService.freeTierNote}
+                    </div>
+                  )}
+                </button>
               )}
               {showConfiguredState ? (
                 <div className="api-key-configured">

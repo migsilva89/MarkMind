@@ -22,7 +22,7 @@ const Dropdown = ({ label, options, selectedId, onSelect, placeholder, disabled 
 
   const selectedOption = options.find(option => option.id === selectedId);
   const hasSelection = !!selectedOption;
-  const displayLabel = selectedOption?.label || placeholder || options[0]?.label || '';
+  const displayLabel = selectedOption?.label ?? placeholder ?? options[0]?.label ?? '';
 
   const handleToggle = useCallback((): void => {
     if (disabled) return;

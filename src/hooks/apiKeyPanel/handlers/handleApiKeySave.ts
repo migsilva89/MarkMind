@@ -1,4 +1,5 @@
 import { type ApiKeyPanelHandlerDeps, type ApiKeyPanelStatusMessage, AUTO_CLOSE_DELAY_MS } from '../types';
+import { humanizeApiError } from '../../../utils/helpers';
 
 interface HandleApiKeySaveDeps extends Pick<
   ApiKeyPanelHandlerDeps,
@@ -83,9 +84,9 @@ export const createHandleApiKeySave = (deps: HandleApiKeySaveDeps) => {
           }, AUTO_CLOSE_DELAY_MS);
         }
       } else {
-        const errorMessage = data?.error?.message || 'API key is invalid';
+        const rawMessage = data?.error?.message || 'API key is invalid';
         setStatus({
-          message: errorMessage,
+          message: humanizeApiError(rawMessage, response.status),
           type: 'error',
           showGoToApp: false,
         });

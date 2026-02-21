@@ -334,17 +334,25 @@
   position: absolute;
   top: var(--spacing-lg);
   right: var(--spacing-lg);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: none;
+  border: none;
+  padding: 0;
   cursor: pointer;
   color: var(--color-text-light);
   transition: color var(--transition-fast);
+  font-family: var(--font-family);
 }
 
-.api-key-card-info-trigger:hover {
+.api-key-card-info-trigger:hover,
+.api-key-card-info-trigger:focus-visible {
   color: var(--color-warning);
+  outline: none;
 }
 
 .api-key-card-info-tooltip {
-  display: none;
   position: absolute;
   top: calc(100% + var(--spacing-sm));
   right: 0;
@@ -356,10 +364,6 @@
   line-height: var(--line-height-relaxed);
   border-radius: var(--radius-md);
   z-index: 10;
-}
-
-.api-key-card-info-trigger:hover .api-key-card-info-tooltip {
-  display: block;
 }
 
 /* Info Card */
