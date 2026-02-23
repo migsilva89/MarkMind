@@ -4,7 +4,7 @@ import { LOADING_MESSAGES, getNextLoadingMessage } from '../../config/loadingMes
 import { type StatusType } from '../../types/common';
 import { type FolderDataForAI, type PendingSuggestion } from '../../types/bookmarks';
 import { type PageMetadata } from '../../types/pages';
-import { getFolderDataForAI, findFolderPathById } from '../../utils/folders';
+import { getFolderDataForAI, findFolderPathById, findFolderIdByAIPath } from '../../utils/folders';
 import { organizeBookmark } from '../../services/ai';
 import { getSelectedServiceId, getSelectedModelId } from '../../services/selectedState';
 import { getCurrentPageData } from '../../services/pageMetadata';
@@ -139,7 +139,7 @@ export const useOrganizeBookmark = (): UseOrganizeBookmarkReturn => {
         folderTree: folderData.textTree,
       });
 
-      const folderId = folderData.pathToIdMap[aiResponse.folderPath];
+      const folderId = findFolderIdByAIPath(aiResponse.folderPath, folderData.pathToIdMap);
 
       setPendingSuggestion({
         pageTitle: currentPageData.title,

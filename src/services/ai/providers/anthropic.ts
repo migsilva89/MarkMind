@@ -4,7 +4,8 @@ export const callAnthropic = async (
   apiKey: string,
   systemPrompt: string,
   userPrompt: string,
-  model: string
+  model: string,
+  maxTokens = 100
 ): Promise<string> => {
   const response = await fetch('https://api.anthropic.com/v1/messages', {
     method: 'POST',
@@ -16,7 +17,7 @@ export const callAnthropic = async (
     },
     body: JSON.stringify({
       model,
-      max_tokens: 100,
+      max_tokens: maxTokens,
       system: systemPrompt,
       messages: [{ role: 'user', content: userPrompt }],
     }),
@@ -27,6 +28,11 @@ export const callAnthropic = async (
   }
 
   const data = await response.json();
+
+  if (data?.stop_reason === 'max_tokens') {
+    throw new Error('Anthropic response was truncated — the model ran out of output tokens. Please try again.');
+  }
+
   const text = data?.content?.[0]?.text;
 
   if (!text) {

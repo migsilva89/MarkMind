@@ -156,3 +156,9 @@
 .btn-full {
   width: 100%;
 }
+
+.btn-compact {
+  padding: var(--spacing-xs) var(--spacing-xl);
+  font-size: var(--font-size-2xs);
+  gap: var(--spacing-sm);
+}

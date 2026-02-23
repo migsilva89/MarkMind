@@ -1,0 +1,19 @@
+.organize-status-view {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--spacing-md);
+  padding: var(--spacing-4xl);
+  text-align: center;
+}
+
+.organize-status-view-title {
+  font-size: var(--font-size-sm);
+  color: var(--color-text-muted);
+}
+
+.organize-status-view-description {
+  font-size: var(--font-size-xs);
+  color: var(--color-text-light);
+  line-height: var(--line-height-normal);
+}

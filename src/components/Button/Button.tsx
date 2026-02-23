@@ -1,8 +1,9 @@
 import './Button.css';
 
 interface ButtonProps {
-  variant?: 'ghost' | 'primary' | 'danger' | 'icon' | 'tab';
+  variant?: 'ghost' | 'primary' | 'danger' | 'icon' | 'tab' | 'unstyled';
   fullWidth?: boolean;
+  compact?: boolean;
   active?: boolean;
   disabled?: boolean;
   children: React.ReactNode;
@@ -14,6 +15,7 @@ interface ButtonProps {
 const Button = ({
   variant = 'ghost',
   fullWidth = false,
+  compact = false,
   active = false,
   disabled = false,
   children,
@@ -22,6 +24,7 @@ const Button = ({
   className = '',
 }: ButtonProps) => {
   const getBaseClass = (): string => {
+    if (variant === 'unstyled') return '';
     if (variant === 'icon') return 'btn-icon';
     if (variant === 'tab') return 'service-tab-pill';
     return 'btn-ghost';
@@ -30,9 +33,10 @@ const Button = ({
   const baseClass = getBaseClass();
   const variantClass = variant === 'primary' ? 'btn-primary' : variant === 'danger' ? 'btn-danger' : '';
   const widthClass = fullWidth ? 'btn-full' : '';
+  const compactClass = compact ? 'btn-compact' : '';
   const activeClass = active ? 'active' : '';
 
-  const combinedClassName = [baseClass, variantClass, widthClass, activeClass, className]
+  const combinedClassName = [baseClass, variantClass, widthClass, compactClass, activeClass, className]
     .filter(Boolean)
     .join(' ');
 

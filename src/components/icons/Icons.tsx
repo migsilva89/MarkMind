@@ -10,8 +10,8 @@ export const GitHubIcon = ({ className = 'github-icon' }: IconProps) => (
   </svg>
 );
 
-export const StarIcon = ({ className = 'star-icon' }: IconProps) => (
-  <svg className={className} fill="currentColor" viewBox="0 0 24 24">
+export const StarIcon = ({ className = 'star-icon', width = 14, height = 14 }: IconProps) => (
+  <svg className={className} fill="currentColor" viewBox="0 0 24 24" width={width} height={height}>
     <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" />
   </svg>
 );
@@ -307,6 +307,23 @@ export const ChevronDownIcon = ({ width = 14, height = 14 }: IconProps) => (
   </svg>
 );
 
+export const RefreshIcon = ({ width = 14, height = 14 }: IconProps) => (
+  <svg
+    fill="none"
+    stroke="currentColor"
+    viewBox="0 0 24 24"
+    width={width}
+    height={height}
+  >
+    <path
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      strokeWidth="2"
+      d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
+    />
+  </svg>
+);
+
 export const InfoIcon = ({ width = 14, height = 14 }: IconProps) => (
   <svg
     fill="none"
@@ -320,6 +337,74 @@ export const InfoIcon = ({ width = 14, height = 14 }: IconProps) => (
       strokeLinejoin="round"
       strokeWidth="2"
       d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+    />
+  </svg>
+);
+
+export const LightbulbIcon = ({ width = 14, height = 14 }: IconProps) => (
+  <svg
+    fill="none"
+    stroke="currentColor"
+    viewBox="0 0 24 24"
+    width={width}
+    height={height}
+  >
+    <path
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      strokeWidth="2"
+      d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"
+    />
+  </svg>
+);
+
+export const WrenchIcon = ({ width = 14, height = 14 }: IconProps) => (
+  <svg
+    fill="none"
+    stroke="currentColor"
+    viewBox="0 0 24 24"
+    width={width}
+    height={height}
+  >
+    <path
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      strokeWidth="2"
+      d="M14.7 6.3a1 1 0 000 1.4l1.6 1.6a1 1 0 001.4 0l3.77-3.77a6 6 0 01-7.94 7.94l-6.91 6.91a2.12 2.12 0 01-3-3l6.91-6.91a6 6 0 017.94-7.94l-3.76 3.76z"
+    />
+  </svg>
+);
+
+export const MegaphoneIcon = ({ width = 14, height = 14 }: IconProps) => (
+  <svg
+    fill="none"
+    stroke="currentColor"
+    viewBox="0 0 24 24"
+    width={width}
+    height={height}
+  >
+    <path
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      strokeWidth="2"
+      d="M11 5.882V19.24a1.76 1.76 0 01-3.417.592l-2.147-6.15M18 13a3 3 0 100-6M5.436 13.683A4.001 4.001 0 017 6h1.832c4.1 0 7.625-1.234 9.168-3v14c-1.543-1.766-5.067-3-9.168-3H7a3.988 3.988 0 01-1.564-.317z"
+    />
+  </svg>
+);
+
+export const BookOpenIcon = ({ width = 14, height = 14 }: IconProps) => (
+  <svg
+    fill="none"
+    stroke="currentColor"
+    viewBox="0 0 24 24"
+    width={width}
+    height={height}
+  >
+    <path
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      strokeWidth="2"
+      d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"
     />
   </svg>
 );

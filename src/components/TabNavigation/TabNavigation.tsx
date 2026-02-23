@@ -1,5 +1,5 @@
 import { useCallback } from 'react';
-import { HomeIcon, FolderIcon, SparklesIcon, CompassIcon } from '../icons/Icons';
+import { HomeIcon, FolderIcon, CompassIcon, BookOpenIcon } from '../icons/Icons';
 import Button from '../Button/Button';
 import './TabNavigation.css';
 
@@ -12,8 +12,8 @@ interface TabConfig {
 const TAB_CONFIG: TabConfig[] = [
   { id: 'home', label: 'Home', icon: HomeIcon },
   { id: 'organize', label: 'Organize', icon: FolderIcon },
-  { id: 'insights', label: 'Insights', icon: SparklesIcon },
   { id: 'discover', label: 'Discover', icon: CompassIcon },
+  { id: 'blog', label: 'Blog', icon: BookOpenIcon },
 ];
 
 interface TabNavigationProps {
