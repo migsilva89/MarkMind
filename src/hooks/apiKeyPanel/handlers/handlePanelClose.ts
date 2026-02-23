@@ -1,9 +1,9 @@
 import { type ApiKeyPanelHandlerDeps } from '../types';
 
-interface HandlePanelCloseDeps extends Pick<
+type HandlePanelCloseDeps = Pick<
   ApiKeyPanelHandlerDeps,
   'canClosePanel' | 'clearStatus' | 'onClose'
-> {}
+>;
 
 export const createHandlePanelClose = (deps: HandlePanelCloseDeps) => {
   return (): void => {

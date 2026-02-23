@@ -34,3 +34,14 @@ export interface ChromeBookmarkNode {
   children?: ChromeBookmarkNode[];
 }
 
+export interface BookmarkStats {
+  totalBookmarks: number;
+  totalFolders: number;
+  byFolder: Map<string, number>;
+}
+
+export interface FolderGroup<T> {
+  groupName: string;
+  items: T[];
+}
+

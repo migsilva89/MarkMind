@@ -1,10 +1,10 @@
 import { getService } from '../../../config/services';
 import { type ApiKeyPanelHandlerDeps } from '../types';
 
-interface HandleServiceChangeDeps extends Pick<
+type HandleServiceChangeDeps = Pick<
   ApiKeyPanelHandlerDeps,
   'setCurrentService' | 'setApiKeyInput' | 'clearStatus' | 'checkExistingApiKey'
-> {}
+>;
 
 export const createHandleServiceChange = (deps: HandleServiceChangeDeps) => {
   return (serviceId: string): void => {

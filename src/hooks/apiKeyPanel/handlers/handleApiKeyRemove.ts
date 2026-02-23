@@ -1,9 +1,9 @@
 import { type ApiKeyPanelHandlerDeps } from '../types';
 
-interface HandleApiKeyRemoveDeps extends Pick<
+type HandleApiKeyRemoveDeps = Pick<
   ApiKeyPanelHandlerDeps,
   'currentService' | 'setHasExistingKey' | 'setApiKeyInput' | 'showStatusMessage' | 'onClose'
-> {}
+>;
 
 export const createHandleApiKeyRemove = (deps: HandleApiKeyRemoveDeps) => {
   return async (): Promise<void> => {

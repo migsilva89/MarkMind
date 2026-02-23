@@ -120,9 +120,10 @@ export const useApiKeyPanel = ({ isOpen, canClose, onClose }: UseApiKeyPanelProp
   }, [clearStatus, onClose]);
 
   useEffect(() => {
+    const timeoutRef = autoCloseTimeoutRef;
     return () => {
-      if (autoCloseTimeoutRef.current) {
-        clearTimeout(autoCloseTimeoutRef.current);
+      if (timeoutRef.current) {
+        clearTimeout(timeoutRef.current);
       }
     };
   }, []);

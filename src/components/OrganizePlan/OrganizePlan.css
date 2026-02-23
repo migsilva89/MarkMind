@@ -1,0 +1,102 @@
+.organize-plan {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-xl);
+}
+
+/* Plan review card */
+.organize-plan-review {
+  background-color: var(--color-white);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-xl);
+  padding: var(--spacing-2xl);
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-xl);
+}
+
+.organize-plan-summary {
+  font-size: var(--font-size-sm);
+  color: var(--color-text-secondary);
+  line-height: var(--line-height-normal);
+}
+
+.organize-plan-folder-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-xs);
+  max-height: 350px;
+  overflow-y: auto;
+}
+
+.organize-plan-folder-row {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+  width: 100%;
+  padding: var(--spacing-xs) var(--spacing-md);
+  border-radius: var(--radius-sm);
+  font-size: var(--font-size-xs);
+  cursor: pointer;
+  transition: background-color var(--transition-fast);
+  text-align: left;
+}
+
+.organize-plan-folder-row:hover {
+  background-color: var(--color-surface);
+}
+
+.organize-plan-folder-row.included {
+  background-color: var(--color-surface);
+}
+
+.organize-plan-folder-row.excluded {
+  opacity: 0.5;
+}
+
+.organize-plan-folder-indicator {
+  display: flex;
+  align-items: center;
+  flex-shrink: 0;
+}
+
+.organize-plan-folder-row.included .organize-plan-folder-indicator {
+  color: var(--color-success);
+}
+
+.organize-plan-folder-row.excluded .organize-plan-folder-indicator {
+  color: var(--color-text-light);
+}
+
+.organize-plan-folder-path {
+  flex: 1;
+  color: var(--color-text);
+  font-weight: var(--font-weight-medium);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.organize-plan-folder-description {
+  font-size: var(--font-size-2xs);
+  color: var(--color-text-light);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  max-width: 40%;
+}
+
+.organize-plan-new-badge {
+  font-size: var(--font-size-2xs);
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-success);
+  background-color: var(--color-success-bg);
+  padding: var(--spacing-2xs) var(--spacing-sm);
+  border-radius: var(--radius-full);
+  flex-shrink: 0;
+}
+
+.organize-plan-actions {
+  display: flex;
+  gap: var(--spacing-md);
+}

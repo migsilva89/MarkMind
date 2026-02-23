@@ -1,0 +1,82 @@
+.organize-review {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-xl);
+}
+
+.organize-review-summary {
+  font-size: var(--font-size-sm);
+  color: var(--color-text-secondary);
+  font-weight: var(--font-weight-medium);
+}
+
+.organize-review-actions {
+  display: flex;
+  gap: var(--spacing-md);
+}
+
+.organize-review-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-xs);
+  max-height: 350px;
+  overflow-y: auto;
+}
+
+.organize-review-item {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+  width: 100%;
+  padding: var(--spacing-xs) var(--spacing-md);
+  border-radius: var(--radius-sm);
+  font-size: var(--font-size-xs);
+  cursor: pointer;
+  transition: background-color var(--transition-fast);
+  text-align: left;
+}
+
+.organize-review-item:hover {
+  background-color: var(--color-surface);
+}
+
+.organize-review-item.approved {
+  background-color: var(--color-surface);
+}
+
+.organize-review-item.rejected {
+  opacity: 0.5;
+}
+
+.organize-review-item-indicator {
+  display: flex;
+  align-items: center;
+  flex-shrink: 0;
+}
+
+.organize-review-item.approved .organize-review-item-indicator {
+  color: var(--color-success);
+}
+
+.organize-review-item.rejected .organize-review-item-indicator {
+  color: var(--color-text-light);
+}
+
+.organize-review-item-title {
+  flex: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: var(--color-text);
+  font-weight: var(--font-weight-medium);
+}
+
+.organize-review-new-badge {
+  font-size: var(--font-size-2xs);
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-success);
+  background-color: var(--color-success-bg);
+  padding: var(--spacing-2xs) var(--spacing-sm);
+  border-radius: var(--radius-full);
+  flex-shrink: 0;
+}
