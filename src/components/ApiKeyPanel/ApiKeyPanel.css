@@ -163,6 +163,7 @@
 
 /* API Key Card */
 .api-key-card {
+  position: relative;
   background-color: var(--color-white);
   border: 1px solid var(--color-border);
   border-radius: var(--radius-xl);
@@ -226,6 +227,16 @@
   flex: 1;
 }
 
+.btn-save-error {
+  color: var(--color-error);
+  border-color: var(--color-error);
+  background-color: transparent;
+}
+
+.btn-save-error:hover {
+  background-color: var(--color-error-bg);
+}
+
 .api-key-help {
   font-size: var(--font-size-2xs);
   color: var(--color-text-muted);
@@ -235,20 +246,76 @@
   border-radius: var(--radius-md);
 }
 
-/* Status Container */
-.status-container {
+/* Configured State */
+.api-key-configured {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-xl);
+  padding: var(--spacing-md) 0;
+}
+
+.api-key-configured-badge {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-md);
+}
+
+.api-key-configured-badge svg {
+  color: var(--color-success);
+  flex-shrink: 0;
+}
+
+.api-key-configured-info {
+  display: flex;
+  flex-direction: column;
+}
+
+.api-key-configured-title {
+  font-size: var(--font-size-base);
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-text);
+  margin: 0;
+  line-height: var(--line-height-tight);
+}
+
+.api-key-configured-subtitle {
+  font-size: var(--font-size-xs);
+  color: var(--color-success);
+  font-weight: var(--font-weight-medium);
+  margin: 0;
+}
+
+.api-key-change-link {
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-medium);
+  color: var(--color-text-muted);
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-family: var(--font-family);
+  transition: color var(--transition-fast);
+}
+
+.api-key-change-link:hover {
+  color: var(--color-text);
+  text-decoration: underline;
+}
+
+/* In-Card Status */
+.api-key-card-status {
   display: flex;
   flex-direction: column;
   gap: var(--spacing-md);
   align-items: center;
+  margin-bottom: var(--spacing-md);
 }
 
-.status-container.success .btn-go-to-app {
+.api-key-card-status .btn-go-to-app {
   color: var(--color-success);
   border-color: var(--color-success);
 }
 
-.status-container.success .btn-go-to-app:hover {
+.api-key-card-status .btn-go-to-app:hover {
   background-color: var(--color-success-bg);
 }
 
@@ -256,6 +323,43 @@
   display: inline-flex;
   align-items: center;
   gap: var(--spacing-sm);
+}
+
+/* Info Icon Tooltip */
+.api-key-card-info-trigger {
+  position: absolute;
+  top: var(--spacing-lg);
+  right: var(--spacing-lg);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  color: var(--color-text-light);
+  transition: color var(--transition-fast);
+  font-family: var(--font-family);
+}
+
+.api-key-card-info-trigger:hover,
+.api-key-card-info-trigger:focus-visible {
+  color: var(--color-warning);
+  outline: none;
+}
+
+.api-key-card-info-tooltip {
+  position: absolute;
+  top: calc(100% + var(--spacing-sm));
+  right: 0;
+  width: 220px;
+  padding: var(--spacing-lg);
+  background-color: var(--color-primary);
+  color: var(--color-white);
+  font-size: var(--font-size-xs);
+  line-height: var(--line-height-relaxed);
+  border-radius: var(--radius-md);
+  z-index: 10;
 }
 
 /* Info Card */
@@ -277,7 +381,8 @@
   width: 32px;
   height: 32px;
   border-radius: var(--radius-md);
-  background-color: var(--color-success-bg);
+  background-color: transparent;
+  border: 1px solid var(--color-success);
   display: flex;
   align-items: center;
   justify-content: center;

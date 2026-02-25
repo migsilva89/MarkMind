@@ -22,17 +22,18 @@ export const callProvider = async (
   apiKey: string,
   systemPrompt: string,
   userPrompt: string,
+  model: string,
   maxTokens?: number
 ): Promise<string> => {
   switch (serviceId) {
     case 'google':
-      return callGemini(apiKey, systemPrompt, userPrompt, maxTokens);
+      return callGemini(apiKey, systemPrompt, userPrompt, model, maxTokens);
     case 'openai':
-      return callOpenAI(apiKey, systemPrompt, userPrompt, maxTokens);
+      return callOpenAI(apiKey, systemPrompt, userPrompt, model, maxTokens);
     case 'anthropic':
-      return callAnthropic(apiKey, systemPrompt, userPrompt, maxTokens);
+      return callAnthropic(apiKey, systemPrompt, userPrompt, model, maxTokens);
     case 'openrouter':
-      return callOpenRouter(apiKey, systemPrompt, userPrompt, maxTokens);
+      return callOpenRouter(apiKey, systemPrompt, userPrompt, model, maxTokens);
     default:
       throw new Error(`Unsupported service: ${serviceId}`);
   }

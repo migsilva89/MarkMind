@@ -1,12 +1,13 @@
-import { extractApiErrorMessage } from '../../../utils/helpers';
+import { throwApiResponseError } from '../../../utils/helpers';
 
 export const callGemini = async (
   apiKey: string,
   systemPrompt: string,
   userPrompt: string,
+  model: string,
   maxTokens?: number
 ): Promise<string> => {
-  const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`;
+  const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`;
 
   const response = await fetch(endpoint, {
     method: 'POST',
@@ -21,10 +22,7 @@ export const callGemini = async (
   });
 
   if (!response.ok) {
-    const errorBody = await response.text();
-    console.error(`Gemini API error [${response.status}]:`, errorBody);
-    const errorMessage = extractApiErrorMessage(errorBody);
-    throw new Error(errorMessage || `Gemini error: ${response.status}`);
+    await throwApiResponseError('Gemini', response);
   }
 
   const data = await response.json();

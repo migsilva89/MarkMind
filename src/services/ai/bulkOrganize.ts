@@ -2,6 +2,7 @@ import { type FolderPlan, type BookmarkAssignment, type CompactBookmark, type Bu
 import { type FolderPathMap } from '../../types/bookmarks';
 import { BULK_ORGANIZE_SYSTEM_PROMPT, buildBulkOrganizeUserPrompt } from './bulkPrompt';
 import { getApiKey, callProvider } from './providerUtils';
+import { getSelectedModelId } from '../selectedState';
 import { debug } from '../../utils/debug';
 
 // Gemini 2.5 Flash uses "thinking" tokens that count against maxOutputTokens,
@@ -104,6 +105,7 @@ export const organizeBookmarks = async (
     apiKey,
     BULK_ORGANIZE_SYSTEM_PROMPT,
     userPrompt,
+    getSelectedModelId(),
     ORGANIZE_MAX_TOKENS
   );
 

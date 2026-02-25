@@ -1,11 +1,12 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
-import { SELECTED_SERVICE_STORAGE_KEY } from '../../config/services';
+import { getDefaultModel } from '../../config/services';
 import { LOADING_MESSAGES, getNextLoadingMessage } from '../../config/loadingMessages';
 import { type StatusType } from '../../types/common';
 import { type FolderDataForAI, type PendingSuggestion } from '../../types/bookmarks';
 import { type PageMetadata } from '../../types/pages';
 import { getFolderDataForAI, findFolderPathById, findFolderIdByAIPath } from '../../utils/folders';
 import { organizeBookmark } from '../../services/ai';
+import { getSelectedServiceId, getSelectedModelId } from '../../services/selectedState';
 import { getCurrentPageData } from '../../services/pageMetadata';
 import { findBookmarkByUrl, createBookmark, createFolderPath } from '../../services/bookmarks';
 import { type UseOrganizeBookmarkReturn } from './types';
@@ -16,7 +17,6 @@ const STATUS_AUTO_CLEAR_MS = 5000;
 export const useOrganizeBookmark = (): UseOrganizeBookmarkReturn => {
   const [currentPageData, setCurrentPageData] = useState<PageMetadata | null>(null);
   const [isLoadingPage, setIsLoadingPage] = useState(true);
-  const [selectedServiceId, setSelectedServiceId] = useState<string>('');
   const [isOrganizing, setIsOrganizing] = useState(false);
   const [statusMessage, setStatusMessage] = useState('');
   const [statusType, setStatusType] = useState<StatusType>('default');
@@ -28,21 +28,12 @@ export const useOrganizeBookmark = (): UseOrganizeBookmarkReturn => {
   const folderDataRef = useRef<FolderDataForAI | null>(null);
   const loadingMessageIndexRef = useRef(0);
 
-  // Fetch current page data and selected service on mount
   useEffect(() => {
     const initialize = async (): Promise<void> => {
       try {
-        const [pageData, storageResult] = await Promise.all([
-          getCurrentPageData(),
-          chrome.storage.local.get([SELECTED_SERVICE_STORAGE_KEY]),
-        ]);
-
+        const pageData = await getCurrentPageData();
         if (pageData) {
           setCurrentPageData(pageData);
-        }
-
-        if (storageResult[SELECTED_SERVICE_STORAGE_KEY]) {
-          setSelectedServiceId(storageResult[SELECTED_SERVICE_STORAGE_KEY]);
         }
       } catch (error) {
         console.error('Error initializing organize bookmark:', error);
@@ -129,20 +120,18 @@ export const useOrganizeBookmark = (): UseOrganizeBookmarkReturn => {
         return;
       }
 
-      let serviceId = selectedServiceId;
-      if (!serviceId) {
-        const storageResult = await chrome.storage.local.get([SELECTED_SERVICE_STORAGE_KEY]);
-        serviceId = storageResult[SELECTED_SERVICE_STORAGE_KEY];
-      }
+      const serviceId = getSelectedServiceId();
 
       if (!serviceId) {
         showStatus('Please select an AI provider first', 'error');
         return;
       }
 
+      const selectedModel = getSelectedModelId() || getDefaultModel(serviceId);
+
       folderDataRef.current = folderData;
 
-      const aiResponse = await organizeBookmark(serviceId, {
+      const aiResponse = await organizeBookmark(serviceId, selectedModel, {
         title: currentPageData.title,
         url: currentPageData.url,
         description: currentPageData.description || null,
@@ -175,7 +164,7 @@ export const useOrganizeBookmark = (): UseOrganizeBookmarkReturn => {
       setIsOrganizing(false);
       clearLoadingMessages();
     }
-  }, [isOrganizing, currentPageData, selectedServiceId, showStatus, startLoadingMessages, clearLoadingMessages]);
+  }, [isOrganizing, currentPageData, showStatus, startLoadingMessages, clearLoadingMessages]);
 
   const handleAcceptSuggestion = useCallback(async (): Promise<void> => {
     if (!pendingSuggestion || !folderDataRef.current) return;

@@ -1,9 +1,10 @@
-import { extractApiErrorMessage } from '../../../utils/helpers';
+import { throwApiResponseError } from '../../../utils/helpers';
 
 export const callAnthropic = async (
   apiKey: string,
   systemPrompt: string,
   userPrompt: string,
+  model: string,
   maxTokens = 100
 ): Promise<string> => {
   const response = await fetch('https://api.anthropic.com/v1/messages', {
@@ -15,7 +16,7 @@ export const callAnthropic = async (
       'anthropic-dangerous-direct-browser-access': 'true',
     },
     body: JSON.stringify({
-      model: 'claude-haiku-4-5-20251001',
+      model,
       max_tokens: maxTokens,
       system: systemPrompt,
       messages: [{ role: 'user', content: userPrompt }],
@@ -23,10 +24,7 @@ export const callAnthropic = async (
   });
 
   if (!response.ok) {
-    const errorBody = await response.text();
-    console.error(`Anthropic API error [${response.status}]:`, errorBody);
-    const errorMessage = extractApiErrorMessage(errorBody);
-    throw new Error(errorMessage || `Anthropic error: ${response.status}`);
+    await throwApiResponseError('Anthropic', response);
   }
 
   const data = await response.json();

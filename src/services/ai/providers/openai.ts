@@ -1,9 +1,10 @@
-import { extractApiErrorMessage } from '../../../utils/helpers';
+import { throwApiResponseError } from '../../../utils/helpers';
 
 export const callOpenAI = async (
   apiKey: string,
   systemPrompt: string,
   userPrompt: string,
+  model: string,
   maxTokens = 100
 ): Promise<string> => {
   const response = await fetch('https://api.openai.com/v1/chat/completions', {
@@ -13,7 +14,7 @@ export const callOpenAI = async (
       Authorization: `Bearer ${apiKey}`,
     },
     body: JSON.stringify({
-      model: 'gpt-4o-mini',
+      model,
       messages: [
         { role: 'system', content: systemPrompt },
         { role: 'user', content: userPrompt },
@@ -23,10 +24,7 @@ export const callOpenAI = async (
   });
 
   if (!response.ok) {
-    const errorBody = await response.text();
-    console.error(`OpenAI API error [${response.status}]:`, errorBody);
-    const errorMessage = extractApiErrorMessage(errorBody);
-    throw new Error(errorMessage || `OpenAI error: ${response.status}`);
+    await throwApiResponseError('OpenAI', response);
   }
 
   const data = await response.json();

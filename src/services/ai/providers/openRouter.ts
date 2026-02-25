@@ -1,9 +1,10 @@
-import { extractApiErrorMessage } from '../../../utils/helpers';
+import { throwApiResponseError } from '../../../utils/helpers';
 
 export const callOpenRouter = async (
   apiKey: string,
   systemPrompt: string,
   userPrompt: string,
+  model: string,
   maxTokens = 100
 ): Promise<string> => {
   const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
@@ -13,7 +14,7 @@ export const callOpenRouter = async (
       Authorization: `Bearer ${apiKey}`,
     },
     body: JSON.stringify({
-      model: 'openai/gpt-4o-mini',
+      model,
       messages: [
         { role: 'system', content: systemPrompt },
         { role: 'user', content: userPrompt },
@@ -23,10 +24,7 @@ export const callOpenRouter = async (
   });
 
   if (!response.ok) {
-    const errorBody = await response.text();
-    console.error(`OpenRouter API error [${response.status}]:`, errorBody);
-    const errorMessage = extractApiErrorMessage(errorBody);
-    throw new Error(errorMessage || `OpenRouter error: ${response.status}`);
+    await throwApiResponseError('OpenRouter', response);
   }
 
   const data = await response.json();
