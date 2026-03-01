@@ -10,15 +10,15 @@
   border-radius: var(--radius-xl);
   cursor: pointer;
   transition: transform var(--transition-fast), background-color var(--transition-smooth);
-  text-align: left;
-  width: 100%;
-  font-family: var(--font-family);
+  text-decoration: none;
+  color: inherit;
 }
 
 .partner-card:hover {
   border-color: var(--color-primary);
   background-color: var(--color-surface);
   transform: translateY(-2px);
+  text-decoration: none;
 }
 
 /* ========================================
@@ -56,7 +56,6 @@
   display: flex;
   align-items: center;
   gap: var(--spacing-md);
-  color: var(--color-accent-orange);
 }
 
 /* ========================================
