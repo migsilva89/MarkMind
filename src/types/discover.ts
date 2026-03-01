@@ -26,3 +26,23 @@ export interface QuickActionItem {
   colorScheme: ColorScheme;
   targetTab: string;
 }
+
+export interface PartnerApp {
+  id: string;
+  title: string;
+  description: string;
+  url: string;
+  logoPath: string;
+}
+
+export interface BlogPost {
+  title: string;
+  slug: string;
+  url: string;
+  excerpt: string;
+  image: string;
+  tags: string[];
+  datePublished: string;
+  readingTime: string;
+  author: string;
+}
