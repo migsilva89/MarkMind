@@ -1,0 +1,67 @@
+/* ========================================
+   Blog Tab
+   ======================================== */
+.blog-tab {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-2xl);
+}
+
+.blog-tab-description {
+  font-size: var(--font-size-xs);
+  color: var(--color-text-muted);
+  line-height: var(--line-height-normal);
+}
+
+/* ========================================
+   Blog Post List
+   ======================================== */
+.blog-tab-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-xl);
+}
+
+/* ========================================
+   Visit Blog Button
+   ======================================== */
+.blog-tab-visit-button {
+  align-self: center;
+}
+
+/* ========================================
+   Loading State
+   ======================================== */
+.blog-tab-loading {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--spacing-md);
+  color: var(--color-text-muted);
+}
+
+.blog-tab-loading-text {
+  font-size: var(--font-size-sm);
+  color: var(--color-text-light);
+  font-weight: var(--font-weight-medium);
+}
+
+/* ========================================
+   Empty / Error State
+   ======================================== */
+.blog-tab-empty {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--spacing-xl);
+}
+
+.blog-tab-empty-text {
+  font-size: var(--font-size-sm);
+  color: var(--color-text-light);
+  font-weight: var(--font-weight-medium);
+}
