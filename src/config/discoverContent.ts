@@ -80,6 +80,46 @@ export const PRO_TIPS_CARDS: DiscoverCard[] = [
       'The more organized folders you have, the smarter AI suggestions become. Start with a few good folders.',
     iconName: 'sparkles',
   },
+  {
+    id: 'tip-review-suggestions',
+    badgeType: 'update',
+    badgeLabel: 'Tip',
+    date: '',
+    title: 'Always review before accepting',
+    description:
+      'AI suggestions are smart but not perfect. A quick review catches edge cases and keeps your folders exactly how you like them.',
+    iconName: 'globe',
+  },
+  {
+    id: 'tip-try-providers',
+    badgeType: 'update',
+    badgeLabel: 'Tip',
+    date: '',
+    title: 'Experiment with different AI providers',
+    description:
+      'Each provider has its strengths. Try Gemini, OpenAI, or Anthropic to see which one best understands your bookmark style.',
+    iconName: 'settings',
+  },
+  {
+    id: 'tip-name-folders-clearly',
+    badgeType: 'update',
+    badgeLabel: 'Tip',
+    date: '',
+    title: 'Name folders with clear intent',
+    description:
+      'Folders like "Design Resources" work better than "Stuff". Descriptive names help AI match bookmarks to the right place.',
+    iconName: 'lightbulb',
+  },
+  {
+    id: 'tip-bookmark-as-you-go',
+    badgeType: 'update',
+    badgeLabel: 'Tip',
+    date: '',
+    title: 'Bookmark now, organize later',
+    description:
+      'Save anything interesting without worrying about the right folder. Let MarkMind sort it out when you are ready.',
+    iconName: 'sparkles',
+  },
 ];
 
 export const PARTNER_APPS: PartnerApp[] = [
