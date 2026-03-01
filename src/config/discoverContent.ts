@@ -1,4 +1,9 @@
-import { type DiscoverCard, type DiscoverSubTab, type QuickActionItem } from '../types/discover';
+import {
+  type DiscoverCard,
+  type DiscoverSubTab,
+  type QuickActionItem,
+  type PartnerApp,
+} from '../types/discover';
 
 export const DISCOVER_SUB_TABS: DiscoverSubTab[] = [
   {
@@ -14,8 +19,8 @@ export const DISCOVER_SUB_TABS: DiscoverSubTab[] = [
     description: 'Small habits, big impact. Quick wins to keep your bookmarks stress-free.',
   },
   {
-    id: 'dev-tools',
-    label: 'Dev Tools',
+    id: 'apps',
+    label: 'Apps',
     iconName: 'wrench',
     description: 'Hand-picked tools from our circle of friends. No ads, just good stuff.',
   },
@@ -77,16 +82,34 @@ export const PRO_TIPS_CARDS: DiscoverCard[] = [
   },
 ];
 
-export const DEV_TOOLS_CARDS: DiscoverCard[] = [
+export const PARTNER_APPS: PartnerApp[] = [
   {
-    id: 'dev-github',
-    badgeType: 'new-feature',
-    badgeLabel: 'Open Source',
-    date: '',
-    title: 'Contribute on GitHub',
-    description:
-      'MarkMind is open source! Check out the repo, report bugs, or submit pull requests.',
-    iconName: 'globe',
+    id: 'serploom',
+    title: 'Serploom',
+    description: 'AI-powered SEO tool to find striking distance keywords.',
+    url: 'https://serploom.com',
+    logoPath: '/assets/partners/serploom.png',
+  },
+  {
+    id: 'flowmate',
+    title: 'FlowMate',
+    description: 'AI email assistant unifying Gmail, Outlook, Slack, Telegram.',
+    url: 'https://flowmate.click',
+    logoPath: '/assets/partners/flowmate.png',
+  },
+  {
+    id: 'criarcomia',
+    title: 'Criar Com IA',
+    description: 'Portuguese AI platform for creating and transforming images.',
+    url: 'https://criarcomia.pt',
+    logoPath: '/assets/partners/criarcomia.png',
+  },
+  {
+    id: 'bookmarkjar',
+    title: 'BookmarkJar',
+    description: 'AI-powered bookmark manager with smart tagging and semantic search.',
+    url: 'https://bookmarkjar.com',
+    logoPath: '/assets/partners/bookmarkjar.png',
   },
 ];
 

@@ -1,0 +1,91 @@
+/* ========================================
+   Partner Card (external app links)
+   ======================================== */
+.partner-card {
+  display: flex;
+  gap: var(--spacing-xl);
+  padding: var(--spacing-2xl);
+  background-color: var(--color-white);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-xl);
+  cursor: pointer;
+  transition: transform var(--transition-fast), background-color var(--transition-smooth);
+  text-align: left;
+  width: 100%;
+  font-family: var(--font-family);
+}
+
+.partner-card:hover {
+  border-color: var(--color-primary);
+  background-color: var(--color-surface);
+  transform: translateY(-2px);
+}
+
+/* ========================================
+   Logo
+   ======================================== */
+.partner-card-logo {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  min-width: 36px;
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  border: 1px solid var(--color-primary);
+}
+
+.partner-card-logo img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+/* ========================================
+   Content
+   ======================================== */
+.partner-card-content {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-xs);
+  min-width: 0;
+}
+
+.partner-card-meta {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-md);
+  color: var(--color-accent-orange);
+}
+
+/* ========================================
+   Badge (orange/amber "Friend")
+   ======================================== */
+.partner-card-badge {
+  font-size: var(--font-size-2xs);
+  font-weight: var(--font-weight-semibold);
+  padding: var(--spacing-2xs) var(--spacing-sm);
+  border-radius: var(--radius-sm);
+  background-color: var(--color-accent-orange-bg);
+  color: var(--color-accent-orange);
+}
+
+/* ========================================
+   Text
+   ======================================== */
+.partner-card-title {
+  font-size: var(--font-size-md);
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-text);
+  line-height: var(--line-height-tight);
+  padding-bottom: var(--spacing-xs);
+  border-bottom: 1px solid var(--color-primary);
+  display: inline-block;
+}
+
+.partner-card-description {
+  font-size: var(--font-size-xs);
+  color: var(--color-text-secondary);
+  line-height: var(--line-height-normal);
+}
