@@ -9,7 +9,7 @@ interface BlogCardProps {
 
 const formatDate = (dateString: string): string => {
   const date = new Date(dateString);
-  return date.toLocaleDateString('en-US', { month: 'short', year: 'numeric' });
+  return date.toLocaleDateString(undefined, { month: 'short', year: 'numeric' });
 };
 
 const BlogCard = ({ post }: BlogCardProps) => {

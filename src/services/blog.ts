@@ -9,17 +9,10 @@ interface BlogCache {
   fetchedAt: number;
 }
 
-const getCachedPosts = async (): Promise<BlogPost[] | null> => {
+const getCachedBlogData = async (): Promise<BlogCache | null> => {
   try {
     const result = await chrome.storage.local.get(CACHE_KEY);
-    const cache = result[CACHE_KEY] as BlogCache | undefined;
-
-    if (!cache) return null;
-
-    const isExpired = Date.now() - cache.fetchedAt > CACHE_TTL_MS;
-    if (isExpired) return null;
-
-    return cache.posts;
+    return (result[CACHE_KEY] as BlogCache | undefined) ?? null;
   } catch (error) {
     console.error('Failed to read blog cache:', error);
     return null;
@@ -36,8 +29,10 @@ const setCachedPosts = async (posts: BlogPost[]): Promise<void> => {
 };
 
 export const fetchBlogPosts = async (): Promise<BlogPost[]> => {
-  const cached = await getCachedPosts();
-  if (cached) return cached;
+  const cachedBlogData = await getCachedBlogData();
+
+  const isFresh = cachedBlogData && Date.now() - cachedBlogData.fetchedAt < CACHE_TTL_MS;
+  if (isFresh) return cachedBlogData.posts;
 
   try {
     const response = await fetch(BLOG_API_URL);
@@ -55,14 +50,7 @@ export const fetchBlogPosts = async (): Promise<BlogPost[]> => {
   } catch (error) {
     console.error('Failed to fetch blog posts:', error);
 
-    // Fall back to expired cache if available
-    try {
-      const result = await chrome.storage.local.get(CACHE_KEY);
-      const staleCache = result[CACHE_KEY] as BlogCache | undefined;
-      if (staleCache?.posts) return staleCache.posts;
-    } catch (cacheError) {
-      console.error('Failed to read stale blog cache:', cacheError);
-    }
+    if (cachedBlogData?.posts) return cachedBlogData.posts;
 
     return [];
   }
