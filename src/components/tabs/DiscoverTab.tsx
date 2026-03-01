@@ -4,7 +4,7 @@ import Button from '../Button/Button';
 import { DISCOVER_SUB_TABS } from '../../config/discoverContent';
 import WhatsNewSection from './discover/WhatsNewSection';
 import ProTipsSection from './discover/ProTipsSection';
-import DevToolsSection from './discover/DevToolsSection';
+import AppsSection from './discover/AppsSection';
 import './DiscoverTab.css';
 
 const SUB_TAB_ICONS: Record<string, React.ComponentType<{ width?: number; height?: number }>> = {
@@ -31,8 +31,8 @@ const DiscoverTab = () => {
         return <WhatsNewSection />;
       case 'pro-tips':
         return <ProTipsSection />;
-      case 'dev-tools':
-        return <DevToolsSection />;
+      case 'apps':
+        return <AppsSection />;
       default:
         return <WhatsNewSection />;
     }
