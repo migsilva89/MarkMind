@@ -28,16 +28,6 @@ export const DISCOVER_SUB_TABS: DiscoverSubTab[] = [
 
 export const WHATS_NEW_CARDS: DiscoverCard[] = [
   {
-    id: 'bulk-organize',
-    badgeType: 'new-feature',
-    badgeLabel: 'New Feature',
-    date: 'Feb 2026',
-    title: 'Bulk Organize is here!',
-    description:
-      'Select multiple bookmarks and let AI sort them into the perfect folders automatically.',
-    iconName: 'sparkles',
-  },
-  {
     id: 'multi-provider',
     badgeType: 'update',
     badgeLabel: 'Update',
@@ -48,14 +38,44 @@ export const WHATS_NEW_CARDS: DiscoverCard[] = [
     iconName: 'settings',
   },
   {
-    id: 'insights-tab',
-    badgeType: 'coming-soon',
-    badgeLabel: 'Coming Soon',
-    date: 'Soon',
-    title: 'Insights & health score',
+    id: 'smart-folder-matching',
+    badgeType: 'update',
+    badgeLabel: 'Update',
+    date: 'Feb 2026',
+    title: 'Smarter folder matching',
     description:
-      'See how organized your bookmarks are, find forgotten gems, and clean up clutter.',
+      'Bookmarks now land in the right folder more often. AI understands your entire folder structure to find the best fit.',
+    iconName: 'sparkles',
+  },
+  {
+    id: 'bulk-organize',
+    badgeType: 'new-feature',
+    badgeLabel: 'New Feature',
+    date: 'Feb 2026',
+    title: 'Bulk Organize is here!',
+    description:
+      'Select multiple bookmarks and let AI sort them into the perfect folders automatically.',
+    iconName: 'sparkles',
+  },
+  {
+    id: 'discover-partner-apps',
+    badgeType: 'new-feature',
+    badgeLabel: 'New Feature',
+    date: 'Mar 2026',
+    title: 'Discover Apps from friends',
+    description:
+      'Explore hand-picked tools from our circle of friends. No ads, just good stuff we actually use.',
     iconName: 'globe',
+  },
+  {
+    id: 'settings-redesign',
+    badgeType: 'update',
+    badgeLabel: 'Update',
+    date: 'Feb 2026',
+    title: 'Redesigned Settings page',
+    description:
+      'Cleaner settings with dropdowns, model selector, and inline validation. Easier to set up than ever.',
+    iconName: 'settings',
   },
 ];
 
