@@ -26,3 +26,11 @@ export interface QuickActionItem {
   colorScheme: ColorScheme;
   targetTab: string;
 }
+
+export interface PartnerApp {
+  id: string;
+  title: string;
+  description: string;
+  url: string;
+  logoPath: string;
+}

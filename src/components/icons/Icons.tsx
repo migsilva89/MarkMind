@@ -409,6 +409,23 @@ export const BookOpenIcon = ({ width = 14, height = 14 }: IconProps) => (
   </svg>
 );
 
+export const ExternalLinkIcon = ({ width = 14, height = 14 }: IconProps) => (
+  <svg
+    fill="none"
+    stroke="currentColor"
+    viewBox="0 0 24 24"
+    width={width}
+    height={height}
+  >
+    <path
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      strokeWidth="2"
+      d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"
+    />
+  </svg>
+);
+
 export const FolderIcon = ({ width = 14, height = 14 }: IconProps) => (
   <svg
     fill="none"
