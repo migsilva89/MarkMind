@@ -1,22 +1,19 @@
-import { type ApiKeyPanelHandlerDeps, type ApiKeyPanelStatusMessage, AUTO_CLOSE_DELAY_MS } from '../types';
-import { humanizeApiError } from '../../../utils/helpers';
+import { type ApiKeyPanelHandlerDeps, type ApiKeyPanelStatusMessage } from '../types';
+import { fetchModelsForProvider } from '../../../services/ai/providerUtils';
+import { MODELS_CACHE_KEY_PREFIX } from '../../../config/services';
 
 interface HandleApiKeySaveDeps extends Pick<
   ApiKeyPanelHandlerDeps,
   | 'currentService'
   | 'apiKeyInput'
-  | 'selectedModel'
-  | 'canClosePanel'
   | 'setHasExistingKey'
   | 'setApiKeyInput'
-  | 'setCanClosePanel'
   | 'showStatusMessage'
-  | 'autoCloseTimeoutRef'
 > {
-  handlePanelClose: () => void;
   setStatus: (status: ApiKeyPanelStatusMessage) => void;
   setIsEditingKey: (value: boolean) => void;
   showButtonError: (message: string) => void;
+  onModelsLoaded: () => void;
 }
 
 export const createHandleApiKeySave = (deps: HandleApiKeySaveDeps) => {
@@ -24,17 +21,13 @@ export const createHandleApiKeySave = (deps: HandleApiKeySaveDeps) => {
     const {
       currentService,
       apiKeyInput,
-      selectedModel,
-      canClosePanel,
       setHasExistingKey,
       setApiKeyInput,
-      setCanClosePanel,
       showStatusMessage,
       showButtonError,
-      autoCloseTimeoutRef,
-      handlePanelClose,
       setStatus,
       setIsEditingKey,
+      onModelsLoaded,
     } = deps;
 
     const trimmedKey = apiKeyInput.trim();
@@ -54,47 +47,42 @@ export const createHandleApiKeySave = (deps: HandleApiKeySaveDeps) => {
       setHasExistingKey(true);
       setApiKeyInput('');
 
-      showStatusMessage('Validating...', 'loading');
+      showStatusMessage('Validating key & loading models...', 'loading');
 
-      const { testConfig } = currentService;
-      const response = await fetch(testConfig.getEndpoint(trimmedKey, selectedModel), {
-        method: 'POST',
-        headers: testConfig.getHeaders(trimmedKey),
-        body: JSON.stringify(testConfig.getBody(selectedModel)),
-      });
+      // Fetching models validates the key implicitly — if the key is invalid, this throws
+      const models = await fetchModelsForProvider(currentService.id, trimmedKey);
 
-      const data = await response.json();
-
-      if (response.ok && testConfig.validateResponse(data)) {
+      if (models.length === 0) {
         setStatus({
-          message: "You're all set!",
-          type: 'success',
-          showGoToApp: true,
-        });
-        setIsEditingKey(false);
-
-        if (!canClosePanel) {
-          setCanClosePanel(true);
-          if (autoCloseTimeoutRef.current) {
-            clearTimeout(autoCloseTimeoutRef.current);
-          }
-          autoCloseTimeoutRef.current = setTimeout(() => {
-            handlePanelClose();
-            autoCloseTimeoutRef.current = null;
-          }, AUTO_CLOSE_DELAY_MS);
-        }
-      } else {
-        const rawMessage = data?.error?.message || 'API key is invalid';
-        setStatus({
-          message: humanizeApiError(rawMessage, response.status),
-          type: 'error',
+          message: 'Key accepted but no models found.',
+          type: 'default',
           showGoToApp: false,
         });
+        return;
       }
+
+      // Cache models so ServiceSelector can read them instantly without re-fetching
+      const cacheKey = `${MODELS_CACHE_KEY_PREFIX}${currentService.id}`;
+      await chrome.storage.local.set({
+        [cacheKey]: { models, fetchedAt: Date.now() },
+      });
+
+      setStatus({
+        message: `Key valid — ${models.length} models available! Select a model below.`,
+        type: 'success',
+        showGoToApp: false,
+      });
+      setIsEditingKey(false);
+
+      // Signal ServiceSelector to reload models from cache
+      onModelsLoaded();
     } catch (error) {
       console.error('Failed to save or validate API key:', error);
+      const errorMessage = error instanceof Error ? error.message : 'Connection failed';
       setStatus({
-        message: 'Connection failed. Key saved but could not validate.',
+        message: errorMessage.includes('401') || errorMessage.includes('403')
+          ? 'Invalid API key. Please check and try again.'
+          : `Validation failed: ${errorMessage}`,
         type: 'error',
         showGoToApp: false,
       });
