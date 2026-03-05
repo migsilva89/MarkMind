@@ -1,7 +1,7 @@
 import { type BlogPost } from '../types/discover';
 
 const CONTENTFUL_SPACE_ID = 'tgx6mb7o35jr';
-const CONTENTFUL_ACCESS_TOKEN = '8JT2A7uy2EjuM8E6gCjYLOZrsPLyhNq1wkP0vJxKqAk';
+const CONTENTFUL_ACCESS_TOKEN = '3huNM1SVvgOfd1S1V7y9H2w_00i2UmfPDFwAJ2oQzU8';
 const CONTENTFUL_CDN_URL = `https://cdn.contentful.com/spaces/${CONTENTFUL_SPACE_ID}/entries`;
 const CONTENT_TYPE = 'blogPost';
 
