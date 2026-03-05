@@ -1,4 +1,4 @@
-export { callGemini } from './gemini';
-export { callOpenAI } from './openai';
-export { callAnthropic } from './anthropic';
-export { callOpenRouter } from './openRouter';
+export { callGemini, fetchGeminiModels } from './gemini';
+export { callOpenAI, fetchOpenAIModels } from './openai';
+export { callAnthropic, fetchAnthropicModels } from './anthropic';
+export { callOpenRouter, fetchOpenRouterModels } from './openRouter';

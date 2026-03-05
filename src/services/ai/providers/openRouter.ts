@@ -1,4 +1,37 @@
 import { throwApiResponseError } from '../../../utils/helpers';
+import { type ModelOption } from '../../../types/services';
+
+const OPENROUTER_TEXT_PREFIXES = [
+  'openai/', 'anthropic/', 'google/', 'deepseek/', 'meta-llama/',
+  'mistralai/', 'moonshotai/', 'cohere/', 'qwen/',
+];
+
+export const fetchOpenRouterModels = async (apiKey: string): Promise<ModelOption[]> => {
+  const response = await fetch('https://openrouter.ai/api/v1/models', {
+    headers: { Authorization: `Bearer ${apiKey}` },
+  });
+
+  if (!response.ok) {
+    await throwApiResponseError('OpenRouter', response);
+  }
+
+  const data = await response.json();
+
+  if (!Array.isArray(data?.data)) {
+    throw new Error('Unexpected response from OpenRouter models endpoint');
+  }
+
+  return data.data
+    .filter((model: Record<string, unknown>) => {
+      const modelId = model.id as string;
+      return OPENROUTER_TEXT_PREFIXES.some((prefix) => modelId.startsWith(prefix));
+    })
+    .map((model: Record<string, unknown>) => ({
+      id: model.id as string,
+      name: (model.name as string) || (model.id as string),
+    }))
+    .sort((modelA: ModelOption, modelB: ModelOption) => modelA.name.localeCompare(modelB.name));
+};
 
 export const callOpenRouter = async (
   apiKey: string,

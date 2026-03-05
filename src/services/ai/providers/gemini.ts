@@ -1,4 +1,34 @@
 import { throwApiResponseError } from '../../../utils/helpers';
+import { type ModelOption } from '../../../types/services';
+
+const GEMINI_MODEL_PREFIX = 'models/gemini-';
+
+export const fetchGeminiModels = async (apiKey: string): Promise<ModelOption[]> => {
+  const response = await fetch(
+    `https://generativelanguage.googleapis.com/v1/models?key=${apiKey}`
+  );
+
+  if (!response.ok) {
+    await throwApiResponseError('Gemini', response);
+  }
+
+  const data = await response.json();
+
+  if (!Array.isArray(data?.models)) {
+    throw new Error('Unexpected response from Gemini models endpoint');
+  }
+
+  return data.models
+    .filter((model: Record<string, unknown>) => {
+      const name = model.name as string;
+      const methods = model.supportedGenerationMethods as string[] | undefined;
+      return name.startsWith(GEMINI_MODEL_PREFIX) && methods?.includes('generateContent');
+    })
+    .map((model: Record<string, unknown>) => ({
+      id: (model.name as string).replace('models/', ''),
+      name: model.displayName as string,
+    }));
+};
 
 export const callGemini = async (
   apiKey: string,

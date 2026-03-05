@@ -1,4 +1,34 @@
 import { throwApiResponseError } from '../../../utils/helpers';
+import { type ModelOption } from '../../../types/services';
+
+const OPENAI_CHAT_PREFIXES = ['gpt-', 'o1', 'o3', 'o4', 'chatgpt-'];
+
+export const fetchOpenAIModels = async (apiKey: string): Promise<ModelOption[]> => {
+  const response = await fetch('https://api.openai.com/v1/models', {
+    headers: { Authorization: `Bearer ${apiKey}` },
+  });
+
+  if (!response.ok) {
+    await throwApiResponseError('OpenAI', response);
+  }
+
+  const data = await response.json();
+
+  if (!Array.isArray(data?.data)) {
+    throw new Error('Unexpected response from OpenAI models endpoint');
+  }
+
+  return data.data
+    .filter((model: Record<string, unknown>) => {
+      const modelId = model.id as string;
+      return OPENAI_CHAT_PREFIXES.some((prefix) => modelId.startsWith(prefix));
+    })
+    .map((model: Record<string, unknown>) => ({
+      id: model.id as string,
+      name: model.id as string,
+    }))
+    .sort((modelA: ModelOption, modelB: ModelOption) => modelA.id.localeCompare(modelB.id));
+};
 
 export const callOpenAI = async (
   apiKey: string,
