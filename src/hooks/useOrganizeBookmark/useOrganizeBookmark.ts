@@ -100,6 +100,8 @@ export const useOrganizeBookmark = (): UseOrganizeBookmarkReturn => {
 
     try {
       setIsOrganizing(true);
+      setExistingBookmarkPath(null);
+      setPendingSuggestion(null);
       startLoadingMessages();
 
       const folderData = await getFolderDataForAI();
