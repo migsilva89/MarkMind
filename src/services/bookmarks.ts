@@ -100,13 +100,14 @@ export const createFolderPath = async (
     }
 
     // AI sometimes omits root segments (e.g. "Utilities" instead of "Bookmarks Bar/Utilities")
-    const suffixMatch = Object.entries(pathToIdMap).find(
+    // Only resolve when the match is unambiguous — avoids misfiling when multiple folders share a name
+    const suffixMatches = Object.entries(pathToIdMap).filter(
       ([key]) => key.endsWith(`/${resolvedPath}`)
     );
 
-    if (suffixMatch) {
-      currentParentId = suffixMatch[1];
-      resolvedPath = suffixMatch[0];
+    if (suffixMatches.length === 1) {
+      currentParentId = suffixMatches[0][1];
+      resolvedPath = suffixMatches[0][0];
       continue;
     }
 
