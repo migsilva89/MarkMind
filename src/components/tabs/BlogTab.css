@@ -14,6 +14,56 @@
 }
 
 /* ========================================
+   Tag Filter Row (arrows + scrollable pills)
+   ======================================== */
+.blog-tab-filters-row {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-xs);
+}
+
+.blog-tab-filters-arrow {
+  flex-shrink: 0;
+  color: var(--color-text-muted);
+}
+
+.blog-tab-filters {
+  display: flex;
+  gap: var(--spacing-sm);
+  overflow-x: auto;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+.blog-tab-filters::-webkit-scrollbar {
+  display: none;
+}
+
+.blog-tab-filter-pill {
+  flex-shrink: 0;
+  padding: var(--spacing-xs) var(--spacing-xl);
+  font-size: var(--font-size-2xs);
+  font-weight: var(--font-weight-medium);
+  font-family: var(--font-family);
+  color: var(--color-text-secondary);
+  background: transparent;
+  border: 1px solid var(--color-border-light);
+  border-radius: var(--radius-full);
+  cursor: pointer;
+  transition: background-color var(--transition-smooth), border-color var(--transition-smooth), color var(--transition-smooth);
+}
+
+.blog-tab-filter-pill:hover {
+  background-color: var(--color-surface);
+}
+
+.blog-tab-filter-pill.active {
+  background-color: var(--color-primary);
+  border-color: var(--color-primary);
+  color: var(--color-white);
+}
+
+/* ========================================
    Blog Post List
    ======================================== */
 .blog-tab-list {

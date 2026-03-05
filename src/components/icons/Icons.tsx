@@ -307,6 +307,40 @@ export const ChevronDownIcon = ({ width = 14, height = 14 }: IconProps) => (
   </svg>
 );
 
+export const ChevronLeftIcon = ({ width = 14, height = 14 }: IconProps) => (
+  <svg
+    fill="none"
+    stroke="currentColor"
+    viewBox="0 0 24 24"
+    width={width}
+    height={height}
+  >
+    <path
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      strokeWidth="2"
+      d="M15 19l-7-7 7-7"
+    />
+  </svg>
+);
+
+export const ChevronRightIcon = ({ width = 14, height = 14 }: IconProps) => (
+  <svg
+    fill="none"
+    stroke="currentColor"
+    viewBox="0 0 24 24"
+    width={width}
+    height={height}
+  >
+    <path
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      strokeWidth="2"
+      d="M9 5l7 7-7 7"
+    />
+  </svg>
+);
+
 export const RefreshIcon = ({ width = 14, height = 14 }: IconProps) => (
   <svg
     fill="none"
