@@ -1,0 +1,97 @@
+/* ========================================
+   Blog Card (article preview with image)
+   ======================================== */
+.blog-card {
+  display: flex;
+  flex-direction: column;
+  background-color: var(--color-white);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-xl);
+  cursor: pointer;
+  transition: transform var(--transition-fast), background-color var(--transition-smooth);
+  text-decoration: none;
+  color: inherit;
+  overflow: hidden;
+}
+
+.blog-card:hover {
+  border-color: var(--color-primary);
+  background-color: var(--color-surface);
+  transform: translateY(-2px);
+  text-decoration: none;
+}
+
+/* ========================================
+   Image Banner
+   ======================================== */
+.blog-card-image {
+  width: 100%;
+  height: 120px;
+  overflow: hidden;
+  background-color: var(--color-surface);
+}
+
+.blog-card-image img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+/* ========================================
+   Content
+   ======================================== */
+.blog-card-content {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-xs);
+  padding: var(--spacing-xl) var(--spacing-2xl) var(--spacing-2xl);
+}
+
+/* ========================================
+   Meta Row (badge + reading time + icon)
+   ======================================== */
+.blog-card-meta {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-md);
+}
+
+.blog-card-badge {
+  font-size: var(--font-size-2xs);
+  font-weight: var(--font-weight-semibold);
+  padding: var(--spacing-2xs) var(--spacing-sm);
+  border-radius: var(--radius-sm);
+  background-color: var(--color-accent-purple-bg);
+  color: var(--color-accent-purple);
+}
+
+.blog-card-reading-time {
+  font-size: var(--font-size-2xs);
+  color: var(--color-text-light);
+}
+
+/* ========================================
+   Text
+   ======================================== */
+.blog-card-title {
+  font-size: var(--font-size-md);
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-text);
+  line-height: var(--line-height-tight);
+}
+
+.blog-card-excerpt {
+  font-size: var(--font-size-xs);
+  color: var(--color-text-secondary);
+  line-height: var(--line-height-normal);
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.blog-card-date {
+  font-size: var(--font-size-2xs);
+  color: var(--color-text-light);
+  margin-top: var(--spacing-2xs);
+}
