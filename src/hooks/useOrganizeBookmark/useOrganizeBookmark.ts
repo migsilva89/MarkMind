@@ -1,5 +1,4 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
-import { getDefaultModel } from '../../config/services';
 import { LOADING_MESSAGES, getNextLoadingMessage } from '../../config/loadingMessages';
 import { type StatusType } from '../../types/common';
 import { type FolderDataForAI, type PendingSuggestion } from '../../types/bookmarks';
@@ -127,7 +126,12 @@ export const useOrganizeBookmark = (): UseOrganizeBookmarkReturn => {
         return;
       }
 
-      const selectedModel = getSelectedModelId() || getDefaultModel(serviceId);
+      const selectedModel = getSelectedModelId();
+
+      if (!selectedModel) {
+        showStatus('Please select a model in Settings first', 'error');
+        return;
+      }
 
       folderDataRef.current = folderData;
 

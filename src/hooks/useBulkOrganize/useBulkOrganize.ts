@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback, useRef, useMemo } from 'react';
-import { SELECTED_SERVICE_STORAGE_KEY } from '../../config/services';
+import { SELECTED_SERVICE_STORAGE_KEY, SELECTED_MODEL_STORAGE_KEY } from '../../config/services';
 import { LOADING_MESSAGES, getNextLoadingMessage } from '../../config/loadingMessages';
 import { type StatusType } from '../../types/common';
 import { type OrganizeSession, type BulkOrganizeResult } from '../../types/organize';
@@ -233,11 +233,17 @@ export const useBulkOrganize = (): UseBulkOrganizeReturn => {
       const bookmarksToOrganize = filterBookmarksByFolders(currentSession.allBookmarks, selectedFolderIds);
       if (bookmarksToOrganize.length === 0) return;
 
-      const storageResult = await chrome.storage.local.get([SELECTED_SERVICE_STORAGE_KEY]);
+      const storageResult = await chrome.storage.local.get([SELECTED_SERVICE_STORAGE_KEY, SELECTED_MODEL_STORAGE_KEY]);
       const serviceId = storageResult[SELECTED_SERVICE_STORAGE_KEY] ?? '';
+      const modelId = storageResult[SELECTED_MODEL_STORAGE_KEY] ?? '';
 
       if (!serviceId) {
         await updateSession({ status: 'error', errorMessage: 'No AI provider selected' });
+        return;
+      }
+
+      if (!modelId) {
+        await updateSession({ status: 'error', errorMessage: 'No model selected. Please select a model in Settings.' });
         return;
       }
 
@@ -253,6 +259,7 @@ export const useBulkOrganize = (): UseBulkOrganizeReturn => {
         type: 'START_ORGANIZE',
         payload: {
           serviceId,
+          modelId,
           bookmarks: bookmarksToOrganize,
           folderTree: currentSession.folderTree,
           pathToIdMap: currentSession.pathToIdMap,
