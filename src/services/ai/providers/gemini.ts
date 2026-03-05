@@ -5,7 +5,8 @@ const GEMINI_MODEL_PREFIX = 'models/gemini-';
 
 export const fetchGeminiModels = async (apiKey: string): Promise<ModelOption[]> => {
   const response = await fetch(
-    `https://generativelanguage.googleapis.com/v1/models?key=${apiKey}`
+    'https://generativelanguage.googleapis.com/v1/models',
+    { headers: { 'x-goog-api-key': apiKey } }
   );
 
   if (!response.ok) {
@@ -37,11 +38,14 @@ export const callGemini = async (
   model: string,
   maxTokens?: number
 ): Promise<string> => {
-  const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`;
+  const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent`;
 
   const response = await fetch(endpoint, {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
+    headers: {
+      'Content-Type': 'application/json',
+      'x-goog-api-key': apiKey,
+    },
     body: JSON.stringify({
       systemInstruction: { parts: [{ text: systemPrompt }] },
       contents: [{ parts: [{ text: userPrompt }] }],
