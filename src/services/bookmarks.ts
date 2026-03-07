@@ -99,6 +99,17 @@ export const createFolderPath = async (
       continue;
     }
 
+    // AI sometimes omits root segments (e.g. "Utilities" instead of "Bookmarks Bar/Utilities")
+    const suffixMatch = Object.entries(pathToIdMap).find(
+      ([key]) => key.endsWith(`/${resolvedPath}`)
+    );
+
+    if (suffixMatch) {
+      currentParentId = suffixMatch[1];
+      resolvedPath = suffixMatch[0];
+      continue;
+    }
+
     const newFolder = await createFolder(currentParentId, segment);
     currentParentId = newFolder.id;
     pathToIdMap[resolvedPath] = newFolder.id;
