@@ -99,6 +99,18 @@ export const createFolderPath = async (
       continue;
     }
 
+    // AI sometimes omits root segments (e.g. "Utilities" instead of "Bookmarks Bar/Utilities")
+    // Only resolve when the match is unambiguous — avoids misfiling when multiple folders share a name
+    const suffixMatches = Object.entries(pathToIdMap).filter(
+      ([key]) => key.endsWith(`/${resolvedPath}`)
+    );
+
+    if (suffixMatches.length === 1) {
+      currentParentId = suffixMatches[0][1];
+      resolvedPath = suffixMatches[0][0];
+      continue;
+    }
+
     const newFolder = await createFolder(currentParentId, segment);
     currentParentId = newFolder.id;
     pathToIdMap[resolvedPath] = newFolder.id;
