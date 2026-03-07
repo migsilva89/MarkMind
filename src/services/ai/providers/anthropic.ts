@@ -1,4 +1,32 @@
 import { throwApiResponseError } from '../../../utils/helpers';
+import { type ModelOption } from '../../../types/services';
+
+export const fetchAnthropicModels = async (apiKey: string): Promise<ModelOption[]> => {
+  const response = await fetch('https://api.anthropic.com/v1/models?limit=100', {
+    headers: {
+      'x-api-key': apiKey,
+      'anthropic-version': '2023-06-01',
+      'anthropic-dangerous-direct-browser-access': 'true',
+    },
+  });
+
+  if (!response.ok) {
+    await throwApiResponseError('Anthropic', response);
+  }
+
+  const data = await response.json();
+
+  if (!Array.isArray(data?.data)) {
+    throw new Error('Unexpected response from Anthropic models endpoint');
+  }
+
+  return data.data
+    .map((model: Record<string, unknown>) => ({
+      id: model.id as string,
+      name: (model.display_name as string) || (model.id as string),
+    }))
+    .sort((modelA: ModelOption, modelB: ModelOption) => modelA.name.localeCompare(modelB.name));
+};
 
 export const callAnthropic = async (
   apiKey: string,

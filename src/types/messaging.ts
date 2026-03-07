@@ -14,6 +14,7 @@ export interface OrganizeMessage {
 
 export interface StartOrganizePayload {
   serviceId: string;
+  modelId: string;
   bookmarks: CompactBookmark[];
   folderTree: string;
   pathToIdMap: FolderPathMap;

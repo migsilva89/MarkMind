@@ -1,5 +1,27 @@
 import { SERVICES } from '../../config/services';
-import { callGemini, callOpenAI, callAnthropic, callOpenRouter } from './providers';
+import { type ModelOption } from '../../types/services';
+import {
+  callGemini, callOpenAI, callAnthropic, callOpenRouter,
+  fetchGeminiModels, fetchOpenAIModels, fetchAnthropicModels, fetchOpenRouterModels,
+} from './providers';
+
+export const fetchModelsForProvider = async (
+  serviceId: string,
+  apiKey: string
+): Promise<ModelOption[]> => {
+  switch (serviceId) {
+    case 'google':
+      return fetchGeminiModels(apiKey);
+    case 'openai':
+      return fetchOpenAIModels(apiKey);
+    case 'anthropic':
+      return fetchAnthropicModels(apiKey);
+    case 'openrouter':
+      return fetchOpenRouterModels(apiKey);
+    default:
+      throw new Error(`Unsupported service: ${serviceId}`);
+  }
+};
 
 export const getApiKey = async (serviceId: string): Promise<string> => {
   const service = SERVICES[serviceId];

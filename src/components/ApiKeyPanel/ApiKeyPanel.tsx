@@ -31,6 +31,7 @@ const ApiKeyPanel = ({
     currentService,
     apiKeyInput,
     selectedModel,
+    modelsRefreshTrigger,
     hasExistingKey,
     isEditingKey,
     status,
@@ -52,9 +53,10 @@ const ApiKeyPanel = ({
 
   if (!isOpen) return null;
 
+  const hasProviderSelected = currentService.id !== '';
   const hasModelSelected = selectedModel !== '';
-  const showApiKeyCard = hasModelSelected || hasExistingKey;
-  const showConfiguredState = hasExistingKey && !isEditingKey;
+  const showApiKeyCard = hasProviderSelected || hasExistingKey;
+  const showConfiguredState = hasExistingKey && !isEditingKey && hasModelSelected;
 
   return (
     <div className="api-key-panel active">
@@ -108,6 +110,7 @@ const ApiKeyPanel = ({
           <ServiceSelector
             onServiceChange={handleServiceChange}
             onModelChange={handleModelChange}
+            refreshTrigger={modelsRefreshTrigger}
           />
 
           {showApiKeyCard && (
@@ -148,6 +151,24 @@ const ApiKeyPanel = ({
                     Start Organizing Bookmarks
                     <ArrowRightIcon />
                   </Button>
+
+                  <button
+                    className="api-key-change-link"
+                    onClick={handleStartEditingKey}
+                    type="button"
+                  >
+                    Change API Key
+                  </button>
+                </div>
+              ) : hasExistingKey && !isEditingKey ? (
+                <div className="api-key-configured">
+                  <div className="api-key-configured-badge">
+                    <CheckCircleIcon width={20} height={20} />
+                    <div className="api-key-configured-info">
+                      <h3 className="api-key-configured-title">API Key Configured</h3>
+                      <p className="api-key-configured-subtitle">Select a model above to continue</p>
+                    </div>
+                  </div>
 
                   <button
                     className="api-key-change-link"

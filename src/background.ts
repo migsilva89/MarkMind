@@ -19,6 +19,7 @@ const handleStartOrganize = async (payload: StartOrganizePayload): Promise<void>
 
   const result = await organizeBookmarks(
     payload.serviceId,
+    payload.modelId,
     payload.bookmarks,
     payload.folderTree,
     payload.pathToIdMap
