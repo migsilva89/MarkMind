@@ -104,6 +104,64 @@
 }
 
 /* ========================================
+   Dark Mode (Landing Page Inspired)
+   ======================================== */
+[data-theme="dark"] {
+  /* Colors - Dark palette matching markmind.xyz landing */
+  --color-primary: #d4874a;
+  --color-primary-hover: #e09860;
+  --color-background: #09090b;
+  --color-surface: #18181b;
+  --color-surface-hover: #27272a;
+  --color-text: #f4f4f5;
+  --color-text-secondary: #d4d4d8;
+  --color-text-muted: #a1a1aa;
+  --color-text-light: #71717a;
+  --color-border: rgba(255, 155, 81, 0.12);
+  --color-border-light: rgba(255, 155, 81, 0.18);
+  --color-white: #111113;
+
+  /* Accent Colors - Status (brighter on dark bg) */
+  --color-success-bg: #064e3b;
+  --color-success: #34d399;
+  --color-error-bg: #4c0519;
+  --color-error-bg-hover: #881337;
+  --color-error: #fb7185;
+  --color-error-dark: #fda4af;
+  --color-warning-bg: #451a03;
+  --color-warning: #fbbf24;
+  --color-link: #60a5fa;
+
+  /* Accent Colors - Decorative (landing page orange) */
+  --color-accent-purple-bg: #2e1065;
+  --color-accent-purple: #a78bfa;
+  --color-accent-orange-bg: #431407;
+  --color-accent-orange: #FF9B51;
+
+  /* Shadows - warm orange glow on dark */
+  --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.4);
+  --shadow-md: 0 4px 8px rgba(0, 0, 0, 0.5);
+}
+
+/* Dark mode ghost buttons: orange family for all states */
+[data-theme="dark"] .btn-ghost:hover,
+[data-theme="dark"] .service-tab-pill:hover {
+  border-color: rgba(255, 155, 81, 0.35);
+}
+
+[data-theme="dark"] .btn-ghost.active,
+[data-theme="dark"] .service-tab-pill.active {
+  color: var(--color-primary);
+  border-color: var(--color-primary);
+}
+
+/* Titles and descriptions use orange accent in dark mode */
+[data-theme="dark"] .discover-card-title,
+[data-theme="dark"] .partner-card-title {
+  color: var(--color-primary);
+}
+
+/* ========================================
    Base Reset
    ======================================== */
 *,
@@ -295,6 +353,12 @@ a:hover {
   font-size: var(--font-size-lg);
   font-weight: var(--font-weight-semibold);
   color: var(--color-text);
+}
+
+.main-header-right {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-2xs);
 }
 
 /* ========================================
