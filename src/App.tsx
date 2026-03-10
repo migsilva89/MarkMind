@@ -3,8 +3,10 @@ import ApiKeyPanel from './components/ApiKeyPanel/ApiKeyPanel';
 import MainContent from './components/MainContent/MainContent';
 import { SERVICES } from './config/services';
 import { initSelectedState } from './services/selectedState';
+import { useTheme } from './hooks/useTheme';
 
 const App = () => {
+  const { theme, toggleTheme } = useTheme();
   const [showApiKeyPanel, setShowApiKeyPanel] = useState(false);
   const [hasAnyApiKey, setHasAnyApiKey] = useState<boolean | null>(null);
 
@@ -44,7 +46,11 @@ const App = () => {
   return (
     <div className="container">
       {hasAnyApiKey && !showApiKeyPanel && (
-        <MainContent onOpenSettings={handleOpenSettings} />
+        <MainContent
+          onOpenSettings={handleOpenSettings}
+          theme={theme}
+          onToggleTheme={toggleTheme}
+        />
       )}
 
       <ApiKeyPanel
