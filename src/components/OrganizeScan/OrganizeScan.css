@@ -71,6 +71,29 @@
   overflow-y: auto;
 }
 
+/* Group-level checkbox in folder group header */
+.organize-scan-group-check {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 14px;
+  height: 14px;
+  border: 1px solid var(--color-border-light);
+  border-radius: var(--spacing-2xs);
+  cursor: pointer;
+  transition: border-color var(--transition-fast), background-color var(--transition-fast);
+  color: var(--color-success);
+}
+
+.organize-scan-group-check:hover {
+  border-color: var(--color-text-muted);
+}
+
+.organize-scan-group-check.checked {
+  border-color: var(--color-success);
+  background-color: var(--color-success-bg);
+}
+
 .organize-scan-folder-row {
   display: flex;
   align-items: center;
@@ -100,7 +123,15 @@
   width: 14px;
   height: 14px;
   flex-shrink: 0;
+  border: 1px solid var(--color-border-light);
+  border-radius: var(--spacing-2xs);
   color: var(--color-success);
+  transition: border-color var(--transition-fast), background-color var(--transition-fast);
+}
+
+.organize-scan-folder-row.selected .organize-scan-folder-check {
+  border-color: var(--color-success);
+  background-color: var(--color-success-bg);
 }
 
 .organize-scan-folder-path {
