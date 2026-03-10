@@ -13,6 +13,7 @@ interface OrganizeScanProps {
   bookmarkStats: BookmarkStats | null;
   onStartScan: () => void;
   onToggleFolder: (folderId: string) => void;
+  onToggleGroupFolders: (folderIds: string[]) => void;
   onSelectAll: () => void;
   onDeselectAll: () => void;
   onStartPlanning: () => void;
@@ -29,6 +30,7 @@ const OrganizeScan = ({
   bookmarkStats,
   onStartScan,
   onToggleFolder,
+  onToggleGroupFolders,
   onSelectAll,
   onDeselectAll,
   onStartPlanning,
@@ -97,12 +99,27 @@ const OrganizeScan = ({
               const groupBookmarkCount = group.items.reduce(
                 (total, folder) => total + folder.bookmarkCount, 0
               );
+              const groupFolderIds = group.items.map(folder => folder.folderId);
+              const selectedInGroup = group.items.filter(
+                folder => session.selectedFolderIds?.includes(folder.folderId) ?? false
+              ).length;
+              const allGroupSelected = selectedInGroup === group.items.length;
+              const showGroupToggle = group.items.length > 1;
 
               return (
                 <FolderTreeGroup
                   key={group.groupName}
                   groupName={group.groupName}
                   itemCount={groupBookmarkCount}
+                  headerAction={showGroupToggle ? (
+                    <Button
+                      variant="unstyled"
+                      className={`organize-scan-group-check ${allGroupSelected ? 'checked' : ''}`}
+                      onClick={() => onToggleGroupFolders(groupFolderIds)}
+                    >
+                      {allGroupSelected && <CheckIcon width={10} height={10} />}
+                    </Button>
+                  ) : undefined}
                 >
                   {group.items.map(folder => {
                     const isSelected = session.selectedFolderIds?.includes(folder.folderId) ?? false;

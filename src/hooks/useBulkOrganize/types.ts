@@ -9,6 +9,7 @@ export interface UseBulkOrganizeReturn {
   statusType: StatusType;
   handleStartScan: () => Promise<void>;
   handleToggleFolder: (folderId: string) => void;
+  handleToggleGroupFolders: (folderIds: string[]) => void;
   handleSelectAllFolders: () => void;
   handleDeselectAllFolders: () => void;
   handleStartOrganizing: () => Promise<void>;

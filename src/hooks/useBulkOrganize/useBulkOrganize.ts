@@ -224,6 +224,21 @@ export const useBulkOrganize = (): UseBulkOrganizeReturn => {
     });
   }, []);
 
+  const handleToggleGroupFolders = useCallback((folderIds: string[]): void => {
+    setSession(previousSession => {
+      const currentSelected = previousSession.selectedFolderIds ?? [];
+      const allInGroupSelected = folderIds.every(folderId => currentSelected.includes(folderId));
+
+      const updatedFolderIds = allInGroupSelected
+        ? currentSelected.filter(id => !folderIds.includes(id))
+        : [...new Set([...currentSelected, ...folderIds])];
+
+      const updatedSession = { ...previousSession, selectedFolderIds: updatedFolderIds };
+      debouncedSaveSession(updatedSession);
+      return updatedSession;
+    });
+  }, [debouncedSaveSession]);
+
   const handleStartOrganizing = useCallback(async (): Promise<void> => {
     try {
       const currentSession = sessionRef.current;
@@ -411,6 +426,7 @@ export const useBulkOrganize = (): UseBulkOrganizeReturn => {
     statusType,
     handleStartScan,
     handleToggleFolder,
+    handleToggleGroupFolders,
     handleSelectAllFolders,
     handleDeselectAllFolders,
     handleStartOrganizing,

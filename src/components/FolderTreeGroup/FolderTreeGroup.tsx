@@ -7,6 +7,7 @@ interface FolderTreeGroupProps {
   groupName: string;
   itemCount: number;
   badge?: string;
+  headerAction?: ReactNode;
   children: ReactNode;
   defaultExpanded?: boolean;
 }
@@ -15,6 +16,7 @@ const FolderTreeGroup = ({
   groupName,
   itemCount,
   badge,
+  headerAction,
   children,
   defaultExpanded = false,
 }: FolderTreeGroupProps) => {
@@ -36,6 +38,11 @@ const FolderTreeGroup = ({
         </span>
         <span className="folder-tree-group-name">{groupName}</span>
         {badge && <span className="folder-tree-group-badge">{badge}</span>}
+        {headerAction && (
+          <span className="folder-tree-group-action" onClick={event => event.stopPropagation()}>
+            {headerAction}
+          </span>
+        )}
         <span className="folder-tree-group-count">
           {itemCount}
         </span>
