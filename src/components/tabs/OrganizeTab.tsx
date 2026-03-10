@@ -15,6 +15,7 @@ const OrganizeTab = () => {
     statusType,
     handleStartScan,
     handleToggleFolder,
+    handleToggleGroupFolders,
     handleSelectAllFolders,
     handleDeselectAllFolders,
     handleStartOrganizing,
@@ -36,6 +37,7 @@ const OrganizeTab = () => {
           bookmarkStats={bookmarkStats}
           onStartScan={handleStartScan}
           onToggleFolder={handleToggleFolder}
+          onToggleGroupFolders={handleToggleGroupFolders}
           onSelectAll={handleSelectAllFolders}
           onDeselectAll={handleDeselectAllFolders}
           onStartPlanning={handleStartOrganizing}

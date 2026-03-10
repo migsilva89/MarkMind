@@ -57,11 +57,19 @@
 .organize-plan-folder-indicator {
   display: flex;
   align-items: center;
+  justify-content: center;
+  width: 14px;
+  height: 14px;
   flex-shrink: 0;
+  border: 1px solid var(--color-border-light);
+  border-radius: var(--spacing-2xs);
+  transition: border-color var(--transition-fast), background-color var(--transition-fast);
 }
 
 .organize-plan-folder-row.included .organize-plan-folder-indicator {
   color: var(--color-success);
+  border-color: var(--color-success);
+  background-color: var(--color-success-bg);
 }
 
 .organize-plan-folder-row.excluded .organize-plan-folder-indicator {

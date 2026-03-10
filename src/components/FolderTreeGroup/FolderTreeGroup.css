@@ -41,6 +41,10 @@
   flex-shrink: 0;
 }
 
+.folder-tree-group-action {
+  flex-shrink: 0;
+}
+
 .folder-tree-group-count {
   font-size: var(--font-size-2xs);
   color: var(--color-text-light);
