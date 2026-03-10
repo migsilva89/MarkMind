@@ -52,13 +52,12 @@ export const useTheme = (): UseThemeReturn => {
   }, [themePreference]);
 
   const toggleTheme = useCallback((): void => {
-    const nextPreference: ThemePreference = theme === 'light' ? 'dark' : 'light';
-    setThemePreference(nextPreference);
-    const resolved = resolveTheme(nextPreference);
-    setTheme(resolved);
-    applyTheme(resolved);
+    const nextTheme: ResolvedTheme = theme === 'light' ? 'dark' : 'light';
+    setThemePreference(nextTheme);
+    setTheme(nextTheme);
+    applyTheme(nextTheme);
 
-    chrome.storage.local.set({ [STORAGE_KEY_THEME]: nextPreference }).catch((error) => {
+    chrome.storage.local.set({ [STORAGE_KEY_THEME]: nextTheme }).catch((error) => {
       console.error('Failed to save theme preference:', error);
     });
   }, [theme]);
