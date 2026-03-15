@@ -27,11 +27,12 @@ const Button = ({
     if (variant === 'unstyled') return '';
     if (variant === 'icon') return 'btn-icon';
     if (variant === 'tab') return 'service-tab-pill';
+    if (variant === 'primary') return 'btn-solid';
     return 'btn-ghost';
   };
 
   const baseClass = getBaseClass();
-  const variantClass = variant === 'primary' ? 'btn-primary' : variant === 'danger' ? 'btn-danger' : '';
+  const variantClass = variant === 'danger' ? 'btn-danger' : '';
   const widthClass = fullWidth ? 'btn-full' : '';
   const compactClass = compact ? 'btn-compact' : '';
   const activeClass = active ? 'active' : '';

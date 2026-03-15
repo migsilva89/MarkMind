@@ -95,6 +95,7 @@ const CurrentPageCard = ({
             {pendingSuggestion ? (
               <div className="current-page-card-suggestion-actions">
                 <Button
+                  variant="primary"
                   onClick={onAccept}
                   disabled={isOrganizing}
                   fullWidth
@@ -123,6 +124,7 @@ const CurrentPageCard = ({
               </div>
             ) : (
               <Button
+                variant="primary"
                 onClick={onOrganize}
                 disabled={isOrganizing}
                 className={isOrganizing ? 'loading' : ''}

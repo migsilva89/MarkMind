@@ -147,6 +147,7 @@ const OrganizeScan = ({
         </div>
 
         <Button
+          variant="primary"
           onClick={onStartPlanning}
           disabled={selectedCount === 0}
           fullWidth
@@ -167,7 +168,7 @@ const OrganizeScan = ({
         <p className="organize-scan-intro-description">
           We'll analyze your bookmarks and organize them into the perfect folder structure for you.
         </p>
-        <Button onClick={onStartScan} fullWidth>
+        <Button variant="primary" onClick={onStartScan} fullWidth>
           Scan My Bookmarks
         </Button>
       </div>
