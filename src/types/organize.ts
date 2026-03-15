@@ -50,7 +50,6 @@ export interface BulkOrganizeResult {
 export interface FolderTreeNode {
   name: string;
   path: string;
-  folderId: string | null;
   bookmarks: CompactBookmark[];
   children: FolderTreeNode[];
 }

@@ -32,14 +32,6 @@ export const flattenAllBookmarks = (
   return results;
 };
 
-export const filterBookmarksByFolders = (
-  bookmarks: CompactBookmark[],
-  selectedFolderIds: string[]
-): CompactBookmark[] => {
-  const selectedSet = new Set(selectedFolderIds);
-  return bookmarks.filter(bookmark => selectedSet.has(bookmark.currentFolderId));
-};
-
 export const getAllBookmarksInNode = (node: FolderTreeNode): CompactBookmark[] => {
   const bookmarks = [...node.bookmarks];
   for (const child of node.children) {
@@ -49,7 +41,7 @@ export const getAllBookmarksInNode = (node: FolderTreeNode): CompactBookmark[] =
 };
 
 export const buildFolderTree = (bookmarks: CompactBookmark[]): FolderTreeNode => {
-  const root: FolderTreeNode = { name: '', path: '', folderId: null, bookmarks: [], children: [] };
+  const root: FolderTreeNode = { name: '', path: '', bookmarks: [], children: [] };
 
   for (const bookmark of bookmarks) {
     const strippedPath = stripRootSegment(bookmark.currentFolderPath);
@@ -63,12 +55,11 @@ export const buildFolderTree = (bookmarks: CompactBookmark[]): FolderTreeNode =>
 
       let childNode = currentNode.children.find(child => child.name === segment);
       if (!childNode) {
-        childNode = { name: segment, path: nodePath, folderId: null, bookmarks: [], children: [] };
+        childNode = { name: segment, path: nodePath, bookmarks: [], children: [] };
         currentNode.children.push(childNode);
       }
 
       if (isLeafFolder) {
-        if (!childNode.folderId) childNode.folderId = bookmark.currentFolderId;
         childNode.bookmarks.push(bookmark);
       }
 
