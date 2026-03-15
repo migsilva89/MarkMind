@@ -1,9 +1,10 @@
 import { useState, useCallback, useMemo } from 'react';
-import { type OrganizeSession, type FolderTreeNode } from '../../types/organize';
+import { type OrganizeSession } from '../../types/organize';
 import { type BookmarkStats } from '../../types/bookmarks';
-import { buildFolderTree, getAllBookmarksInNode } from '../../utils/bookmarkScanner';
-import { FolderIcon, SpinnerIcon, CheckIcon, ArrowRightIcon, RefreshIcon, WarningIcon } from '../icons/Icons';
+import { buildFolderTree } from '../../utils/bookmarkScanner';
+import { FolderIcon, SpinnerIcon, RefreshIcon } from '../icons/Icons';
 import OrganizeStatusView from '../OrganizeStatusView/OrganizeStatusView';
+import TreeNode from '../TreeNode/TreeNode';
 import Button from '../Button/Button';
 import './OrganizeScan.css';
 
@@ -52,85 +53,6 @@ const OrganizeScan = ({
 
   const selectedCount = selectedSet.size;
 
-  const renderTreeNode = (node: FolderTreeNode, depth: number) => {
-    const allBookmarksInNode = getAllBookmarksInNode(node);
-    const selectedInNode = allBookmarksInNode.filter(bookmark => selectedSet.has(bookmark.id));
-    const isFullSelected = allBookmarksInNode.length > 0 && selectedInNode.length === allBookmarksInNode.length;
-    const isPartialSelected = selectedInNode.length > 0 && !isFullSelected;
-    const isExpanded = expandedPaths.has(node.path);
-    const hasChildren = node.children.length > 0 || node.bookmarks.length > 0;
-
-    const isOrphaned = node.name === 'Root';
-
-    return (
-      <div key={node.path} className="organize-tree-node">
-        <div
-          className="organize-tree-folder-row"
-          style={{ paddingLeft: `${depth * 16}px` }}
-        >
-          <Button
-            variant="unstyled"
-            className={`organize-tree-expand-btn ${isExpanded ? 'open' : ''} ${!hasChildren ? 'invisible' : ''}`}
-            onClick={() => handleToggleExpand(node.path)}
-          >
-            <ArrowRightIcon width={8} height={8} />
-          </Button>
-
-          <Button
-            variant="unstyled"
-            className="organize-tree-folder-check-wrap"
-            onClick={() => onToggleBookmarks(allBookmarksInNode.map(bookmark => bookmark.id))}
-          >
-            <span className={`organize-tree-check ${isFullSelected ? 'full' : isPartialSelected ? 'partial' : ''}`}>
-              {isFullSelected && <CheckIcon width={10} height={10} />}
-              {isPartialSelected && <span className="organize-tree-partial-dash" />}
-            </span>
-          </Button>
-
-          {isOrphaned && (
-            <span className="organize-tree-orphaned-icon" title="These bookmarks have no valid parent folder">
-              <WarningIcon width={10} height={10} />
-            </span>
-          )}
-          <span className={`organize-tree-folder-name ${isOrphaned ? 'orphaned' : ''}`}>
-            {isOrphaned ? 'Orphaned' : node.name}
-          </span>
-          <span className="organize-tree-folder-count">{allBookmarksInNode.length}</span>
-        </div>
-
-        {isExpanded && (
-          <div className="organize-tree-children">
-            {node.children.map(child => renderTreeNode(child, depth + 1))}
-
-            {node.bookmarks.map(bookmark => {
-              const isSelected = selectedSet.has(bookmark.id);
-              return (
-                <div
-                  key={bookmark.id}
-                  className="organize-tree-bookmark-row"
-                  style={{ paddingLeft: `${(depth + 1) * 16 + 20}px` }}
-                >
-                  <Button
-                    variant="unstyled"
-                    className="organize-tree-bookmark-check-wrap"
-                    onClick={() => onToggleBookmarks([bookmark.id])}
-                  >
-                    <span className={`organize-tree-check ${isSelected ? 'full' : ''}`}>
-                      {isSelected && <CheckIcon width={10} height={10} />}
-                    </span>
-                  </Button>
-                  <span className="organize-tree-bookmark-title" title={bookmark.url}>
-                    {bookmark.title}
-                  </span>
-                </div>
-              );
-            })}
-          </div>
-        )}
-      </div>
-    );
-  };
-
   if (session.status === 'scanning') {
     return (
       <div className="organize-scan">
@@ -166,7 +88,17 @@ const OrganizeScan = ({
           </div>
 
           <div className="organize-scan-folder-list">
-            {folderTree.children.map(topLevelNode => renderTreeNode(topLevelNode, 0))}
+            {folderTree.children.map(topLevelNode => (
+              <TreeNode
+                key={topLevelNode.path}
+                node={topLevelNode}
+                depth={0}
+                selectedSet={selectedSet}
+                expandedPaths={expandedPaths}
+                onToggleBookmarks={onToggleBookmarks}
+                onToggleExpand={handleToggleExpand}
+              />
+            ))}
           </div>
         </div>
 
