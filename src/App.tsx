@@ -58,6 +58,8 @@ const App = () => {
         showWelcomeMessage={!hasAnyApiKey}
         canClose={hasAnyApiKey}
         onClose={handleApiKeyPanelClose}
+        theme={theme}
+        onToggleTheme={toggleTheme}
       />
     </div>
   );
