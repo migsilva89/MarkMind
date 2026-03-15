@@ -1,4 +1,4 @@
-import { throwApiResponseError } from '../../../utils/helpers';
+import { fetchWithTimeout, throwApiResponseError } from '../../../utils/helpers';
 import { type ModelOption } from '../../../types/services';
 
 const OPENROUTER_TEXT_PREFIXES = [
@@ -7,7 +7,7 @@ const OPENROUTER_TEXT_PREFIXES = [
 ];
 
 export const fetchOpenRouterModels = async (apiKey: string): Promise<ModelOption[]> => {
-  const response = await fetch('https://openrouter.ai/api/v1/models', {
+  const response = await fetchWithTimeout('https://openrouter.ai/api/v1/models', {
     headers: { Authorization: `Bearer ${apiKey}` },
   });
 
@@ -40,7 +40,7 @@ export const callOpenRouter = async (
   model: string,
   maxTokens = 100
 ): Promise<string> => {
-  const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
+  const response = await fetchWithTimeout('https://openrouter.ai/api/v1/chat/completions', {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',

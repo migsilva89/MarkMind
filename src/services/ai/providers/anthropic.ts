@@ -1,8 +1,8 @@
-import { throwApiResponseError } from '../../../utils/helpers';
+import { fetchWithTimeout, throwApiResponseError } from '../../../utils/helpers';
 import { type ModelOption } from '../../../types/services';
 
 export const fetchAnthropicModels = async (apiKey: string): Promise<ModelOption[]> => {
-  const response = await fetch('https://api.anthropic.com/v1/models?limit=100', {
+  const response = await fetchWithTimeout('https://api.anthropic.com/v1/models?limit=100', {
     headers: {
       'x-api-key': apiKey,
       'anthropic-version': '2023-06-01',
@@ -35,7 +35,7 @@ export const callAnthropic = async (
   model: string,
   maxTokens = 100
 ): Promise<string> => {
-  const response = await fetch('https://api.anthropic.com/v1/messages', {
+  const response = await fetchWithTimeout('https://api.anthropic.com/v1/messages', {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
