@@ -84,7 +84,7 @@ const OrganizePlan = ({
       </div>
 
       <div className="organize-plan-actions">
-        <Button onClick={onApprovePlan} disabled={includedCount === 0} fullWidth>
+        <Button variant="primary" onClick={onApprovePlan} disabled={includedCount === 0} fullWidth>
           <CheckIcon />
           Approve Plan ({includedCount})
         </Button>

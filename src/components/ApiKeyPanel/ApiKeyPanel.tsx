@@ -147,7 +147,7 @@ const ApiKeyPanel = ({
                     </div>
                   </div>
 
-                  <Button onClick={handleGoToApp} className="btn-go-to-app">
+                  <Button variant="primary" onClick={handleGoToApp} className="btn-go-to-app">
                     Start Organizing Bookmarks
                     <ArrowRightIcon />
                   </Button>
@@ -223,7 +223,7 @@ const ApiKeyPanel = ({
                     <div className="api-key-card-status">
                       <div className={`status ${status.type}`}>{status.message}</div>
                       {status.showGoToApp && (
-                        <Button onClick={handleGoToApp} className="btn-go-to-app">
+                        <Button variant="primary" onClick={handleGoToApp} className="btn-go-to-app">
                           Start Organizing Bookmarks
                           <ArrowRightIcon />
                         </Button>

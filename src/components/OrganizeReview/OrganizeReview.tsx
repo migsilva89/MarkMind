@@ -80,6 +80,7 @@ const OrganizeReview = ({
 
       <div className="organize-review-actions">
         <Button
+          variant="primary"
           onClick={onApplyMoves}
           disabled={approvedCount === 0}
           fullWidth

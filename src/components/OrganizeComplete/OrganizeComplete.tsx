@@ -32,7 +32,7 @@ const OrganizeComplete = ({ session, onReset }: OrganizeCompleteProps) => {
         )}
       </div>
 
-      <Button onClick={onReset} fullWidth>
+      <Button variant="primary" onClick={onReset} fullWidth>
         Done
       </Button>
     </OrganizeStatusView>
