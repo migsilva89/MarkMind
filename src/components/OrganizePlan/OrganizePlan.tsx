@@ -3,6 +3,7 @@ import { type OrganizeSession } from '../../types/organize';
 import { groupByRootFolder, getLastSegment, stripRootSegment } from '../../utils/folderDisplay';
 import { RefreshIcon, CheckIcon } from '../icons/Icons';
 import FolderTreeGroup from '../FolderTreeGroup/FolderTreeGroup';
+import OrganizeCheckbox from '../OrganizeCheckbox/OrganizeCheckbox';
 import Button from '../Button/Button';
 import './OrganizePlan.css';
 
@@ -62,13 +63,10 @@ const OrganizePlan = ({
             const groupCheckbox = (
               <Button
                 variant="unstyled"
-                className="organize-plan-check-wrap"
+                className="organize-check-wrap"
                 onClick={() => onToggleGroupFolders(groupPaths)}
               >
-                <span className={`organize-plan-check ${isFullSelected ? 'full' : isPartialSelected ? 'partial' : ''}`}>
-                  {isFullSelected && <CheckIcon width={10} height={10} />}
-                  {isPartialSelected && <span className="organize-plan-partial-dash" />}
-                </span>
+                <OrganizeCheckbox state={isFullSelected ? 'full' : isPartialSelected ? 'partial' : 'empty'} />
               </Button>
             );
 
@@ -90,10 +88,8 @@ const OrganizePlan = ({
                       className={`organize-plan-folder-row ${folder.isExcluded ? 'excluded' : 'included'}`}
                       onClick={() => onToggleFolder(folder.path)}
                     >
-                      <span className="organize-plan-check-wrap">
-                        <span className={`organize-plan-check ${folder.isExcluded ? '' : 'full'}`}>
-                          {!folder.isExcluded && <CheckIcon width={10} height={10} />}
-                        </span>
+                      <span className="organize-check-wrap">
+                        <OrganizeCheckbox state={folder.isExcluded ? 'empty' : 'full'} />
                       </span>
                       <span className="organize-plan-folder-path">{displayName}</span>
                       <span className="organize-plan-folder-description">{folder.description}</span>

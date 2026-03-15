@@ -1,8 +1,8 @@
 import { useMemo } from 'react';
 import { type BookmarkAssignment } from '../../types/organize';
 import { getLastSegment } from '../../utils/folderDisplay';
-import { CheckIcon } from '../icons/Icons';
 import FolderTreeGroup from '../FolderTreeGroup/FolderTreeGroup';
+import OrganizeCheckbox from '../OrganizeCheckbox/OrganizeCheckbox';
 import Button from '../Button/Button';
 import './OrganizeReview.css';
 
@@ -69,13 +69,10 @@ const OrganizeReview = ({
           const groupCheckbox = (
             <Button
               variant="unstyled"
-              className="organize-review-check-wrap"
+              className="organize-check-wrap"
               onClick={() => onToggleGroupAssignments(groupIds)}
             >
-              <span className={`organize-review-check ${isFullSelected ? 'full' : isPartialSelected ? 'partial' : ''}`}>
-                {isFullSelected && <CheckIcon width={10} height={10} />}
-                {isPartialSelected && <span className="organize-review-partial-dash" />}
-              </span>
+              <OrganizeCheckbox state={isFullSelected ? 'full' : isPartialSelected ? 'partial' : 'empty'} />
             </Button>
           );
 
@@ -93,10 +90,8 @@ const OrganizeReview = ({
                   className={`organize-review-item ${assignment.isApproved ? 'approved' : 'rejected'}`}
                   onClick={() => onToggleAssignment(assignment.bookmarkId)}
                 >
-                  <span className="organize-review-check-wrap">
-                    <span className={`organize-review-check ${assignment.isApproved ? 'full' : ''}`}>
-                      {assignment.isApproved && <CheckIcon width={10} height={10} />}
-                    </span>
+                  <span className="organize-check-wrap">
+                    <OrganizeCheckbox state={assignment.isApproved ? 'full' : 'empty'} />
                   </span>
                   <span className="organize-review-item-title">{assignment.bookmarkTitle}</span>
                   {assignment.isNewFolder && (
