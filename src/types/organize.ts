@@ -47,10 +47,18 @@ export interface BulkOrganizeResult {
   assignments: BookmarkAssignment[];
 }
 
+export interface FolderTreeNode {
+  name: string;
+  path: string;
+  folderId: string | null;
+  bookmarks: CompactBookmark[];
+  children: FolderTreeNode[];
+}
+
 export interface OrganizeSession {
   status: OrganizeSessionStatus;
   allBookmarks: CompactBookmark[];
-  selectedFolderIds: string[] | null;
+  selectedBookmarkIds: string[] | null;
   bookmarksToOrganize: CompactBookmark[];
   folderPlan: FolderPlan | null;
   folderTree: string;

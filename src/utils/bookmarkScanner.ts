@@ -1,5 +1,7 @@
 import { type ChromeBookmarkNode, type BookmarkStats } from '../types/bookmarks';
-import { type CompactBookmark } from '../types/organize';
+import { type CompactBookmark, type FolderTreeNode } from '../types/organize';
+import { stripRootSegment } from './folderDisplay';
+import { splitFolderPath } from './folders';
 
 const traverseBookmarks = (
   node: ChromeBookmarkNode,
@@ -36,6 +38,45 @@ export const filterBookmarksByFolders = (
 ): CompactBookmark[] => {
   const selectedSet = new Set(selectedFolderIds);
   return bookmarks.filter(bookmark => selectedSet.has(bookmark.currentFolderId));
+};
+
+export const getAllBookmarksInNode = (node: FolderTreeNode): CompactBookmark[] => {
+  const bookmarks = [...node.bookmarks];
+  for (const child of node.children) {
+    bookmarks.push(...getAllBookmarksInNode(child));
+  }
+  return bookmarks;
+};
+
+export const buildFolderTree = (bookmarks: CompactBookmark[]): FolderTreeNode => {
+  const root: FolderTreeNode = { name: '', path: '', folderId: null, bookmarks: [], children: [] };
+
+  for (const bookmark of bookmarks) {
+    const strippedPath = stripRootSegment(bookmark.currentFolderPath);
+    const segments = splitFolderPath(strippedPath);
+    let currentNode = root;
+
+    for (let segmentIndex = 0; segmentIndex < segments.length; segmentIndex++) {
+      const segment = segments[segmentIndex];
+      const isLeafFolder = segmentIndex === segments.length - 1;
+      const nodePath = segments.slice(0, segmentIndex + 1).join('/');
+
+      let childNode = currentNode.children.find(child => child.name === segment);
+      if (!childNode) {
+        childNode = { name: segment, path: nodePath, folderId: null, bookmarks: [], children: [] };
+        currentNode.children.push(childNode);
+      }
+
+      if (isLeafFolder) {
+        if (!childNode.folderId) childNode.folderId = bookmark.currentFolderId;
+        childNode.bookmarks.push(bookmark);
+      }
+
+      currentNode = childNode;
+    }
+  }
+
+  return root;
 };
 
 export const getBookmarkStats = (bookmarks: CompactBookmark[]): BookmarkStats => {

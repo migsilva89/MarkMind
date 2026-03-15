@@ -1,9 +1,8 @@
-import { useMemo } from 'react';
-import { type OrganizeSession } from '../../types/organize';
+import { useState, useCallback, useMemo } from 'react';
+import { type OrganizeSession, type FolderTreeNode } from '../../types/organize';
 import { type BookmarkStats } from '../../types/bookmarks';
-import { groupByRootFolder, getLastSegment, stripRootSegment } from '../../utils/folderDisplay';
-import { FolderIcon, SpinnerIcon, CheckIcon } from '../icons/Icons';
-import FolderTreeGroup from '../FolderTreeGroup/FolderTreeGroup';
+import { buildFolderTree, getAllBookmarksInNode } from '../../utils/bookmarkScanner';
+import { FolderIcon, SpinnerIcon, CheckIcon, ArrowRightIcon, RefreshIcon, WarningIcon } from '../icons/Icons';
 import OrganizeStatusView from '../OrganizeStatusView/OrganizeStatusView';
 import Button from '../Button/Button';
 import './OrganizeScan.css';
@@ -12,63 +11,125 @@ interface OrganizeScanProps {
   session: OrganizeSession;
   bookmarkStats: BookmarkStats | null;
   onStartScan: () => void;
-  onToggleFolder: (folderId: string) => void;
-  onToggleGroupFolders: (folderIds: string[]) => void;
+  onToggleBookmarks: (bookmarkIds: string[]) => void;
   onSelectAll: () => void;
   onDeselectAll: () => void;
   onStartPlanning: () => void;
-}
-
-interface FolderListItem {
-  folderId: string;
-  folderPath: string;
-  bookmarkCount: number;
 }
 
 const OrganizeScan = ({
   session,
   bookmarkStats,
   onStartScan,
-  onToggleFolder,
-  onToggleGroupFolders,
+  onToggleBookmarks,
   onSelectAll,
   onDeselectAll,
   onStartPlanning,
 }: OrganizeScanProps) => {
-  const folderList = useMemo((): FolderListItem[] => {
-    const folderMap = new Map<string, { path: string; count: number }>();
+  const [expandedPaths, setExpandedPaths] = useState<Set<string>>(new Set());
 
-    for (const bookmark of session.allBookmarks) {
-      const existing = folderMap.get(bookmark.currentFolderId);
-      if (existing) {
-        existing.count += 1;
+  const handleToggleExpand = useCallback((nodePath: string) => {
+    setExpandedPaths(previous => {
+      const next = new Set(previous);
+      if (next.has(nodePath)) {
+        next.delete(nodePath);
       } else {
-        folderMap.set(bookmark.currentFolderId, {
-          path: bookmark.currentFolderPath,
-          count: 1,
-        });
+        next.add(nodePath);
       }
-    }
+      return next;
+    });
+  }, []);
 
-    return [...folderMap.entries()]
-      .map(([folderId, data]) => ({
-        folderId,
-        folderPath: data.path,
-        bookmarkCount: data.count,
-      }))
-      .sort((folderA, folderB) => folderB.bookmarkCount - folderA.bookmarkCount);
-  }, [session.allBookmarks]);
-
-  const folderGroups = useMemo(
-    () => groupByRootFolder(folderList, folder => folder.folderPath),
-    [folderList]
+  const folderTree = useMemo(
+    () => buildFolderTree(session.allBookmarks),
+    [session.allBookmarks]
   );
 
-  const selectedCount = useMemo(() => {
-    if (!session.selectedFolderIds) return 0;
-    const selectedSet = new Set(session.selectedFolderIds);
-    return session.allBookmarks.filter(bookmark => selectedSet.has(bookmark.currentFolderId)).length;
-  }, [session.allBookmarks, session.selectedFolderIds]);
+  const selectedSet = useMemo(
+    () => new Set(session.selectedBookmarkIds ?? []),
+    [session.selectedBookmarkIds]
+  );
+
+  const selectedCount = selectedSet.size;
+
+  const renderTreeNode = (node: FolderTreeNode, depth: number) => {
+    const allBookmarksInNode = getAllBookmarksInNode(node);
+    const selectedInNode = allBookmarksInNode.filter(bookmark => selectedSet.has(bookmark.id));
+    const isFullSelected = allBookmarksInNode.length > 0 && selectedInNode.length === allBookmarksInNode.length;
+    const isPartialSelected = selectedInNode.length > 0 && !isFullSelected;
+    const isExpanded = expandedPaths.has(node.path);
+    const hasChildren = node.children.length > 0 || node.bookmarks.length > 0;
+
+    const isOrphaned = node.name === 'Root';
+
+    return (
+      <div key={node.path} className="organize-tree-node">
+        <div
+          className="organize-tree-folder-row"
+          style={{ paddingLeft: `${depth * 16}px` }}
+        >
+          <Button
+            variant="unstyled"
+            className={`organize-tree-expand-btn ${isExpanded ? 'open' : ''} ${!hasChildren ? 'invisible' : ''}`}
+            onClick={() => handleToggleExpand(node.path)}
+          >
+            <ArrowRightIcon width={8} height={8} />
+          </Button>
+
+          <Button
+            variant="unstyled"
+            className="organize-tree-folder-check-wrap"
+            onClick={() => onToggleBookmarks(allBookmarksInNode.map(bookmark => bookmark.id))}
+          >
+            <span className={`organize-tree-check ${isFullSelected ? 'full' : isPartialSelected ? 'partial' : ''}`}>
+              {isFullSelected && <CheckIcon width={10} height={10} />}
+              {isPartialSelected && <span className="organize-tree-partial-dash" />}
+            </span>
+          </Button>
+
+          {isOrphaned && (
+            <span className="organize-tree-orphaned-icon" title="These bookmarks have no valid parent folder">
+              <WarningIcon width={10} height={10} />
+            </span>
+          )}
+          <span className={`organize-tree-folder-name ${isOrphaned ? 'orphaned' : ''}`}>
+            {isOrphaned ? 'Orphaned' : node.name}
+          </span>
+          <span className="organize-tree-folder-count">{allBookmarksInNode.length}</span>
+        </div>
+
+        {isExpanded && (
+          <div className="organize-tree-children">
+            {node.children.map(child => renderTreeNode(child, depth + 1))}
+
+            {node.bookmarks.map(bookmark => {
+              const isSelected = selectedSet.has(bookmark.id);
+              return (
+                <div
+                  key={bookmark.id}
+                  className="organize-tree-bookmark-row"
+                  style={{ paddingLeft: `${(depth + 1) * 16 + 20}px` }}
+                >
+                  <Button
+                    variant="unstyled"
+                    className="organize-tree-bookmark-check-wrap"
+                    onClick={() => onToggleBookmarks([bookmark.id])}
+                  >
+                    <span className={`organize-tree-check ${isSelected ? 'full' : ''}`}>
+                      {isSelected && <CheckIcon width={10} height={10} />}
+                    </span>
+                  </Button>
+                  <span className="organize-tree-bookmark-title" title={bookmark.url}>
+                    {bookmark.title}
+                  </span>
+                </div>
+              );
+            })}
+          </div>
+        )}
+      </div>
+    );
+  };
 
   if (session.status === 'scanning') {
     return (
@@ -85,9 +146,19 @@ const OrganizeScan = ({
     return (
       <div className="organize-scan">
         <div className="organize-scan-stats">
-          <p className="organize-scan-stats-summary">
-            Found {bookmarkStats.totalBookmarks} bookmarks in {bookmarkStats.totalFolders} folders
-          </p>
+          <div className="organize-scan-stats-header">
+            <p className="organize-scan-stats-summary">
+              Found {bookmarkStats.totalBookmarks} bookmarks in {bookmarkStats.totalFolders} folders
+            </p>
+            <Button
+              variant="unstyled"
+              className="organize-scan-rescan-btn"
+              onClick={onStartScan}
+              title="Re-scan to get the latest bookmark data"
+            >
+              <RefreshIcon width={12} height={12} />
+            </Button>
+          </div>
 
           <div className="organize-scan-bulk-actions">
             <Button onClick={onSelectAll}>Select All</Button>
@@ -95,54 +166,7 @@ const OrganizeScan = ({
           </div>
 
           <div className="organize-scan-folder-list">
-            {folderGroups.map(group => {
-              const groupBookmarkCount = group.items.reduce(
-                (total, folder) => total + folder.bookmarkCount, 0
-              );
-              const groupFolderIds = group.items.map(folder => folder.folderId);
-              const selectedInGroup = group.items.filter(
-                folder => session.selectedFolderIds?.includes(folder.folderId) ?? false
-              ).length;
-              const allGroupSelected = selectedInGroup === group.items.length;
-              const showGroupToggle = group.items.length > 1;
-
-              return (
-                <FolderTreeGroup
-                  key={group.groupName}
-                  groupName={group.groupName}
-                  itemCount={groupBookmarkCount}
-                  headerAction={showGroupToggle ? (
-                    <Button
-                      variant="unstyled"
-                      className={`organize-scan-group-check ${allGroupSelected ? 'checked' : ''}`}
-                      onClick={() => onToggleGroupFolders(groupFolderIds)}
-                    >
-                      {allGroupSelected && <CheckIcon width={10} height={10} />}
-                    </Button>
-                  ) : undefined}
-                >
-                  {group.items.map(folder => {
-                    const isSelected = session.selectedFolderIds?.includes(folder.folderId) ?? false;
-                    const displayName = getLastSegment(stripRootSegment(folder.folderPath));
-
-                    return (
-                      <Button
-                        key={folder.folderId}
-                        variant="unstyled"
-                        className={`organize-scan-folder-row ${isSelected ? 'selected' : ''}`}
-                        onClick={() => onToggleFolder(folder.folderId)}
-                      >
-                        <span className="organize-scan-folder-check">
-                          {isSelected && <CheckIcon width={10} height={10} />}
-                        </span>
-                        <span className="organize-scan-folder-path">{displayName}</span>
-                        <span className="organize-scan-folder-count">{folder.bookmarkCount}</span>
-                      </Button>
-                    );
-                  })}
-                </FolderTreeGroup>
-              );
-            })}
+            {folderTree.children.map(topLevelNode => renderTreeNode(topLevelNode, 0))}
           </div>
         </div>
 

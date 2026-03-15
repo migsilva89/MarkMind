@@ -5,7 +5,7 @@ export const ORGANIZE_SESSION_STORAGE_KEY = 'organizeSession';
 export const getInitialSession = (): OrganizeSession => ({
   status: 'idle',
   allBookmarks: [],
-  selectedFolderIds: null,
+  selectedBookmarkIds: null,
   bookmarksToOrganize: [],
   folderPlan: null,
   folderTree: '',
@@ -30,5 +30,5 @@ export const loadOrganizeSession = async (): Promise<OrganizeSession | null> => 
 };
 
 export const clearOrganizeSession = async (): Promise<void> => {
-  await chrome.storage.local.remove(ORGANIZE_SESSION_STORAGE_KEY);
+  await chrome.storage.local.remove([ORGANIZE_SESSION_STORAGE_KEY]);
 };
