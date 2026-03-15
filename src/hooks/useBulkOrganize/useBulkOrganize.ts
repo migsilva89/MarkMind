@@ -3,8 +3,8 @@ import { SELECTED_SERVICE_STORAGE_KEY, SELECTED_MODEL_STORAGE_KEY } from '../../
 import { LOADING_MESSAGES, getNextLoadingMessage } from '../../config/loadingMessages';
 import { type StatusType } from '../../types/common';
 import { type OrganizeSession, type BulkOrganizeResult } from '../../types/organize';
-import { getBookmarkStats, flattenAllBookmarks, filterBookmarksByFolders } from '../../utils/bookmarkScanner';
-import { getFolderDataForAI, buildIdToPathMap } from '../../utils/folders';
+import { getBookmarkStats, flattenAllBookmarks } from '../../utils/bookmarkScanner';
+import { getFolderDataForAI, buildFullIdToPathMapFromTree } from '../../utils/folders';
 import { saveOrganizeSession, loadOrganizeSession, clearOrganizeSession, getInitialSession } from '../../services/organizeSession';
 import { moveBookmark, createFolderPath } from '../../services/bookmarks';
 import { type UseBulkOrganizeReturn } from './types';
@@ -110,6 +110,9 @@ export const useBulkOrganize = (): UseBulkOrganizeReturn => {
   // Listen for service worker messages
   useEffect(() => {
     const handleMessage = (message: { type: string; payload?: unknown }): void => {
+      // Ignore service worker responses if the user already cancelled
+      if (sessionRef.current.status !== 'organizing') return;
+
       if (message.type === 'ORGANIZE_COMPLETE') {
         const payload = message.payload as { result: BulkOrganizeResult };
         clearLoadingMessages();
@@ -133,6 +136,18 @@ export const useBulkOrganize = (): UseBulkOrganizeReturn => {
     };
 
     chrome.runtime.onMessage.addListener(handleMessage);
+
+    // Catch race: service worker may have saved result to storage between resumeSession
+    // reading storage and this listener being registered — check for a missed completion
+    if (sessionRef.current.status === 'organizing') {
+      loadOrganizeSession().then(latestSession => {
+        if (latestSession && latestSession.status !== 'organizing') {
+          clearLoadingMessages();
+          setSession(latestSession);
+        }
+      }).catch(error => console.error('Error checking for missed organize completion:', error));
+    }
+
     return () => chrome.runtime.onMessage.removeListener(handleMessage);
   }, [clearLoadingMessages]);
 
@@ -157,8 +172,6 @@ export const useBulkOrganize = (): UseBulkOrganizeReturn => {
     try {
       await updateSession({ status: 'scanning' });
 
-      const folderData = await getFolderDataForAI();
-      const idToPathMap = buildIdToPathMap(folderData.pathToIdMap);
       const bookmarkTree = await new Promise<chrome.bookmarks.BookmarkTreeNode[]>((resolve, reject) => {
         chrome.bookmarks.getTree((tree) => {
           if (chrome.runtime.lastError) {
@@ -168,14 +181,18 @@ export const useBulkOrganize = (): UseBulkOrganizeReturn => {
           resolve(tree);
         });
       });
+
+      // Build idToPathMap from the same tree used for scanning — guarantees 100% folder coverage
+      const idToPathMap = buildFullIdToPathMapFromTree(bookmarkTree);
       const allBookmarks = flattenAllBookmarks(bookmarkTree, idToPathMap);
 
-      const folderIds = [...new Set(allBookmarks.map(bookmark => bookmark.currentFolderId))];
+      // getFolderDataForAI is still needed for the AI prompt tree and pathToIdMap used during organising
+      const folderData = await getFolderDataForAI();
 
       await updateSession({
         status: 'selecting',
         allBookmarks,
-        selectedFolderIds: folderIds,
+        selectedBookmarkIds: allBookmarks.map(bookmark => bookmark.id),
         folderTree: folderData.textTree,
         pathToIdMap: folderData.pathToIdMap,
         defaultParentId: folderData.defaultParentId,
@@ -189,63 +206,53 @@ export const useBulkOrganize = (): UseBulkOrganizeReturn => {
     }
   }, [updateSession]);
 
-  const handleToggleFolder = useCallback((folderId: string): void => {
+  const handleToggleBookmarks = useCallback((bookmarkIds: string[]): void => {
     setSession(previousSession => {
-      const currentSelected = previousSession.selectedFolderIds ?? [];
-      const isSelected = currentSelected.includes(folderId);
-      const updatedFolderIds = isSelected
-        ? currentSelected.filter(id => id !== folderId)
-        : [...currentSelected, folderId];
+      const currentSelected = new Set(previousSession.selectedBookmarkIds ?? []);
+      const allSelected = bookmarkIds.every(id => currentSelected.has(id));
 
-      const updatedSession = { ...previousSession, selectedFolderIds: updatedFolderIds };
+      if (allSelected) {
+        bookmarkIds.forEach(id => currentSelected.delete(id));
+      } else {
+        bookmarkIds.forEach(id => currentSelected.add(id));
+      }
+
+      const updatedSession = { ...previousSession, selectedBookmarkIds: [...currentSelected] };
       debouncedSaveSession(updatedSession);
       return updatedSession;
     });
   }, [debouncedSaveSession]);
 
-  const handleSelectAllFolders = useCallback((): void => {
+  const handleSelectAll = useCallback((): void => {
     setSession(previousSession => {
-      const allFolderIds = [...new Set(previousSession.allBookmarks.map(bookmark => bookmark.currentFolderId))];
-      const updatedSession = { ...previousSession, selectedFolderIds: allFolderIds };
+      const updatedSession = {
+        ...previousSession,
+        selectedBookmarkIds: previousSession.allBookmarks.map(bookmark => bookmark.id),
+      };
       saveOrganizeSession(updatedSession).catch(error => {
-        console.error('Error saving folder selection:', error);
+        console.error('Error saving bookmark selection:', error);
       });
       return updatedSession;
     });
   }, []);
 
-  const handleDeselectAllFolders = useCallback((): void => {
+  const handleDeselectAll = useCallback((): void => {
     setSession(previousSession => {
-      const updatedSession = { ...previousSession, selectedFolderIds: [] };
+      const updatedSession = { ...previousSession, selectedBookmarkIds: [] };
       saveOrganizeSession(updatedSession).catch(error => {
-        console.error('Error saving folder selection:', error);
+        console.error('Error saving bookmark selection:', error);
       });
       return updatedSession;
     });
   }, []);
-
-  const handleToggleGroupFolders = useCallback((folderIds: string[]): void => {
-    setSession(previousSession => {
-      const currentSelected = previousSession.selectedFolderIds ?? [];
-      const allInGroupSelected = folderIds.every(folderId => currentSelected.includes(folderId));
-
-      const updatedFolderIds = allInGroupSelected
-        ? currentSelected.filter(id => !folderIds.includes(id))
-        : [...new Set([...currentSelected, ...folderIds])];
-
-      const updatedSession = { ...previousSession, selectedFolderIds: updatedFolderIds };
-      debouncedSaveSession(updatedSession);
-      return updatedSession;
-    });
-  }, [debouncedSaveSession]);
 
   const handleStartOrganizing = useCallback(async (): Promise<void> => {
     try {
       const currentSession = sessionRef.current;
-      const selectedFolderIds = currentSession.selectedFolderIds ?? [];
-      if (selectedFolderIds.length === 0) return;
+      const selectedBookmarkIds = new Set(currentSession.selectedBookmarkIds ?? []);
+      if (selectedBookmarkIds.size === 0) return;
 
-      const bookmarksToOrganize = filterBookmarksByFolders(currentSession.allBookmarks, selectedFolderIds);
+      const bookmarksToOrganize = currentSession.allBookmarks.filter(bookmark => selectedBookmarkIds.has(bookmark.id));
       if (bookmarksToOrganize.length === 0) return;
 
       const storageResult = await chrome.storage.local.get([SELECTED_SERVICE_STORAGE_KEY, SELECTED_MODEL_STORAGE_KEY]);
@@ -345,6 +352,78 @@ export const useBulkOrganize = (): UseBulkOrganizeReturn => {
     });
   }, [debouncedSaveSession]);
 
+  const handleToggleGroupPlanFolders = useCallback((folderPaths: string[]): void => {
+    setSession(previousSession => {
+      if (!previousSession.folderPlan) return previousSession;
+      const folderPlan = previousSession.folderPlan;
+      const groupSet = new Set(folderPaths);
+      const allInGroupIncluded = folderPaths.every(path =>
+        !folderPlan.folders.find(folder => folder.path === path)?.isExcluded
+      );
+      const updatedFolders = folderPlan.folders.map(folder =>
+        groupSet.has(folder.path) ? { ...folder, isExcluded: allInGroupIncluded } : folder
+      );
+      const updatedSession = { ...previousSession, folderPlan: { ...folderPlan, folders: updatedFolders } };
+      debouncedSaveSession(updatedSession);
+      return updatedSession;
+    });
+  }, [debouncedSaveSession]);
+
+  const handleSelectAllPlanFolders = useCallback((): void => {
+    setSession(previousSession => {
+      if (!previousSession.folderPlan) return previousSession;
+      const updatedFolders = previousSession.folderPlan.folders.map(folder => ({ ...folder, isExcluded: false }));
+      const updatedSession = { ...previousSession, folderPlan: { ...previousSession.folderPlan, folders: updatedFolders } };
+      debouncedSaveSession(updatedSession);
+      return updatedSession;
+    });
+  }, [debouncedSaveSession]);
+
+  const handleDeselectAllPlanFolders = useCallback((): void => {
+    setSession(previousSession => {
+      if (!previousSession.folderPlan) return previousSession;
+      const updatedFolders = previousSession.folderPlan.folders.map(folder => ({ ...folder, isExcluded: true }));
+      const updatedSession = { ...previousSession, folderPlan: { ...previousSession.folderPlan, folders: updatedFolders } };
+      debouncedSaveSession(updatedSession);
+      return updatedSession;
+    });
+  }, [debouncedSaveSession]);
+
+  const handleToggleGroupAssignments = useCallback((bookmarkIds: string[]): void => {
+    setSession(previousSession => {
+      const groupSet = new Set(bookmarkIds);
+      const allInGroupApproved = bookmarkIds.every(id =>
+        previousSession.assignments.find(assignment => assignment.bookmarkId === id)?.isApproved
+      );
+      const updatedAssignments = previousSession.assignments.map(assignment =>
+        groupSet.has(assignment.bookmarkId)
+          ? { ...assignment, isApproved: !allInGroupApproved }
+          : assignment
+      );
+      const updatedSession = { ...previousSession, assignments: updatedAssignments };
+      debouncedSaveSession(updatedSession);
+      return updatedSession;
+    });
+  }, [debouncedSaveSession]);
+
+  const handleSelectAllAssignments = useCallback((): void => {
+    setSession(previousSession => {
+      const updatedAssignments = previousSession.assignments.map(assignment => ({ ...assignment, isApproved: true }));
+      const updatedSession = { ...previousSession, assignments: updatedAssignments };
+      debouncedSaveSession(updatedSession);
+      return updatedSession;
+    });
+  }, [debouncedSaveSession]);
+
+  const handleDeselectAllAssignments = useCallback((): void => {
+    setSession(previousSession => {
+      const updatedAssignments = previousSession.assignments.map(assignment => ({ ...assignment, isApproved: false }));
+      const updatedSession = { ...previousSession, assignments: updatedAssignments };
+      debouncedSaveSession(updatedSession);
+      return updatedSession;
+    });
+  }, [debouncedSaveSession]);
+
   const handleToggleAssignment = useCallback((bookmarkId: string): void => {
     setSession(previousSession => {
       const updatedAssignments = previousSession.assignments.map(assignment =>
@@ -411,6 +490,13 @@ export const useBulkOrganize = (): UseBulkOrganizeReturn => {
     }
   }, [updateSession]);
 
+  const handleCancelOrganizing = useCallback((): void => {
+    clearLoadingMessages();
+    updateSession({ status: 'selecting', folderPlan: null }).catch(error => {
+      console.error('Error cancelling organize:', error);
+    });
+  }, [clearLoadingMessages, updateSession]);
+
   const handleReset = useCallback((): void => {
     clearLoadingMessages();
     setSession(getInitialSession());
@@ -425,14 +511,20 @@ export const useBulkOrganize = (): UseBulkOrganizeReturn => {
     statusMessage,
     statusType,
     handleStartScan,
-    handleToggleFolder,
-    handleToggleGroupFolders,
-    handleSelectAllFolders,
-    handleDeselectAllFolders,
+    handleToggleBookmarks,
+    handleSelectAll,
+    handleDeselectAll,
     handleStartOrganizing,
+    handleCancelOrganizing,
     handleApprovePlan,
     handleRejectPlan,
     handleTogglePlanFolder,
+    handleToggleGroupPlanFolders,
+    handleSelectAllPlanFolders,
+    handleDeselectAllPlanFolders,
+    handleToggleGroupAssignments,
+    handleSelectAllAssignments,
+    handleDeselectAllAssignments,
     handleToggleAssignment,
     handleApplyMoves,
     handleReset,

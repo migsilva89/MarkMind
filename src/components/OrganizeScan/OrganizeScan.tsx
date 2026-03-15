@@ -1,10 +1,10 @@
-import { useMemo } from 'react';
+import { useState, useCallback, useMemo } from 'react';
 import { type OrganizeSession } from '../../types/organize';
 import { type BookmarkStats } from '../../types/bookmarks';
-import { groupByRootFolder, getLastSegment, stripRootSegment } from '../../utils/folderDisplay';
-import { FolderIcon, SpinnerIcon, CheckIcon } from '../icons/Icons';
-import FolderTreeGroup from '../FolderTreeGroup/FolderTreeGroup';
+import { buildFolderTree } from '../../utils/bookmarkScanner';
+import { FolderIcon, SpinnerIcon, RefreshIcon } from '../icons/Icons';
 import OrganizeStatusView from '../OrganizeStatusView/OrganizeStatusView';
+import TreeNode from '../TreeNode/TreeNode';
 import Button from '../Button/Button';
 import './OrganizeScan.css';
 
@@ -12,63 +12,46 @@ interface OrganizeScanProps {
   session: OrganizeSession;
   bookmarkStats: BookmarkStats | null;
   onStartScan: () => void;
-  onToggleFolder: (folderId: string) => void;
-  onToggleGroupFolders: (folderIds: string[]) => void;
+  onToggleBookmarks: (bookmarkIds: string[]) => void;
   onSelectAll: () => void;
   onDeselectAll: () => void;
   onStartPlanning: () => void;
-}
-
-interface FolderListItem {
-  folderId: string;
-  folderPath: string;
-  bookmarkCount: number;
 }
 
 const OrganizeScan = ({
   session,
   bookmarkStats,
   onStartScan,
-  onToggleFolder,
-  onToggleGroupFolders,
+  onToggleBookmarks,
   onSelectAll,
   onDeselectAll,
   onStartPlanning,
 }: OrganizeScanProps) => {
-  const folderList = useMemo((): FolderListItem[] => {
-    const folderMap = new Map<string, { path: string; count: number }>();
+  const [expandedPaths, setExpandedPaths] = useState<Set<string>>(new Set());
 
-    for (const bookmark of session.allBookmarks) {
-      const existing = folderMap.get(bookmark.currentFolderId);
-      if (existing) {
-        existing.count += 1;
+  const handleToggleExpand = useCallback((nodePath: string) => {
+    setExpandedPaths(previous => {
+      const next = new Set(previous);
+      if (next.has(nodePath)) {
+        next.delete(nodePath);
       } else {
-        folderMap.set(bookmark.currentFolderId, {
-          path: bookmark.currentFolderPath,
-          count: 1,
-        });
+        next.add(nodePath);
       }
-    }
+      return next;
+    });
+  }, []);
 
-    return [...folderMap.entries()]
-      .map(([folderId, data]) => ({
-        folderId,
-        folderPath: data.path,
-        bookmarkCount: data.count,
-      }))
-      .sort((folderA, folderB) => folderB.bookmarkCount - folderA.bookmarkCount);
-  }, [session.allBookmarks]);
-
-  const folderGroups = useMemo(
-    () => groupByRootFolder(folderList, folder => folder.folderPath),
-    [folderList]
+  const folderTree = useMemo(
+    () => buildFolderTree(session.allBookmarks),
+    [session.allBookmarks]
   );
 
-  const selectedCount = useMemo(() => {
-    if (!session.selectedFolderIds) return 0;
-    const selectedSet = new Set(session.selectedFolderIds);
-    return session.allBookmarks.filter(bookmark => selectedSet.has(bookmark.currentFolderId)).length;
-  }, [session.allBookmarks, session.selectedFolderIds]);
+  const selectedSet = useMemo(
+    () => new Set(session.selectedBookmarkIds ?? []),
+    [session.selectedBookmarkIds]
+  );
+
+  const selectedCount = selectedSet.size;
 
   if (session.status === 'scanning') {
     return (
@@ -85,9 +68,19 @@ const OrganizeScan = ({
     return (
       <div className="organize-scan">
         <div className="organize-scan-stats">
-          <p className="organize-scan-stats-summary">
-            Found {bookmarkStats.totalBookmarks} bookmarks in {bookmarkStats.totalFolders} folders
-          </p>
+          <div className="organize-scan-stats-header">
+            <p className="organize-scan-stats-summary">
+              Found {bookmarkStats.totalBookmarks} bookmarks in {bookmarkStats.totalFolders} folders
+            </p>
+            <Button
+              variant="unstyled"
+              className="organize-scan-rescan-btn"
+              onClick={onStartScan}
+              title="Re-scan to get the latest bookmark data"
+            >
+              <RefreshIcon width={12} height={12} />
+            </Button>
+          </div>
 
           <div className="organize-scan-bulk-actions">
             <Button onClick={onSelectAll}>Select All</Button>
@@ -95,54 +88,17 @@ const OrganizeScan = ({
           </div>
 
           <div className="organize-scan-folder-list">
-            {folderGroups.map(group => {
-              const groupBookmarkCount = group.items.reduce(
-                (total, folder) => total + folder.bookmarkCount, 0
-              );
-              const groupFolderIds = group.items.map(folder => folder.folderId);
-              const selectedInGroup = group.items.filter(
-                folder => session.selectedFolderIds?.includes(folder.folderId) ?? false
-              ).length;
-              const allGroupSelected = selectedInGroup === group.items.length;
-              const showGroupToggle = group.items.length > 1;
-
-              return (
-                <FolderTreeGroup
-                  key={group.groupName}
-                  groupName={group.groupName}
-                  itemCount={groupBookmarkCount}
-                  headerAction={showGroupToggle ? (
-                    <Button
-                      variant="unstyled"
-                      className={`organize-scan-group-check ${allGroupSelected ? 'checked' : ''}`}
-                      onClick={() => onToggleGroupFolders(groupFolderIds)}
-                    >
-                      {allGroupSelected && <CheckIcon width={10} height={10} />}
-                    </Button>
-                  ) : undefined}
-                >
-                  {group.items.map(folder => {
-                    const isSelected = session.selectedFolderIds?.includes(folder.folderId) ?? false;
-                    const displayName = getLastSegment(stripRootSegment(folder.folderPath));
-
-                    return (
-                      <Button
-                        key={folder.folderId}
-                        variant="unstyled"
-                        className={`organize-scan-folder-row ${isSelected ? 'selected' : ''}`}
-                        onClick={() => onToggleFolder(folder.folderId)}
-                      >
-                        <span className="organize-scan-folder-check">
-                          {isSelected && <CheckIcon width={10} height={10} />}
-                        </span>
-                        <span className="organize-scan-folder-path">{displayName}</span>
-                        <span className="organize-scan-folder-count">{folder.bookmarkCount}</span>
-                      </Button>
-                    );
-                  })}
-                </FolderTreeGroup>
-              );
-            })}
+            {folderTree.children.map(topLevelNode => (
+              <TreeNode
+                key={topLevelNode.path}
+                node={topLevelNode}
+                depth={0}
+                selectedSet={selectedSet}
+                expandedPaths={expandedPaths}
+                onToggleBookmarks={onToggleBookmarks}
+                onToggleExpand={handleToggleExpand}
+              />
+            ))}
           </div>
         </div>
 

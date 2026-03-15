@@ -41,7 +41,7 @@
   line-height: var(--line-height-normal);
 }
 
-/* Selecting state — stats + folder list */
+/* Selecting state — stats + tree */
 .organize-scan-stats {
   background-color: var(--color-white);
   border: 1px solid var(--color-border);
@@ -52,10 +52,31 @@
   gap: var(--spacing-xl);
 }
 
+.organize-scan-stats-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--spacing-md);
+}
+
 .organize-scan-stats-summary {
   font-size: var(--font-size-sm);
   color: var(--color-text-secondary);
   font-weight: var(--font-weight-medium);
+}
+
+.organize-scan-rescan-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  color: var(--color-text-muted);
+  transition: color var(--transition-fast), transform var(--transition-fast);
+}
+
+.organize-scan-rescan-btn:hover {
+  color: var(--color-text);
+  transform: rotate(180deg);
 }
 
 .organize-scan-bulk-actions {
@@ -66,89 +87,6 @@
 .organize-scan-folder-list {
   display: flex;
   flex-direction: column;
-  gap: var(--spacing-xs);
-  max-height: 280px;
+  max-height: 340px;
   overflow-y: auto;
-}
-
-/* Group-level checkbox in folder group header */
-.organize-scan-group-check {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 14px;
-  height: 14px;
-  border: 1px solid var(--color-border-light);
-  border-radius: var(--spacing-2xs);
-  cursor: pointer;
-  transition: border-color var(--transition-fast), background-color var(--transition-fast);
-  color: var(--color-success);
-}
-
-.organize-scan-group-check:hover {
-  border-color: var(--color-text-muted);
-}
-
-.organize-scan-group-check.checked {
-  border-color: var(--color-success);
-  background-color: var(--color-success-bg);
-}
-
-.organize-scan-folder-row {
-  display: flex;
-  align-items: center;
-  gap: var(--spacing-sm);
-  width: 100%;
-  padding: var(--spacing-xs) var(--spacing-md);
-  border-radius: var(--radius-sm);
-  font-size: var(--font-size-xs);
-  color: var(--color-text-muted);
-  cursor: pointer;
-  transition: background-color var(--transition-fast);
-}
-
-.organize-scan-folder-row:hover {
-  background-color: var(--color-surface);
-}
-
-.organize-scan-folder-row.selected {
-  background-color: var(--color-surface);
-  color: var(--color-text);
-}
-
-.organize-scan-folder-check {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 14px;
-  height: 14px;
-  flex-shrink: 0;
-  border: 1px solid var(--color-border-light);
-  border-radius: var(--spacing-2xs);
-  color: var(--color-success);
-  transition: border-color var(--transition-fast), background-color var(--transition-fast);
-}
-
-.organize-scan-folder-row.selected .organize-scan-folder-check {
-  border-color: var(--color-success);
-  background-color: var(--color-success-bg);
-}
-
-.organize-scan-folder-path {
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-  flex: 1;
-  text-align: left;
-  font-weight: var(--font-weight-medium);
-}
-
-.organize-scan-folder-row.selected .organize-scan-folder-path {
-  color: var(--color-text);
-}
-
-.organize-scan-folder-count {
-  font-size: var(--font-size-2xs);
-  color: var(--color-text-light);
-  flex-shrink: 0;
 }

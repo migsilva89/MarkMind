@@ -1,8 +1,9 @@
 import { useMemo } from 'react';
 import { type OrganizeSession } from '../../types/organize';
 import { groupByRootFolder, getLastSegment, stripRootSegment } from '../../utils/folderDisplay';
-import { RefreshIcon, CheckIcon, XIcon } from '../icons/Icons';
+import { RefreshIcon, CheckIcon } from '../icons/Icons';
 import FolderTreeGroup from '../FolderTreeGroup/FolderTreeGroup';
+import OrganizeCheckbox from '../OrganizeCheckbox/OrganizeCheckbox';
 import Button from '../Button/Button';
 import './OrganizePlan.css';
 
@@ -11,6 +12,9 @@ interface OrganizePlanProps {
   onApprovePlan: () => void;
   onRejectPlan: () => void;
   onToggleFolder: (folderPath: string) => void;
+  onToggleGroupFolders: (folderPaths: string[]) => void;
+  onSelectAll: () => void;
+  onDeselectAll: () => void;
 }
 
 const OrganizePlan = ({
@@ -18,6 +22,9 @@ const OrganizePlan = ({
   onApprovePlan,
   onRejectPlan,
   onToggleFolder,
+  onToggleGroupFolders,
+  onSelectAll,
+  onDeselectAll,
 }: OrganizePlanProps) => {
   const folders = useMemo(
     () => session.folderPlan?.folders ?? [],
@@ -40,16 +47,36 @@ const OrganizePlan = ({
       <div className="organize-plan-review">
         <p className="organize-plan-summary">{summary}</p>
 
+        <div className="organize-plan-bulk-actions">
+          <Button onClick={onSelectAll}>Select All</Button>
+          <Button onClick={onDeselectAll}>Deselect All</Button>
+        </div>
+
         <div className="organize-plan-folder-list">
           {folderGroups.map(group => {
+            const groupPaths = group.items.map(folder => folder.path);
+            const includedInGroup = group.items.filter(folder => !folder.isExcluded).length;
+            const isFullSelected = includedInGroup === group.items.length;
+            const isPartialSelected = includedInGroup > 0 && !isFullSelected;
             const groupNewCount = group.items.filter(folder => folder.isNew && !folder.isExcluded).length;
+
+            const groupCheckbox = (
+              <Button
+                variant="unstyled"
+                className="organize-check-wrap"
+                onClick={() => onToggleGroupFolders(groupPaths)}
+              >
+                <OrganizeCheckbox state={isFullSelected ? 'full' : isPartialSelected ? 'partial' : 'empty'} />
+              </Button>
+            );
 
             return (
               <FolderTreeGroup
                 key={group.groupName}
                 groupName={group.groupName}
-                itemCount={group.items.filter(folder => !folder.isExcluded).length}
+                itemCount={includedInGroup}
                 badge={groupNewCount > 0 ? `${groupNewCount} new` : undefined}
+                headerAction={groupCheckbox}
               >
                 {group.items.map(folder => {
                   const displayName = getLastSegment(stripRootSegment(folder.path));
@@ -61,11 +88,8 @@ const OrganizePlan = ({
                       className={`organize-plan-folder-row ${folder.isExcluded ? 'excluded' : 'included'}`}
                       onClick={() => onToggleFolder(folder.path)}
                     >
-                      <span className="organize-plan-folder-indicator">
-                        {folder.isExcluded
-                          ? <XIcon width={10} height={10} />
-                          : <CheckIcon width={10} height={10} />
-                        }
+                      <span className="organize-check-wrap">
+                        <OrganizeCheckbox state={folder.isExcluded ? 'empty' : 'full'} />
                       </span>
                       <span className="organize-plan-folder-path">{displayName}</span>
                       <span className="organize-plan-folder-description">{folder.description}</span>

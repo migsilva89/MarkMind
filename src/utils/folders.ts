@@ -79,6 +79,33 @@ export const getDisplaySegments = (folderPath: string): FolderDisplaySegment[] =
   ];
 };
 
+/**
+ * Builds a complete id→path map from the raw Chrome bookmark tree.
+ * Traverses every folder in the tree so no folder ID can be missing.
+ * Paths include the Chrome container name (e.g. "Bookmarks bar/AI/Learning & Resources")
+ * so that stripRootSegment correctly removes the container prefix.
+ */
+export const buildFullIdToPathMapFromTree = (tree: ChromeBookmarkNode[]): Record<string, string> => {
+  const idToPathMap: Record<string, string> = {};
+
+  const traverse = (node: ChromeBookmarkNode, parentPath: string): void => {
+    if (node.url || !node.title) return;
+
+    const escapedTitle = node.title.replace(/\//g, '\\/');
+    const currentPath = parentPath ? `${parentPath}/${escapedTitle}` : escapedTitle;
+
+    idToPathMap[node.id] = currentPath;
+    (node.children ?? []).forEach(child => traverse(child, currentPath));
+  };
+
+  // tree[0] is the Chrome synthetic root — start from its direct children (the containers)
+  const rootNode = tree[0];
+  if (!rootNode?.children) return idToPathMap;
+  rootNode.children.forEach(container => traverse(container, ''));
+
+  return idToPathMap;
+};
+
 export const buildIdToPathMap = (pathToIdMap: FolderPathMap): Record<string, string> => {
   const idToPathMap: Record<string, string> = {};
   for (const [path, id] of Object.entries(pathToIdMap)) {

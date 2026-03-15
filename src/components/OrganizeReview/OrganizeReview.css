@@ -15,6 +15,12 @@
   gap: var(--spacing-md);
 }
 
+.organize-review-bulk-actions {
+  display: flex;
+  gap: var(--spacing-md);
+}
+
+
 .organize-review-list {
   display: flex;
   flex-direction: column;
@@ -48,19 +54,6 @@
   opacity: 0.5;
 }
 
-.organize-review-item-indicator {
-  display: flex;
-  align-items: center;
-  flex-shrink: 0;
-}
-
-.organize-review-item.approved .organize-review-item-indicator {
-  color: var(--color-success);
-}
-
-.organize-review-item.rejected .organize-review-item-indicator {
-  color: var(--color-text-light);
-}
 
 .organize-review-item-title {
   flex: 1;
