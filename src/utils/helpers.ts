@@ -5,6 +5,10 @@ export const fetchWithTimeout = async (
   options: RequestInit = {},
   timeoutMs = AI_REQUEST_TIMEOUT_MS
 ): Promise<Response> => {
+  if (options.signal) {
+    throw new Error('fetchWithTimeout does not support passing an external AbortSignal.');
+  }
+
   const controller = new AbortController();
   const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
 
