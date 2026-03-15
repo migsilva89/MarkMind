@@ -15,6 +15,46 @@
   gap: var(--spacing-md);
 }
 
+.organize-review-bulk-actions {
+  display: flex;
+  gap: var(--spacing-md);
+}
+
+.organize-review-check-wrap {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  cursor: pointer;
+}
+
+.organize-review-check {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 14px;
+  height: 14px;
+  border: 1px solid var(--color-border-light);
+  border-radius: var(--spacing-2xs);
+  color: var(--color-success);
+  transition: border-color var(--transition-fast), background-color var(--transition-fast);
+  flex-shrink: 0;
+}
+
+.organize-review-check.full,
+.organize-review-check.partial {
+  border-color: var(--color-success);
+  background-color: var(--color-success-bg);
+}
+
+.organize-review-partial-dash {
+  display: block;
+  width: 8px;
+  height: 2px;
+  background-color: var(--color-success);
+  border-radius: 1px;
+}
+
 .organize-review-list {
   display: flex;
   flex-direction: column;
@@ -48,19 +88,6 @@
   opacity: 0.5;
 }
 
-.organize-review-item-indicator {
-  display: flex;
-  align-items: center;
-  flex-shrink: 0;
-}
-
-.organize-review-item.approved .organize-review-item-indicator {
-  color: var(--color-success);
-}
-
-.organize-review-item.rejected .organize-review-item-indicator {
-  color: var(--color-text-light);
-}
 
 .organize-review-item-title {
   flex: 1;
