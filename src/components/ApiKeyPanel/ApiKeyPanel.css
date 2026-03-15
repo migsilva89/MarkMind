@@ -71,6 +71,12 @@
   letter-spacing: var(--letter-spacing-tight);
 }
 
+.header-right {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+}
+
 .header-star-link {
   position: relative;
   display: flex;

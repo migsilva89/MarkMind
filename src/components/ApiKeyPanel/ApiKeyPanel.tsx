@@ -10,6 +10,8 @@ import {
   ShieldIcon,
   CheckCircleIcon,
   InfoIcon,
+  SunIcon,
+  MoonIcon,
 } from '../icons/Icons';
 import Footer from '../Footer/Footer';
 import './ApiKeyPanel.css';
@@ -19,6 +21,8 @@ interface ApiKeyPanelProps {
   showWelcomeMessage?: boolean;
   canClose?: boolean;
   onClose?: () => void;
+  theme?: 'light' | 'dark';
+  onToggleTheme?: () => void;
 }
 
 const ApiKeyPanel = ({
@@ -26,6 +30,8 @@ const ApiKeyPanel = ({
   showWelcomeMessage = false,
   canClose = true,
   onClose,
+  theme,
+  onToggleTheme,
 }: ApiKeyPanelProps) => {
   const {
     currentService,
@@ -73,16 +79,27 @@ const ApiKeyPanel = ({
                 />
                 <h2 className="header-title">MarkMind</h2>
               </div>
-              <a
-                href="https://github.com/migsilva89/MarkMind"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="header-star-link"
-                aria-label="Star us on GitHub"
-              >
-                <StarIcon width={14} height={14} />
-                <span className="header-star-tooltip">Star us on GitHub</span>
-              </a>
+              <div className="header-right">
+                {onToggleTheme && (
+                  <Button
+                    variant="icon"
+                    onClick={onToggleTheme}
+                    title={theme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'}
+                  >
+                    {theme === 'dark' ? <SunIcon /> : <MoonIcon />}
+                  </Button>
+                )}
+                <a
+                  href="https://github.com/migsilva89/MarkMind"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="header-star-link"
+                  aria-label="Star us on GitHub"
+                >
+                  <StarIcon width={14} height={14} />
+                  <span className="header-star-tooltip">Star us on GitHub</span>
+                </a>
+              </div>
             </div>
           ) : (
             <div className="header-settings">
