@@ -27,6 +27,13 @@ const handleStartOrganize = async (payload: StartOrganizePayload): Promise<void>
 
   // Merge AI results into the existing session (or a fresh one if storage read fails)
   const existingSession = await loadOrganizeSession() ?? getInitialSession();
+
+  // User may have cancelled while the AI call was in flight — do not overwrite
+  if (existingSession.status !== 'organizing') {
+    chrome.alarms.clear(KEEPALIVE_ALARM_NAME);
+    return;
+  }
+
   const completedSession: OrganizeSession = {
     ...existingSession,
     status: 'reviewing_plan',
