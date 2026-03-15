@@ -42,6 +42,8 @@ export const getAllBookmarksInNode = (node: FolderTreeNode): CompactBookmark[] =
 
 export const buildFolderTree = (bookmarks: CompactBookmark[]): FolderTreeNode => {
   const root: FolderTreeNode = { name: '', path: '', bookmarks: [], children: [] };
+  const childrenByPath = new Map<string, Map<string, FolderTreeNode>>();
+  childrenByPath.set('', new Map());
 
   for (const bookmark of bookmarks) {
     const strippedPath = stripRootSegment(bookmark.currentFolderPath);
@@ -53,9 +55,12 @@ export const buildFolderTree = (bookmarks: CompactBookmark[]): FolderTreeNode =>
       const isLeafFolder = segmentIndex === segments.length - 1;
       const nodePath = segments.slice(0, segmentIndex + 1).join('/');
 
-      let childNode = currentNode.children.find(child => child.name === segment);
+      const siblingMap = childrenByPath.get(currentNode.path)!;
+      let childNode = siblingMap.get(segment);
       if (!childNode) {
         childNode = { name: segment, path: nodePath, bookmarks: [], children: [] };
+        siblingMap.set(segment, childNode);
+        childrenByPath.set(nodePath, new Map());
         currentNode.children.push(childNode);
       }
 
