@@ -1,3 +1,29 @@
+const AI_REQUEST_TIMEOUT_MS = 45_000;
+
+export const fetchWithTimeout = async (
+  url: string,
+  options: RequestInit = {},
+  timeoutMs = AI_REQUEST_TIMEOUT_MS
+): Promise<Response> => {
+  if (options.signal) {
+    throw new Error('fetchWithTimeout does not support passing an external AbortSignal.');
+  }
+
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
+
+  try {
+    return await fetch(url, { ...options, signal: controller.signal });
+  } catch (error) {
+    if (error instanceof DOMException && error.name === 'AbortError') {
+      throw new Error('Request timed out. Please try again.');
+    }
+    throw error;
+  } finally {
+    clearTimeout(timeoutId);
+  }
+};
+
 export const hasArrayWithItems = (data: unknown, propertyName: string): boolean => {
   if (typeof data !== 'object' || data === null) return false;
   const obj = data as Record<string, unknown>;

@@ -1,10 +1,10 @@
-import { throwApiResponseError } from '../../../utils/helpers';
+import { fetchWithTimeout, throwApiResponseError } from '../../../utils/helpers';
 import { type ModelOption } from '../../../types/services';
 
 const OPENAI_CHAT_PREFIXES = ['gpt-', 'o1', 'o3', 'o4', 'chatgpt-'];
 
 export const fetchOpenAIModels = async (apiKey: string): Promise<ModelOption[]> => {
-  const response = await fetch('https://api.openai.com/v1/models', {
+  const response = await fetchWithTimeout('https://api.openai.com/v1/models', {
     headers: { Authorization: `Bearer ${apiKey}` },
   });
 
@@ -37,7 +37,7 @@ export const callOpenAI = async (
   model: string,
   maxTokens = 100
 ): Promise<string> => {
-  const response = await fetch('https://api.openai.com/v1/chat/completions', {
+  const response = await fetchWithTimeout('https://api.openai.com/v1/chat/completions', {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',

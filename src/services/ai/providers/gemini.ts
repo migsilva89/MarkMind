@@ -1,10 +1,10 @@
-import { throwApiResponseError } from '../../../utils/helpers';
+import { fetchWithTimeout, throwApiResponseError } from '../../../utils/helpers';
 import { type ModelOption } from '../../../types/services';
 
 const GEMINI_MODEL_PREFIX = 'models/gemini-';
 
 export const fetchGeminiModels = async (apiKey: string): Promise<ModelOption[]> => {
-  const response = await fetch(
+  const response = await fetchWithTimeout(
     'https://generativelanguage.googleapis.com/v1/models',
     { headers: { 'x-goog-api-key': apiKey } }
   );
@@ -40,7 +40,7 @@ export const callGemini = async (
 ): Promise<string> => {
   const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent`;
 
-  const response = await fetch(endpoint, {
+  const response = await fetchWithTimeout(endpoint, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
