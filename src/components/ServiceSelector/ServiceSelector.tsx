@@ -23,12 +23,16 @@ interface ServiceSelectorProps {
   onServiceChange: (serviceId: string) => void;
   onModelChange: (modelId: string) => void;
   refreshTrigger?: number;
+  section?: 'all' | 'provider' | 'model';
+  externalServiceId?: string;
 }
 
 const ServiceSelector = ({
   onServiceChange,
   onModelChange,
   refreshTrigger = 0,
+  section = 'all',
+  externalServiceId,
 }: ServiceSelectorProps) => {
   const [currentServiceId, setCurrentServiceId] = useState<string>('');
   const [currentModelId, setCurrentModelId] = useState<string>('');
@@ -105,6 +109,8 @@ const ServiceSelector = ({
   }, [selectModel]);
 
   useEffect(() => {
+    if (section === 'model') return;
+
     const loadSavedSelectionsFromStorage = async (): Promise<void> => {
       const result = await chrome.storage.local.get([SELECTED_SERVICE_STORAGE_KEY]);
       const savedServiceId = result[SELECTED_SERVICE_STORAGE_KEY];
@@ -120,7 +126,27 @@ const ServiceSelector = ({
     };
 
     loadSavedSelectionsFromStorage();
-  }, [onServiceChange, loadModelsForService, restoreOrFirstAvailableModel]);
+  }, [section, onServiceChange, loadModelsForService, restoreOrFirstAvailableModel]);
+
+  // For model-only section: load models whenever the external provider changes
+  useEffect(() => {
+    if (section !== 'model') return;
+
+    if (!externalServiceId) {
+      setAvailableModels([]);
+      setCurrentModelId('');
+      return;
+    }
+
+    setCurrentServiceId(externalServiceId);
+
+    const loadExternalModels = async (): Promise<void> => {
+      const models = await loadModelsForService(externalServiceId);
+      await restoreOrFirstAvailableModel(externalServiceId, models);
+    };
+
+    loadExternalModels();
+  }, [section, externalServiceId, loadModelsForService, restoreOrFirstAvailableModel]);
 
   // Reload models when API key is saved (handleApiKeySave caches them first)
   useEffect(() => {
@@ -181,40 +207,46 @@ const ServiceSelector = ({
 
   return (
     <div className="service-selector">
-      <Dropdown
-        label="AI Provider"
-        options={providerOptions}
-        selectedId={currentServiceId}
-        onSelect={handleProviderSelect}
-        placeholder="Select a provider..."
-      />
-      <div className="service-selector-model-row">
+      {section !== 'model' && (
         <Dropdown
-          label="Model"
-          options={modelOptions}
-          selectedId={currentModelId}
-          onSelect={handleModelSelect}
-          placeholder={isLoadingModels ? 'Loading models...' : modelsError || 'Select a model...'}
-          disabled={!hasProvider || isLoadingModels || availableModels.length === 0}
+          label="AI Provider"
+          options={providerOptions}
+          selectedId={currentServiceId}
+          onSelect={handleProviderSelect}
+          placeholder="Select a provider..."
         />
-        {isLoadingModels && (
-          <div className="service-selector-model-spinner">
-            <SpinnerIcon width={12} height={12} />
+      )}
+      {section !== 'provider' && (
+        <>
+          <div className="service-selector-model-row">
+            <Dropdown
+              label="Model"
+              options={modelOptions}
+              selectedId={currentModelId}
+              onSelect={handleModelSelect}
+              placeholder={isLoadingModels ? 'Loading models...' : modelsError || 'Select a model...'}
+              disabled={!hasProvider || isLoadingModels || availableModels.length === 0}
+            />
+            {isLoadingModels && (
+              <div className="service-selector-model-spinner">
+                <SpinnerIcon width={12} height={12} />
+              </div>
+            )}
+            {!isLoadingModels && availableModels.length > 0 && (
+              <Button
+                variant="icon"
+                className="service-selector-refresh"
+                onClick={handleRefreshModels}
+                title="Refresh models"
+              >
+                <RefreshIcon width={12} height={12} />
+              </Button>
+            )}
           </div>
-        )}
-        {!isLoadingModels && availableModels.length > 0 && (
-          <Button
-            variant="icon"
-            className="service-selector-refresh"
-            onClick={handleRefreshModels}
-            title="Refresh models"
-          >
-            <RefreshIcon width={12} height={12} />
-          </Button>
-        )}
-      </div>
-      {modelsError && (
-        <p className="service-selector-error">{modelsError}</p>
+          {modelsError && (
+            <p className="service-selector-error">{modelsError}</p>
+          )}
+        </>
       )}
     </div>
   );

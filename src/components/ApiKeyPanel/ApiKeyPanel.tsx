@@ -61,7 +61,7 @@ const ApiKeyPanel = ({
 
   const hasProviderSelected = currentService.id !== '';
   const hasModelSelected = selectedModel !== '';
-  const showApiKeyCard = hasProviderSelected || hasExistingKey;
+  const isApiKeyInteractive = hasProviderSelected || hasExistingKey;
   const showConfiguredState = hasExistingKey && !isEditingKey && hasModelSelected;
 
   return (
@@ -125,142 +125,153 @@ const ApiKeyPanel = ({
           )}
 
           <ServiceSelector
+            section="provider"
             onServiceChange={handleServiceChange}
             onModelChange={handleModelChange}
             refreshTrigger={modelsRefreshTrigger}
           />
 
-          {showApiKeyCard && (
-            <div className="api-key-card">
-              {currentService.freeTierNote && (
+          <div className="api-key-card">
+            {currentService.freeTierNote && (
+              <button
+                type="button"
+                className="api-key-card-info-trigger"
+                aria-describedby="free-tier-tooltip"
+                onMouseEnter={() => setIsTooltipVisible(true)}
+                onMouseLeave={() => setIsTooltipVisible(false)}
+                onFocus={() => setIsTooltipVisible(true)}
+                onBlur={() => setIsTooltipVisible(false)}
+              >
+                <InfoIcon width={12} height={12} />
+                {isTooltipVisible && (
+                  <div
+                    id="free-tier-tooltip"
+                    role="tooltip"
+                    className="api-key-card-info-tooltip"
+                  >
+                    {currentService.freeTierNote}
+                  </div>
+                )}
+              </button>
+            )}
+            {showConfiguredState ? (
+              <div className="api-key-configured">
+                <div className="api-key-configured-badge">
+                  <CheckCircleIcon width={20} height={20} />
+                  <div className="api-key-configured-info">
+                    <h3 className="api-key-configured-title">API Key Configured</h3>
+                    <p className="api-key-configured-subtitle">You're all set!</p>
+                  </div>
+                </div>
+
+                <Button variant="primary" onClick={handleGoToApp} className="btn-go-to-app">
+                  Start Organizing Bookmarks
+                  <ArrowRightIcon />
+                </Button>
+
                 <button
+                  className="api-key-change-link"
+                  onClick={handleStartEditingKey}
                   type="button"
-                  className="api-key-card-info-trigger"
-                  aria-describedby="free-tier-tooltip"
-                  onMouseEnter={() => setIsTooltipVisible(true)}
-                  onMouseLeave={() => setIsTooltipVisible(false)}
-                  onFocus={() => setIsTooltipVisible(true)}
-                  onBlur={() => setIsTooltipVisible(false)}
                 >
-                  <InfoIcon width={12} height={12} />
-                  {isTooltipVisible && (
-                    <div
-                      id="free-tier-tooltip"
-                      role="tooltip"
-                      className="api-key-card-info-tooltip"
-                    >
-                      {currentService.freeTierNote}
-                    </div>
-                  )}
+                  Change API Key
                 </button>
-              )}
-              {showConfiguredState ? (
-                <div className="api-key-configured">
-                  <div className="api-key-configured-badge">
-                    <CheckCircleIcon width={20} height={20} />
-                    <div className="api-key-configured-info">
-                      <h3 className="api-key-configured-title">API Key Configured</h3>
-                      <p className="api-key-configured-subtitle">You're all set!</p>
-                    </div>
+              </div>
+            ) : hasExistingKey && !isEditingKey ? (
+              <div className="api-key-configured">
+                <div className="api-key-configured-badge">
+                  <CheckCircleIcon width={20} height={20} />
+                  <div className="api-key-configured-info">
+                    <h3 className="api-key-configured-title">API Key Configured</h3>
+                    <p className="api-key-configured-subtitle">Select a model below to continue</p>
                   </div>
+                </div>
 
-                  <Button variant="primary" onClick={handleGoToApp} className="btn-go-to-app">
-                    Start Organizing Bookmarks
-                    <ArrowRightIcon />
+                <button
+                  className="api-key-change-link"
+                  onClick={handleStartEditingKey}
+                  type="button"
+                >
+                  Change API Key
+                </button>
+              </div>
+            ) : (
+              <>
+                <div className="api-key-card-header">
+                  <div className="api-key-icon">
+                    <KeyIcon />
+                  </div>
+                  <div className="api-key-titles">
+                    <h3 className="api-key-title">{currentService.label || 'API Key'}</h3>
+                    <p className="api-key-subtitle">Required for AI features</p>
+                  </div>
+                </div>
+
+                <input
+                  type="password"
+                  value={apiKeyInput}
+                  onChange={handleApiKeyInputChange}
+                  onKeyDown={handleApiKeyInputKeyDown}
+                  placeholder={!hasProviderSelected ? 'Select a provider first...' : hasExistingKey ? '••••••••••••••••' : currentService.placeholder}
+                  autoComplete="off"
+                  disabled={!hasProviderSelected}
+                />
+
+                <div className="api-key-actions">
+                  <Button
+                    variant="primary"
+                    onClick={handleApiKeySave}
+                    className={`btn-save${buttonError ? ' btn-save-error' : ''}`}
+                    disabled={!hasProviderSelected}
+                  >
+                    {buttonError || (hasExistingKey ? 'Update API Key' : 'Save API Key')}
                   </Button>
+                </div>
 
+                {hasExistingKey && isEditingKey && (
                   <button
                     className="api-key-change-link"
-                    onClick={handleStartEditingKey}
+                    onClick={handleCancelEditing}
                     type="button"
                   >
-                    Change API Key
+                    Cancel
                   </button>
-                </div>
-              ) : hasExistingKey && !isEditingKey ? (
-                <div className="api-key-configured">
-                  <div className="api-key-configured-badge">
-                    <CheckCircleIcon width={20} height={20} />
-                    <div className="api-key-configured-info">
-                      <h3 className="api-key-configured-title">API Key Configured</h3>
-                      <p className="api-key-configured-subtitle">Select a model above to continue</p>
-                    </div>
-                  </div>
+                )}
 
-                  <button
-                    className="api-key-change-link"
-                    onClick={handleStartEditingKey}
-                    type="button"
+                {status.type && (
+                  <div className="api-key-card-status">
+                    <div className={`status ${status.type}`}>{status.message}</div>
+                    {status.showGoToApp && (
+                      <Button variant="primary" onClick={handleGoToApp} className="btn-go-to-app">
+                        Start Organizing Bookmarks
+                        <ArrowRightIcon />
+                      </Button>
+                    )}
+                  </div>
+                )}
+
+                <p className="api-key-help">
+                  Get your API key at{' '}
+                  <a
+                    href={currentService.helpLink}
+                    target="_blank"
+                    rel="noopener noreferrer"
                   >
-                    Change API Key
-                  </button>
-                </div>
-              ) : (
-                <>
-                  <div className="api-key-card-header">
-                    <div className="api-key-icon">
-                      <KeyIcon />
-                    </div>
-                    <div className="api-key-titles">
-                      <h3 className="api-key-title">{currentService.label}</h3>
-                      <p className="api-key-subtitle">Required for AI features</p>
-                    </div>
-                  </div>
+                    {currentService.helpLinkText}
+                  </a>
+                </p>
+              </>
+            )}
+          </div>
 
-                  <input
-                    type="password"
-                    value={apiKeyInput}
-                    onChange={handleApiKeyInputChange}
-                    onKeyDown={handleApiKeyInputKeyDown}
-                    placeholder={hasExistingKey ? '••••••••••••••••' : currentService.placeholder}
-                    autoComplete="off"
-                  />
-
-                  <div className="api-key-actions">
-                    <Button
-                      variant="primary"
-                      onClick={handleApiKeySave}
-                      className={`btn-save${buttonError ? ' btn-save-error' : ''}`}
-                    >
-                      {buttonError || (hasExistingKey ? 'Update API Key' : 'Save API Key')}
-                    </Button>
-                  </div>
-
-                  {hasExistingKey && isEditingKey && (
-                    <button
-                      className="api-key-change-link"
-                      onClick={handleCancelEditing}
-                      type="button"
-                    >
-                      Cancel
-                    </button>
-                  )}
-
-                  {status.type && (
-                    <div className="api-key-card-status">
-                      <div className={`status ${status.type}`}>{status.message}</div>
-                      {status.showGoToApp && (
-                        <Button variant="primary" onClick={handleGoToApp} className="btn-go-to-app">
-                          Start Organizing Bookmarks
-                          <ArrowRightIcon />
-                        </Button>
-                      )}
-                    </div>
-                  )}
-
-                  <p className="api-key-help">
-                    Get your API key at{' '}
-                    <a
-                      href={currentService.helpLink}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                    >
-                      {currentService.helpLinkText}
-                    </a>
-                  </p>
-                </>
-              )}
-            </div>
+          {hasProviderSelected && (
+            <ServiceSelector
+              section="model"
+              externalServiceId={currentService.id}
+              onServiceChange={handleServiceChange}
+              onModelChange={handleModelChange}
+              refreshTrigger={modelsRefreshTrigger}
+            />
           )}
 
           <div className="info-card">
@@ -280,7 +291,7 @@ const ApiKeyPanel = ({
             </p>
           </div>
 
-          {showApiKeyCard && hasExistingKey && (
+          {isApiKeyInteractive && hasExistingKey && (
             <div className="danger-zone">
               <h3 className="danger-zone-title">Danger Zone</h3>
               <Button variant="danger" fullWidth onClick={handleApiKeyRemove}>
