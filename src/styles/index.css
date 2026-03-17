@@ -106,7 +106,17 @@
 /* ========================================
    Global Theme Transition
    ======================================== */
-*, *::before, *::after {
+body,
+button,
+a,
+input,
+textarea,
+select,
+label,
+h1, h2, h3, h4, h5, h6,
+p, span, li,
+div, section, header, footer, nav, main, aside,
+svg, path {
   transition:
     background-color var(--transition-smooth),
     color var(--transition-smooth),
