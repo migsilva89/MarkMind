@@ -1,16 +1,18 @@
 import { useState, useCallback } from 'react';
-import { MegaphoneIcon, LightbulbIcon, WrenchIcon } from '../icons/Icons';
+import { MegaphoneIcon, LightbulbIcon } from '../icons/Icons'; // TODO: Re-add WrenchIcon when Apps is re-enabled
 import Button from '../Button/Button';
 import { DISCOVER_SUB_TABS } from '../../config/discoverContent';
 import WhatsNewSection from './discover/WhatsNewSection';
 import ProTipsSection from './discover/ProTipsSection';
-import AppsSection from './discover/AppsSection';
+// TODO: Re-enable AppsSection post-launch
+// import AppsSection from './discover/AppsSection';
 import './DiscoverTab.css';
 
 const SUB_TAB_ICONS: Record<string, React.ComponentType<{ width?: number; height?: number }>> = {
   megaphone: MegaphoneIcon,
   lightbulb: LightbulbIcon,
-  wrench: WrenchIcon,
+  // TODO: Re-enable when Apps sub-tab is re-enabled post-launch
+  // wrench: WrenchIcon,
 };
 
 const DiscoverTab = () => {
@@ -31,8 +33,9 @@ const DiscoverTab = () => {
         return <WhatsNewSection />;
       case 'pro-tips':
         return <ProTipsSection />;
-      case 'apps':
-        return <AppsSection />;
+      // TODO: Re-enable post-launch
+      // case 'apps':
+      //   return <AppsSection />;
       default:
         return <WhatsNewSection />;
     }
