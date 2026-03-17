@@ -104,6 +104,17 @@
 }
 
 /* ========================================
+   Global Theme Transition
+   ======================================== */
+*, *::before, *::after {
+  transition:
+    background-color var(--transition-smooth),
+    color var(--transition-smooth),
+    border-color var(--transition-smooth),
+    fill var(--transition-smooth);
+}
+
+/* ========================================
    Dark Mode (Landing Page Inspired)
    ======================================== */
 [data-theme="dark"] {
