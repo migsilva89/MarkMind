@@ -104,6 +104,27 @@
 }
 
 /* ========================================
+   Global Theme Transition
+   ======================================== */
+body,
+button,
+a,
+input,
+textarea,
+select,
+label,
+h1, h2, h3, h4, h5, h6,
+p, span, li,
+div, section, header, footer, nav, main, aside,
+svg, path {
+  transition:
+    background-color var(--transition-smooth),
+    color var(--transition-smooth),
+    border-color var(--transition-smooth),
+    fill var(--transition-smooth);
+}
+
+/* ========================================
    Dark Mode (Landing Page Inspired)
    ======================================== */
 [data-theme="dark"] {

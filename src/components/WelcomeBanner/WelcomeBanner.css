@@ -1,0 +1,40 @@
+.welcome-banner {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--spacing-xl);
+  padding: var(--spacing-2xl);
+  background-color: var(--color-white);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-xl);
+}
+
+.welcome-banner-content {
+  flex: 1;
+  min-width: 0;
+}
+
+.welcome-banner-title {
+  font-size: var(--font-size-md);
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-text);
+  margin-bottom: var(--spacing-xs);
+  text-align: center;
+}
+
+.welcome-banner-text {
+  font-size: var(--font-size-sm);
+  color: var(--color-text-muted);
+  line-height: var(--line-height-relaxed);
+  text-align: center;
+}
+
+.welcome-banner-dismiss {
+  flex-shrink: 0;
+  padding: var(--spacing-xs);
+  color: var(--color-text-light);
+  transition: color var(--transition-fast);
+}
+
+.welcome-banner-dismiss:hover {
+  color: var(--color-text);
+}

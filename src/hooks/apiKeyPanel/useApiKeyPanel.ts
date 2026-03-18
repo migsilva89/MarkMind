@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback, useRef, useMemo } from 'react';
-import { getService, DEFAULT_SERVICE_ID, type ServiceConfig } from '../../config/services';
+import { EMPTY_SERVICE, type ServiceConfig } from '../../config/services';
 import { type StatusType } from '../../types/common';
 import {
   type ApiKeyPanelStatusMessage,
@@ -14,9 +14,7 @@ import {
 } from './handlers';
 
 export const useApiKeyPanel = ({ isOpen, canClose, onClose }: UseApiKeyPanelProps) => {
-  const [currentService, setCurrentService] = useState<ServiceConfig>(
-    getService(DEFAULT_SERVICE_ID)
-  );
+  const [currentService, setCurrentService] = useState<ServiceConfig>(EMPTY_SERVICE);
   const [apiKeyInput, setApiKeyInput] = useState('');
   const [selectedModel, setSelectedModel] = useState<string>('');
   const [hasExistingKey, setHasExistingKey] = useState(false);

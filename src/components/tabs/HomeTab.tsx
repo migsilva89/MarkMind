@@ -1,4 +1,5 @@
 import { useOrganizeBookmark } from '../../hooks/useOrganizeBookmark';
+import WelcomeBanner from '../WelcomeBanner/WelcomeBanner';
 import CurrentPageCard from '../CurrentPageCard/CurrentPageCard';
 import QuickActions from '../QuickActions/QuickActions';
 
@@ -23,6 +24,7 @@ const HomeTab = ({ onTabChange, onOpenSettings }: HomeTabProps) => {
 
   return (
     <>
+      <WelcomeBanner />
       <CurrentPageCard
         currentPage={currentPageData}
         isLoadingPage={isLoadingPage}

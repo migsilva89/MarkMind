@@ -18,12 +18,13 @@ export const DISCOVER_SUB_TABS: DiscoverSubTab[] = [
     iconName: 'lightbulb',
     description: 'Small habits, big impact. Quick wins to keep your bookmarks stress-free.',
   },
-  {
-    id: 'apps',
-    label: 'Apps',
-    iconName: 'wrench',
-    description: 'Hand-picked tools from our circle of friends. No ads, just good stuff.',
-  },
+  // TODO: Re-enable Apps sub-tab for post-launch
+  // {
+  //   id: 'apps',
+  //   label: 'Apps',
+  //   iconName: 'wrench',
+  //   description: 'Hand-picked tools from our circle of friends. No ads, just good stuff.',
+  // },
 ];
 
 export const WHATS_NEW_CARDS: DiscoverCard[] = [

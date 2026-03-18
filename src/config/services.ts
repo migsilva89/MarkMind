@@ -51,6 +51,17 @@ export const SELECTED_SERVICE_STORAGE_KEY = 'selectedService';
 export const SELECTED_MODEL_STORAGE_KEY = 'selectedModel';
 export const MODELS_CACHE_KEY_PREFIX = 'cachedModels_';
 
+export const EMPTY_SERVICE: ServiceConfig = {
+  id: '',
+  name: '',
+  label: '',
+  storageKey: '',
+  placeholder: '',
+  helpLink: '',
+  helpLinkText: '',
+  validateKey: () => false,
+};
+
 export const getService = (serviceId: string): ServiceConfig => {
   return SERVICES[serviceId] || SERVICES[DEFAULT_SERVICE_ID];
 };

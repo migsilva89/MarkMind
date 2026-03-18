@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useLayoutEffect, useCallback } from 'react';
 import { ThemePreference, ResolvedTheme, UseThemeReturn } from './types';
 
 const STORAGE_KEY_THEME = 'themePreference';
@@ -15,17 +15,37 @@ const applyTheme = (theme: ResolvedTheme): void => {
   document.documentElement.setAttribute('data-theme', theme);
 };
 
-export const useTheme = (): UseThemeReturn => {
-  const [themePreference, setThemePreference] = useState<ThemePreference>('system');
-  const [theme, setTheme] = useState<ResolvedTheme>(() => resolveTheme('system'));
+const readThemeFromLocalStorage = (): { preference: ThemePreference; resolved: ResolvedTheme } => {
+  try {
+    const saved = localStorage.getItem(STORAGE_KEY_THEME) as ThemePreference | null;
+    if (saved === 'dark' || saved === 'light') {
+      return { preference: saved, resolved: saved };
+    }
+  } catch (error) {
+    console.error('Failed to read theme from localStorage:', error);
+  }
+  return { preference: 'system', resolved: resolveTheme('system') };
+};
 
+export const useTheme = (): UseThemeReturn => {
+  const initial = readThemeFromLocalStorage();
+  const [themePreference, setThemePreference] = useState<ThemePreference>(initial.preference);
+  const [theme, setTheme] = useState<ResolvedTheme>(initial.resolved);
+
+  // Runs synchronously BEFORE browser paint — sets data-theme on DOM immediately
+  useLayoutEffect(() => {
+    applyTheme(initial.resolved);
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Confirm from chrome.storage.local (source of truth) and sync localStorage
   useEffect(() => {
     const loadSavedPreference = async (): Promise<void> => {
       try {
         const result = await chrome.storage.local.get(STORAGE_KEY_THEME);
         const savedPreference = (result[STORAGE_KEY_THEME] as ThemePreference) || 'system';
-        setThemePreference(savedPreference);
         const resolved = resolveTheme(savedPreference);
+        localStorage.setItem(STORAGE_KEY_THEME, savedPreference);
+        setThemePreference(savedPreference);
         setTheme(resolved);
         applyTheme(resolved);
       } catch (error) {
@@ -56,7 +76,7 @@ export const useTheme = (): UseThemeReturn => {
     setThemePreference(nextTheme);
     setTheme(nextTheme);
     applyTheme(nextTheme);
-
+    localStorage.setItem(STORAGE_KEY_THEME, nextTheme);
     chrome.storage.local.set({ [STORAGE_KEY_THEME]: nextTheme }).catch((error) => {
       console.error('Failed to save theme preference:', error);
     });
