@@ -1,8 +1,8 @@
 import { type BlogPost } from '../types/discover';
 
 // TODO: Move credentials to a server-side proxy (discuss with Miguel)
-const CONTENTFUL_SPACE_ID = '';
-const CONTENTFUL_ACCESS_TOKEN = '';
+const CONTENTFUL_SPACE_ID = import.meta.env.VITE_CONTENTFUL_SPACE_ID ?? '';
+const CONTENTFUL_ACCESS_TOKEN = import.meta.env.VITE_CONTENTFUL_ACCESS_TOKEN ?? '';
 const CONTENTFUL_CDN_URL = `https://cdn.contentful.com/spaces/${CONTENTFUL_SPACE_ID}/entries`;
 const CONTENT_TYPE = 'blogPost';
 
