@@ -1,9 +1,8 @@
 import { useCallback } from 'react';
 import { HomeIcon, FolderIcon, CompassIcon, BookOpenIcon, ExternalLinkIcon } from '../icons/Icons';
 import Button from '../Button/Button';
+import { MARKMIND_BLOG_URL } from '../../config/discoverContent';
 import './TabNavigation.css';
-
-const MARKMIND_BLOG_URL = 'https://www.markmind.xyz/blog';
 
 interface TabConfig {
   id: string;
