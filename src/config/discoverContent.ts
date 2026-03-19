@@ -198,6 +198,7 @@ export const QUICK_ACTIONS: QuickActionItem[] = [
     iconName: 'bookOpen',
     colorScheme: 'purple',
     targetTab: 'blog',
+    externalUrl: 'https://www.markmind.xyz/blog',
   },
   {
     id: 'settings',

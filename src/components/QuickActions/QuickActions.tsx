@@ -22,11 +22,13 @@ interface QuickActionsProps {
 
 const QuickActions = ({ onTabChange, onOpenSettings }: QuickActionsProps) => {
   const handleCardClick = useCallback(
-    (targetTab: string) => () => {
-      if (targetTab === 'settings') {
+    (action: { targetTab: string; externalUrl?: string }) => () => {
+      if (action.externalUrl) {
+        chrome.tabs.create({ url: action.externalUrl });
+      } else if (action.targetTab === 'settings') {
         onOpenSettings();
       } else {
-        onTabChange(targetTab);
+        onTabChange(action.targetTab);
       }
     },
     [onTabChange, onOpenSettings]
@@ -42,7 +44,7 @@ const QuickActions = ({ onTabChange, onOpenSettings }: QuickActionsProps) => {
             <button
               key={action.id}
               className="quick-actions-card"
-              onClick={handleCardClick(action.targetTab)}
+              onClick={handleCardClick(action)}
             >
               <div className={`quick-actions-card-icon quick-actions-card-icon-${action.colorScheme}`}>
                 {ActionIcon && <ActionIcon width={14} height={14} />}
