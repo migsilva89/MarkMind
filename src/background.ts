@@ -36,7 +36,7 @@ const handleStartOrganize = async (payload: StartOrganizePayload): Promise<void>
 
   const completedSession: OrganizeSession = {
     ...existingSession,
-    status: 'reviewing_plan',
+    status: 'reviewing_assignments',
     folderPlan: result.folderPlan,
     assignments: result.assignments,
     serviceId: payload.serviceId,

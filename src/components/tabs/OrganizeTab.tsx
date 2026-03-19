@@ -2,7 +2,6 @@ import { useBulkOrganize } from '../../hooks/useBulkOrganize';
 import { SpinnerIcon } from '../icons/Icons';
 import Button from '../Button/Button';
 import OrganizeScan from '../OrganizeScan/OrganizeScan';
-import OrganizePlan from '../OrganizePlan/OrganizePlan';
 import OrganizeReview from '../OrganizeReview/OrganizeReview';
 import OrganizeComplete from '../OrganizeComplete/OrganizeComplete';
 import OrganizeError from '../OrganizeError/OrganizeError';
@@ -20,12 +19,7 @@ const OrganizeTab = () => {
     handleDeselectAll,
     handleStartOrganizing,
     handleCancelOrganizing,
-    handleApprovePlan,
-    handleRejectPlan,
-    handleTogglePlanFolder,
-    handleToggleGroupPlanFolders,
-    handleSelectAllPlanFolders,
-    handleDeselectAllPlanFolders,
+    handleReOrganize,
     handleToggleGroupAssignments,
     handleSelectAllAssignments,
     handleDeselectAllAssignments,
@@ -65,28 +59,17 @@ const OrganizeTab = () => {
         </OrganizeStatusView>
       );
 
-    case 'reviewing_plan':
-      return (
-        <OrganizePlan
-          session={session}
-          onApprovePlan={handleApprovePlan}
-          onRejectPlan={handleRejectPlan}
-          onToggleFolder={handleTogglePlanFolder}
-          onToggleGroupFolders={handleToggleGroupPlanFolders}
-          onSelectAll={handleSelectAllPlanFolders}
-          onDeselectAll={handleDeselectAllPlanFolders}
-        />
-      );
-
     case 'reviewing_assignments':
       return (
         <OrganizeReview
           assignments={session.assignments}
+          folderPlan={session.folderPlan}
           onToggleGroupAssignments={handleToggleGroupAssignments}
           onSelectAll={handleSelectAllAssignments}
           onDeselectAll={handleDeselectAllAssignments}
           onToggleAssignment={handleToggleAssignment}
           onApplyMoves={handleApplyMoves}
+          onReOrganize={handleReOrganize}
           onReset={handleReset}
         />
       );

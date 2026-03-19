@@ -4,6 +4,12 @@
   gap: var(--spacing-xl);
 }
 
+.organize-review-ai-summary {
+  font-size: var(--font-size-sm);
+  color: var(--color-text-muted);
+  line-height: 1.4;
+}
+
 .organize-review-summary {
   font-size: var(--font-size-sm);
   color: var(--color-text-secondary);
@@ -20,13 +26,19 @@
   gap: var(--spacing-md);
 }
 
-
 .organize-review-list {
   display: flex;
   flex-direction: column;
   gap: var(--spacing-xs);
   max-height: 350px;
   overflow-y: auto;
+}
+
+.organize-review-folder-description {
+  font-size: var(--font-size-2xs);
+  color: var(--color-text-light);
+  padding: var(--spacing-2xs) var(--spacing-md);
+  margin: 0;
 }
 
 .organize-review-item {
@@ -53,7 +65,6 @@
 .organize-review-item.rejected {
   opacity: 0.5;
 }
-
 
 .organize-review-item-title {
   flex: 1;

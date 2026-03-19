@@ -13,12 +13,7 @@ export interface UseBulkOrganizeReturn {
   handleDeselectAll: () => void;
   handleStartOrganizing: () => Promise<void>;
   handleCancelOrganizing: () => void;
-  handleApprovePlan: () => void;
-  handleRejectPlan: () => void;
-  handleTogglePlanFolder: (folderPath: string) => void;
-  handleToggleGroupPlanFolders: (folderPaths: string[]) => void;
-  handleSelectAllPlanFolders: () => void;
-  handleDeselectAllPlanFolders: () => void;
+  handleReOrganize: () => void;
   handleToggleGroupAssignments: (bookmarkIds: string[]) => void;
   handleSelectAllAssignments: () => void;
   handleDeselectAllAssignments: () => void;

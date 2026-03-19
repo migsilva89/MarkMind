@@ -73,6 +73,14 @@ export const useBulkOrganize = (): UseBulkOrganizeReturn => {
           return;
         }
 
+        // Legacy sessions may have 'reviewing_plan' — treat as 'reviewing_assignments'
+        if ((savedSession.status as string) === 'reviewing_plan') {
+          const migratedSession = { ...savedSession, status: 'reviewing_assignments' as const };
+          setSession(migratedSession);
+          await saveOrganizeSession(migratedSession);
+          return;
+        }
+
         // Applying runs in popup context — if popup closed mid-apply, reset to review
         if (savedSession.status === 'applying') {
           const resetSession = { ...savedSession, status: 'reviewing_assignments' as const };
@@ -118,7 +126,7 @@ export const useBulkOrganize = (): UseBulkOrganizeReturn => {
         clearLoadingMessages();
         setSession(previousSession => ({
           ...previousSession,
-          status: 'reviewing_plan',
+          status: 'reviewing_assignments',
           folderPlan: payload.result.folderPlan,
           assignments: payload.result.assignments,
         }));
@@ -305,89 +313,13 @@ export const useBulkOrganize = (): UseBulkOrganizeReturn => {
     }
   }, [updateSession, startLoadingMessages, clearLoadingMessages]);
 
-  const handleApprovePlan = useCallback((): void => {
-    const currentSession = sessionRef.current;
-    if (!currentSession.folderPlan) return;
-
-    const excludedPaths = new Set(
-      currentSession.folderPlan.folders
-        .filter(folder => folder.isExcluded)
-        .map(folder => folder.path)
-    );
-
-    const filteredAssignments = excludedPaths.size > 0
-      ? currentSession.assignments.filter(assignment => !excludedPaths.has(assignment.suggestedPath))
-      : currentSession.assignments;
-
-    updateSession({
-      status: 'reviewing_assignments',
-      assignments: filteredAssignments,
-    });
-  }, [updateSession]);
-
-  const handleRejectPlan = useCallback((): void => {
+  const handleReOrganize = useCallback((): void => {
     updateSession({
       status: 'selecting',
       folderPlan: null,
       assignments: [],
     });
   }, [updateSession]);
-
-  const handleTogglePlanFolder = useCallback((folderPath: string): void => {
-    setSession(previousSession => {
-      if (!previousSession.folderPlan) return previousSession;
-
-      const updatedFolders = previousSession.folderPlan.folders.map(folder =>
-        folder.path === folderPath
-          ? { ...folder, isExcluded: !folder.isExcluded }
-          : folder
-      );
-
-      const updatedSession = {
-        ...previousSession,
-        folderPlan: { ...previousSession.folderPlan, folders: updatedFolders },
-      };
-      debouncedSaveSession(updatedSession);
-      return updatedSession;
-    });
-  }, [debouncedSaveSession]);
-
-  const handleToggleGroupPlanFolders = useCallback((folderPaths: string[]): void => {
-    setSession(previousSession => {
-      if (!previousSession.folderPlan) return previousSession;
-      const folderPlan = previousSession.folderPlan;
-      const groupSet = new Set(folderPaths);
-      const allInGroupIncluded = folderPaths.every(path =>
-        !folderPlan.folders.find(folder => folder.path === path)?.isExcluded
-      );
-      const updatedFolders = folderPlan.folders.map(folder =>
-        groupSet.has(folder.path) ? { ...folder, isExcluded: allInGroupIncluded } : folder
-      );
-      const updatedSession = { ...previousSession, folderPlan: { ...folderPlan, folders: updatedFolders } };
-      debouncedSaveSession(updatedSession);
-      return updatedSession;
-    });
-  }, [debouncedSaveSession]);
-
-  const handleSelectAllPlanFolders = useCallback((): void => {
-    setSession(previousSession => {
-      if (!previousSession.folderPlan) return previousSession;
-      const updatedFolders = previousSession.folderPlan.folders.map(folder => ({ ...folder, isExcluded: false }));
-      const updatedSession = { ...previousSession, folderPlan: { ...previousSession.folderPlan, folders: updatedFolders } };
-      debouncedSaveSession(updatedSession);
-      return updatedSession;
-    });
-  }, [debouncedSaveSession]);
-
-  const handleDeselectAllPlanFolders = useCallback((): void => {
-    setSession(previousSession => {
-      if (!previousSession.folderPlan) return previousSession;
-      const updatedFolders = previousSession.folderPlan.folders.map(folder => ({ ...folder, isExcluded: true }));
-      const updatedSession = { ...previousSession, folderPlan: { ...previousSession.folderPlan, folders: updatedFolders } };
-      debouncedSaveSession(updatedSession);
-      return updatedSession;
-    });
-  }, [debouncedSaveSession]);
 
   const handleToggleGroupAssignments = useCallback((bookmarkIds: string[]): void => {
     setSession(previousSession => {
@@ -451,7 +383,7 @@ export const useBulkOrganize = (): UseBulkOrganizeReturn => {
         try {
           let targetFolderId = assignment.suggestedFolderId;
 
-          if (!targetFolderId && assignment.isNewFolder) {
+          if (!targetFolderId) {
             targetFolderId = await createFolderPath(
               assignment.suggestedPath,
               mutablePathToIdMap,
@@ -516,12 +448,7 @@ export const useBulkOrganize = (): UseBulkOrganizeReturn => {
     handleDeselectAll,
     handleStartOrganizing,
     handleCancelOrganizing,
-    handleApprovePlan,
-    handleRejectPlan,
-    handleTogglePlanFolder,
-    handleToggleGroupPlanFolders,
-    handleSelectAllPlanFolders,
-    handleDeselectAllPlanFolders,
+    handleReOrganize,
     handleToggleGroupAssignments,
     handleSelectAllAssignments,
     handleDeselectAllAssignments,

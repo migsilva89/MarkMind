@@ -2,6 +2,7 @@ import { type FolderPlan, type BookmarkAssignment, type CompactBookmark, type Bu
 import { type FolderPathMap } from '../../types/bookmarks';
 import { BULK_ORGANIZE_SYSTEM_PROMPT, buildBulkOrganizeUserPrompt } from './bulkPrompt';
 import { getApiKey, callProvider } from './providerUtils';
+import { findFolderIdByAIPath } from '../../utils/folders';
 import { debug } from '../../utils/debug';
 
 // Gemini 2.5 Flash uses "thinking" tokens that count against maxOutputTokens,
@@ -70,7 +71,7 @@ const parseBulkOrganizeResponse = (
         bookmarkUrl: bookmark?.url ?? '',
         currentPath: bookmark?.currentFolderPath ?? '',
         suggestedPath,
-        suggestedFolderId: pathToIdMap[suggestedPath] ?? null,
+        suggestedFolderId: findFolderIdByAIPath(suggestedPath, pathToIdMap) ?? null,
         isNewFolder: newFolderPaths.has(suggestedPath),
         isApproved: true,
       };

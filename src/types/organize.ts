@@ -5,7 +5,6 @@ export type OrganizeSessionStatus =
   | 'scanning'
   | 'selecting'
   | 'organizing'
-  | 'reviewing_plan'
   | 'reviewing_assignments'
   | 'applying'
   | 'completed'
