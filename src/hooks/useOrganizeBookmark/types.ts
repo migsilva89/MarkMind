@@ -10,6 +10,7 @@ export interface UseOrganizeBookmarkReturn {
   statusType: StatusType;
   pendingSuggestion: PendingSuggestion | null;
   existingBookmarkPath: string | null;
+  existingBookmarkId: string | null;
   handleOrganizePage: () => Promise<void>;
   handleAcceptSuggestion: () => Promise<void>;
   handleDeclineSuggestion: () => void;
