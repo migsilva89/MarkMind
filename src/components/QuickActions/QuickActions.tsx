@@ -6,6 +6,7 @@ import {
   SettingsIcon,
 } from '../icons/Icons';
 import { QUICK_ACTIONS } from '../../config/discoverContent';
+import { type QuickActionItem } from '../../types/discover';
 import './QuickActions.css';
 
 const ACTION_ICONS: Record<string, React.ComponentType<{ width?: number; height?: number }>> = {
@@ -22,11 +23,13 @@ interface QuickActionsProps {
 
 const QuickActions = ({ onTabChange, onOpenSettings }: QuickActionsProps) => {
   const handleCardClick = useCallback(
-    (targetTab: string) => () => {
-      if (targetTab === 'settings') {
+    (action: QuickActionItem) => () => {
+      if (action.externalUrl) {
+        chrome.tabs.create({ url: action.externalUrl });
+      } else if (action.targetTab === 'settings') {
         onOpenSettings();
       } else {
-        onTabChange(targetTab);
+        onTabChange(action.targetTab);
       }
     },
     [onTabChange, onOpenSettings]
@@ -42,7 +45,7 @@ const QuickActions = ({ onTabChange, onOpenSettings }: QuickActionsProps) => {
             <button
               key={action.id}
               className="quick-actions-card"
-              onClick={handleCardClick(action.targetTab)}
+              onClick={handleCardClick(action)}
             >
               <div className={`quick-actions-card-icon quick-actions-card-icon-${action.colorScheme}`}>
                 {ActionIcon && <ActionIcon width={14} height={14} />}

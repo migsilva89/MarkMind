@@ -5,7 +5,6 @@ import TabNavigation from '../TabNavigation/TabNavigation';
 import HomeTab from '../tabs/HomeTab';
 import OrganizeTab from '../tabs/OrganizeTab';
 import DiscoverTab from '../tabs/DiscoverTab';
-import BlogTab from '../tabs/BlogTab';
 import { ResolvedTheme } from '../../hooks/useTheme';
 
 interface MainContentProps {
@@ -29,8 +28,6 @@ const MainContent = ({ onOpenSettings, theme, onToggleTheme }: MainContentProps)
         return <OrganizeTab />;
       case 'discover':
         return <DiscoverTab />;
-      case 'blog':
-        return <BlogTab />;
       default:
         return <HomeTab onTabChange={handleTabChange} onOpenSettings={onOpenSettings} />;
     }

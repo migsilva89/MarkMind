@@ -5,6 +5,8 @@ import {
   type PartnerApp,
 } from '../types/discover';
 
+export const MARKMIND_BLOG_URL = 'https://www.markmind.xyz/blog';
+
 export const DISCOVER_SUB_TABS: DiscoverSubTab[] = [
   {
     id: 'whats-new',
@@ -198,6 +200,7 @@ export const QUICK_ACTIONS: QuickActionItem[] = [
     iconName: 'bookOpen',
     colorScheme: 'purple',
     targetTab: 'blog',
+    externalUrl: MARKMIND_BLOG_URL,
   },
   {
     id: 'settings',

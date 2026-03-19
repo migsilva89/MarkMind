@@ -25,6 +25,7 @@ export interface QuickActionItem {
   iconName: string;
   colorScheme: ColorScheme;
   targetTab: string;
+  externalUrl?: string;
 }
 
 export interface PartnerApp {
@@ -35,14 +36,3 @@ export interface PartnerApp {
   logoPath: string;
 }
 
-export interface BlogPost {
-  title: string;
-  slug: string;
-  url: string;
-  excerpt: string;
-  image: string;
-  tags: string[];
-  datePublished: string;
-  readingTime: string;
-  author: string;
-}
