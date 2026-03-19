@@ -1,8 +1,8 @@
 # MarkMind - AI-Powered Bookmark Organization
 
 <div align="center">
-  <img src="./src/assets/icons/icon128.png" alt="MarkMind Logo" width="128" height="128">
-  <p><strong>Transform your chaotic bookmarks into organized bliss with AI</strong></p>
+  <img src="./assets/readme/logo.png" alt="MarkMind Logo" width="128" height="128">
+  <h3>Transform your chaotic bookmarks into organized bliss with AI</h3>
   <p>
     <a href="https://chromewebstore.google.com/detail/MarkMind/bdobgdkpeffdbonfpokgkbncgnbnjnoo">
       <img src="https://img.shields.io/badge/Chrome-Add%20to%20Chrome-green" alt="Chrome Web Store">
@@ -14,14 +14,21 @@
       <img src="https://img.shields.io/badge/License-MIT-blue.svg" alt="License">
     </a>
   </p>
+
+  <a href="https://www.youtube.com/watch?v=9I5tpjMDrIQ">
+    <img src="https://img.shields.io/badge/Watch%20Demo-YouTube-red?style=for-the-badge&logo=youtube" alt="Watch on YouTube">
+  </a>
 </div>
+
+---
 
 ## Why MarkMind?
 
 MarkMind uses AI to understand what you're saving and automatically organizes your bookmarks into the right folders. One click and your bookmarks find their perfect home.
 
 <div align="center">
-  <img src="https://www.markmind.xyz/addcurrent.gif" alt="MarkMind Demo" width="600">
+  <img src="./assets/readme/demo.gif" alt="MarkMind Demo - Organize current page" width="400">
+  <p><em>One click to organize the page you're visiting</em></p>
 </div>
 
 ### Key Features
@@ -32,6 +39,36 @@ MarkMind uses AI to understand what you're saving and automatically organizes yo
 - **Privacy First** - Your bookmarks stay in your browser, only titles/URLs are sent to the AI
 - **Review Before Apply** - Always review and approve changes before they happen
 - **Works With Your Structure** - Respects your existing bookmark folders
+
+## See It In Action
+
+<div align="center">
+  <table>
+    <tr>
+      <td align="center" width="33%">
+        <img src="./assets/readme/bulk.gif" alt="Bulk organize bookmarks" width="260">
+        <br>
+        <strong>Bulk Organize</strong>
+        <br>
+        <em>Scan and sort hundreds of bookmarks at once</em>
+      </td>
+      <td align="center" width="33%">
+        <img src="./assets/readme/control.gif" alt="Review AI suggestions" width="260">
+        <br>
+        <strong>You're In Control</strong>
+        <br>
+        <em>Review every AI suggestion before it's applied</em>
+      </td>
+      <td align="center" width="33%">
+        <img src="./assets/readme/private.gif" alt="Privacy and settings" width="260">
+        <br>
+        <strong>Private & Secure</strong>
+        <br>
+        <em>Your API key stays local, your data never leaves your browser</em>
+      </td>
+    </tr>
+  </table>
+</div>
 
 ## Getting Started
 
@@ -121,19 +158,6 @@ src/
 3. Commit your changes
 4. Push to the branch
 5. Open a Pull Request
-
-## Screenshots
-
-<div align="center">
-  <img src="https://www.markmind.xyz/addcurrent.gif" alt="Add current page" width="400">
-  <p><em>Add current page</em></p>
-
-  <img src="https://www.markmind.xyz/multiple.gif" alt="Bulk organize" width="400">
-  <p><em>Bulk organize bookmarks</em></p>
-
-  <img src="https://www.markmind.xyz/key.gif" alt="API key setup" width="400">
-  <p><em>API key setup</em></p>
-</div>
 
 ## Support
 
