@@ -7,7 +7,7 @@ import { getFolderDataForAI, findFolderPathById, findFolderIdByAIPath } from '..
 import { organizeBookmark } from '../../services/ai';
 import { getSelectedServiceId, getSelectedModelId } from '../../services/selectedState';
 import { getCurrentPageData } from '../../services/pageMetadata';
-import { findBookmarkByUrl, createBookmark, createFolderPath } from '../../services/bookmarks';
+import { findBookmarkByUrl, createBookmark, moveBookmark, createFolderPath } from '../../services/bookmarks';
 import { type UseOrganizeBookmarkReturn } from './types';
 
 const LOADING_MESSAGE_INTERVAL_MS = 2000;
@@ -21,6 +21,7 @@ export const useOrganizeBookmark = (): UseOrganizeBookmarkReturn => {
   const [statusType, setStatusType] = useState<StatusType>('default');
   const [pendingSuggestion, setPendingSuggestion] = useState<PendingSuggestion | null>(null);
   const [existingBookmarkPath, setExistingBookmarkPath] = useState<string | null>(null);
+  const [existingBookmarkId, setExistingBookmarkId] = useState<string | null>(null);
 
   const statusTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const loadingMessageIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
@@ -33,6 +34,18 @@ export const useOrganizeBookmark = (): UseOrganizeBookmarkReturn => {
         const pageData = await getCurrentPageData();
         if (pageData) {
           setCurrentPageData(pageData);
+
+          const existingBookmark = await findBookmarkByUrl(pageData.url);
+          if (existingBookmark) {
+            setExistingBookmarkId(existingBookmark.id);
+            const folderData = await getFolderDataForAI();
+            const folderPath = existingBookmark.parentId
+              ? findFolderPathById(folderData.idToPathMap, existingBookmark.parentId)
+              : null;
+            if (folderPath) {
+              setExistingBookmarkPath(folderPath);
+            }
+          }
         }
       } catch (error) {
         console.error('Error initializing organize bookmark:', error);
@@ -104,22 +117,6 @@ export const useOrganizeBookmark = (): UseOrganizeBookmarkReturn => {
       startLoadingMessages();
 
       const folderData = await getFolderDataForAI();
-
-      const existingBookmark = await findBookmarkByUrl(currentPageData.url);
-
-      if (existingBookmark) {
-        const folderPath = existingBookmark.parentId
-          ? findFolderPathById(folderData.idToPathMap, existingBookmark.parentId)
-          : null;
-
-        if (folderPath) {
-          setExistingBookmarkPath(folderPath);
-          clearLoadingMessages();
-        } else {
-          showStatus('Already bookmarked (folder not found in tree)', 'error');
-        }
-        return;
-      }
 
       const serviceId = getSelectedServiceId();
 
@@ -193,15 +190,21 @@ export const useOrganizeBookmark = (): UseOrganizeBookmarkReturn => {
         return;
       }
 
-      showStatus('Saving bookmark...', 'default');
-      await createBookmark(
-        targetFolderId,
-        pendingSuggestion.pageTitle,
-        pendingSuggestion.pageUrl
-      );
+      if (existingBookmarkId) {
+        showStatus('Moving bookmark...', 'default');
+        await moveBookmark(existingBookmarkId, targetFolderId);
+        setExistingBookmarkPath(pendingSuggestion.folderPath);
+      } else {
+        showStatus('Saving bookmark...', 'default');
+        await createBookmark(
+          targetFolderId,
+          pendingSuggestion.pageTitle,
+          pendingSuggestion.pageUrl
+        );
+      }
 
       setPendingSuggestion(null);
-      showStatus('Bookmark saved!', 'success');
+      showStatus(existingBookmarkId ? 'Bookmark moved!' : 'Bookmark saved!', 'success');
     } catch (error) {
       console.error('Error saving bookmark:', error);
       const errorMessage = error instanceof Error ? error.message : 'Unknown error';
@@ -209,7 +212,7 @@ export const useOrganizeBookmark = (): UseOrganizeBookmarkReturn => {
     } finally {
       setIsOrganizing(false);
     }
-  }, [pendingSuggestion, showStatus]);
+  }, [pendingSuggestion, existingBookmarkId, showStatus]);
 
   const handleDeclineSuggestion = useCallback((): void => {
     setPendingSuggestion(null);
@@ -224,6 +227,7 @@ export const useOrganizeBookmark = (): UseOrganizeBookmarkReturn => {
     statusType,
     pendingSuggestion,
     existingBookmarkPath,
+    existingBookmarkId,
     handleOrganizePage,
     handleAcceptSuggestion,
     handleDeclineSuggestion,

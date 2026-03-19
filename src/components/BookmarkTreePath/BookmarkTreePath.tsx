@@ -9,6 +9,7 @@ interface BookmarkTreePathProps {
   bookmarkTitle: string;
   isNewFolder: boolean;
   label?: string;
+  defaultExpanded?: boolean;
 }
 
 const BookmarkTreePath = ({
@@ -16,6 +17,7 @@ const BookmarkTreePath = ({
   bookmarkTitle,
   isNewFolder,
   label = 'Suggested location',
+  defaultExpanded = true,
 }: BookmarkTreePathProps) => {
   const cleanPath = stripRootSegment(folderPath);
   const displayPath = splitFolderPath(cleanPath).join(' / ');
@@ -27,7 +29,7 @@ const BookmarkTreePath = ({
         groupName={displayPath}
         itemCount={1}
         badge={isNewFolder ? 'New' : undefined}
-        defaultExpanded
+        defaultExpanded={defaultExpanded}
       >
         <div className="bookmark-tree-path-item">
           <DocumentIcon width={10} height={10} />

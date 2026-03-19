@@ -27,7 +27,7 @@
 }
 
 .current-page-card-label {
-  font-size: var(--font-size-sm);
+  font-size: var(--font-size-lg);
   font-weight: var(--font-weight-semibold);
   color: var(--color-text);
 }

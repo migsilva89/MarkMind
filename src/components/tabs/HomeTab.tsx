@@ -17,6 +17,7 @@ const HomeTab = ({ onTabChange, onOpenSettings }: HomeTabProps) => {
     statusType,
     pendingSuggestion,
     existingBookmarkPath,
+    existingBookmarkId,
     handleOrganizePage,
     handleAcceptSuggestion,
     handleDeclineSuggestion,
@@ -33,6 +34,7 @@ const HomeTab = ({ onTabChange, onOpenSettings }: HomeTabProps) => {
         statusType={statusType}
         pendingSuggestion={pendingSuggestion}
         existingBookmarkPath={existingBookmarkPath}
+        existingBookmarkId={existingBookmarkId}
         onOrganize={handleOrganizePage}
         onAccept={handleAcceptSuggestion}
         onDecline={handleDeclineSuggestion}
