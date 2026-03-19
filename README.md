@@ -10,140 +10,143 @@
     <a href="https://github.com/migsilva89/MarkMind/issues">
       <img src="https://img.shields.io/github/issues/migsilva89/MarkMind" alt="Issues">
     </a>
-    <a href="https://github.com/migsilva89/MarkMind/blob/main/src/docs/LICENSE">
+    <a href="https://github.com/migsilva89/MarkMind/blob/main/LICENSE">
       <img src="https://img.shields.io/badge/License-MIT-blue.svg" alt="License">
     </a>
   </p>
 </div>
 
-## ✨ Why MarkMind?
+## Why MarkMind?
 
-MarkMind replaces Chrome's native bookmark button with AI-powered organization that actually understands what you're saving. One click and your bookmarks find their perfect home - automatically!
+MarkMind uses AI to understand what you're saving and automatically organizes your bookmarks into the right folders. One click and your bookmarks find their perfect home.
 
 <div align="center">
   <img src="https://www.markmind.xyz/addcurrent.gif" alt="MarkMind Demo" width="600">
 </div>
 
-### 🌟 Key Features
+### Key Features
 
-- **Smart Organization**: AI that understands your bookmarks and categorizes them intelligently
-- **Bulk Processing**: Organize hundreds of bookmarks while you grab coffee ☕
-- **Privacy Obsessed**: All processing happens locally - your bookmarks are YOUR business
-- **You're The Boss**: Review and approve all changes before applying them
-- **Respects Your Chaos**: Works with your existing folder structure (no judgment here!)
+- **Smart Organization** - AI analyzes page content and suggests the best folder
+- **Bulk Processing** - Organize hundreds of bookmarks at once
+- **Multiple AI Providers** - Google Gemini, OpenAI, Anthropic, or OpenRouter
+- **Privacy First** - Your bookmarks stay in your browser, only titles/URLs are sent to the AI
+- **Review Before Apply** - Always review and approve changes before they happen
+- **Works With Your Structure** - Respects your existing bookmark folders
 
-## 🚀 Getting Started
+## Getting Started
 
-### Quick Install
-1. [Add MarkMind from the Chrome Web Store]([https://chrome.google.com/webstore/detail/markmind/[your-extension-id]](https://chromewebstore.google.com/detail/markmind/bdobgdkpeffdbonfpokgkbncgnbnjnoo))
-2. Get a free [Google AI Studio](https://aistudio.google.com/app/apikey) API key
-3. Click the MarkMind icon and enter your API key in settings
-4. Start organizing your bookmarks with AI!
+### Install from Chrome Web Store
+
+1. [Add MarkMind from the Chrome Web Store](https://chromewebstore.google.com/detail/markmind/bdobgdkpeffdbonfpokgkbncgnbnjnoo)
+2. Click the MarkMind icon and choose your AI provider
+3. Enter your API key (get a free one from [Google AI Studio](https://aistudio.google.com/app/apikey))
+4. Start organizing!
 
 ### Using MarkMind
 
-**Organize Existing Bookmarks:**
-1. Click the MarkMind icon
-2. Select bookmarks to organize
-3. Click "Organize Selected"
-4. Review and approve the suggested structure
-
 **Add Current Page:**
-1. Click the MarkMind icon while browsing
-2. Select "Add Current Page"
-3. Watch as the page is bookmarked and automatically organized
 
-## 🔒 Privacy & Security
+1. Navigate to any page
+2. Click the MarkMind icon
+3. Hit "Organize" - AI suggests the best folder
+4. Accept, decline, or customize the suggestion
 
-- Your bookmarks never leave your browser
-- Only bookmark titles and URLs are sent to Google's AI
-- API key is stored securely in your browser
-- No personal data is collected or tracked
+**Bulk Organize:**
 
-## 🛠️ For Developers
+1. Click the MarkMind icon → Organize tab
+2. Scan your bookmarks
+3. Select bookmarks to organize
+4. Review AI suggestions and apply
 
-MarkMind is open source and welcomes contributions!
+## Supported AI Providers
 
-### Project Structure
+| Provider | Get API Key |
+| -------- | ----------- |
+| Google Gemini | [Google AI Studio](https://aistudio.google.com/app/apikey) |
+| OpenAI | [OpenAI Platform](https://platform.openai.com/api-keys) |
+| Anthropic | [Anthropic Console](https://console.anthropic.com/) |
+| OpenRouter | [OpenRouter](https://openrouter.ai/keys) |
 
-```
-src/
-├── js/
-│   ├── popup.js           # Main UI logic
-│   ├── background.js      # Background service worker
-│   ├── config.js          # Configuration settings
-│   └── services/
-│       └── geminiService.js  # AI service integration
-├── css/
-│   └── style.css         # Styles for the extension
-├── assets/
-│   └── icons/            # Extension icons
-├── manifest.json
-└── popup.html
-```
+## Privacy & Security
+
+- Bookmarks never leave your browser (only titles/URLs sent to AI for analysis)
+- API keys stored securely in Chrome's local storage
+- No personal data collected or tracked
+- No analytics, no telemetry
+- Open source - verify the code yourself
+
+## For Developers
+
+### Tech Stack
+
+- **React 19** + **TypeScript**
+- **Vite** with @crxjs/vite-plugin
+- **Chrome Manifest V3**
+- **CSS** with design tokens
 
 ### Local Development
 
-1. Clone this repository
 ```bash
 git clone https://github.com/migsilva89/MarkMind.git
 cd MarkMind
+npm install
+npm run dev       # Dev server with HMR
+npm run build     # Production build → dist/
 ```
 
-2. Load the extension in Chrome:
-   - Go to `chrome://extensions/`
-   - Enable "Developer mode"
-   - Click "Load unpacked"
-   - Select the `src` folder
+Load the extension:
 
-3. Get a [Google AI Studio](https://makersuite.google.com/app/apikey) API key
+1. Go to `chrome://extensions/`
+2. Enable "Developer mode"
+3. Click "Load unpacked" → Select `dist/`
 
-4. After making changes, reload the extension in Chrome to test
+### Project Structure
+
+```text
+src/
+├── components/      # React components (one per file)
+├── hooks/           # Custom hooks (folder per hook)
+├── services/        # Chrome API & AI provider wrappers
+├── config/          # Configuration data
+├── types/           # TypeScript interfaces
+├── utils/           # Utility functions
+├── styles/          # Design tokens (CSS variables)
+└── App.tsx          # Root component
+```
 
 ### Contributing
 
-We welcome contributions! Here's how:
 1. Fork the project
-2. Create your Feature Branch (`git checkout -b feature/AmazingFeature`)
-3. Commit your changes (`git commit -m 'Add some AmazingFeature'`)
-4. Push to the Branch (`git push origin feature/AmazingFeature`)
+2. Create your feature branch (`git checkout -b feature/amazing-feature`)
+3. Commit your changes
+4. Push to the branch
 5. Open a Pull Request
 
-## 📋 Roadmap
-
-- [ ] Export/Import functionality
-- [ ] Custom folder depth configuration
-- [ ] Additional AI models support
-- [ ] Batch processing improvements
-- [ ] Cross-device synchronization
-
-## 📸 Screenshots
+## Screenshots
 
 <div align="center">
-  <img src="https://www.markmind.xyz/addcurrent.gif" alt="Main Interface" width="400">
-  <p><em>Add current page feature</em></p>
-  
-  <img src="https://www.markmind.xyz/multiple.gif" alt="Organization Process" width="400">
-  <p><em>Add multiple feature</em></p>
-  
-  <img src="https://www.markmind.xyz/key.gif" alt="Results View" width="400">
-  <p><em>Get Gemini Api key</em></p>
+  <img src="https://www.markmind.xyz/addcurrent.gif" alt="Add current page" width="400">
+  <p><em>Add current page</em></p>
+
+  <img src="https://www.markmind.xyz/multiple.gif" alt="Bulk organize" width="400">
+  <p><em>Bulk organize bookmarks</em></p>
+
+  <img src="https://www.markmind.xyz/key.gif" alt="API key setup" width="400">
+  <p><em>API key setup</em></p>
 </div>
 
-## 🤝 Support
+## Support
 
-Need help or have questions?
 - [Open an issue](https://github.com/migsilva89/MarkMind/issues) on GitHub
-- Email us at: themarkmind@gmail.com
-- Visit our website: [markmind.xyz](https://markmind.xyz)
+- Email: <themarkmind@gmail.com>
+- Website: [markmind.xyz](https://markmind.xyz)
 
-## 📜 License
+## License
 
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
 ---
 
 <div align="center">
-  <p>Made with ❤️ for better bookmark organization</p>
-  <p>If you find MarkMind useful, consider <a href="https://github.com/migsilva89/MarkMind">giving it a star ⭐</a></p>
+  <p>If you find MarkMind useful, consider <a href="https://github.com/migsilva89/MarkMind">giving it a star</a></p>
 </div>

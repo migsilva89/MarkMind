@@ -2,117 +2,109 @@
 
 Your goal is to create a new specification file for `$ARGUMENTS`.
 
-The specification file must define the requirements, constraints, and interfaces for the solution components in a manner that is clear, unambiguous, and structured for effective use by Generative AIs. Follow established documentation standards and ensure the content is machine-readable and self-contained.
+The specification file must define the requirements, constraints, and interfaces for the solution in a manner that is clear, unambiguous, and structured for effective use by Generative AIs.
 
-## Best Practices for AI-Ready Specifications
+## Before Writing
 
-- Use precise, explicit, and unambiguous language.
-- Clearly distinguish between requirements, constraints, and recommendations.
-- Use structured formatting (headings, lists, tables) for easy parsing.
-- Avoid idioms, metaphors, or context-dependent references.
-- Define all acronyms and domain-specific terms.
-- Include examples and edge cases where applicable.
-- Ensure the document is self-contained and does not rely on external context.
+1. Read `CLAUDE.md` for project conventions
+2. Explore relevant existing code in `src/` to understand current patterns
+3. Check `src/types/` for existing interfaces that may be affected
 
-The specification should be saved in the [/spec/](/spec/) directory and named according to the following convention: `spec-[a-z0-9-]+.md`, where the name should be descriptive of the specification's content and starting with the high-level purpose, which is one of [schema, tool, data, infrastructure, process, architecture, or design].
+## Spec File Location & Naming
 
-The specification file must be formatted in well formed Markdown.
+Save in the `/spec/` directory using the convention: `spec-[type]-[description].md`
 
-Specification files must follow the template below, ensuring that all sections are filled out appropriately:
+Where `[type]` is one of: `design`, `feature`, `refactor`, `fix`, `infrastructure`
+
+Examples:
+
+- `spec-feature-bookmark-tags.md`
+- `spec-design-settings-redesign.md`
+- `spec-refactor-ai-provider-interface.md`
+
+## Template
 
 ```md
 ---
-title: [Concise Title Describing the Specification's Focus]
-version: [Optional: e.g., 1.0, Date]
+title: [Concise Title]
+version: 1.0
 date_created: [YYYY-MM-DD]
-last_updated: [Optional: YYYY-MM-DD]
-owner: [Optional: Team/Individual responsible for this spec]
-tags: [Optional: List of relevant tags or categories, e.g., `infrastructure`, `process`, `design`, `app` etc]
+owner: [Team/Individual]
+tags: [e.g., feature, component, hook, service, ui]
 ---
 
 # Introduction
 
-[A short concise introduction to the specification and the goal it is intended to achieve.]
+[Short description of what this spec covers and why.]
 
 ## 1. Purpose & Scope
 
-[Provide a clear, concise description of the specification's purpose and the scope of its application. State the intended audience and any assumptions.]
+[What problem does this solve? What's in scope and out of scope?]
 
-## 2. Definitions
+## 2. Affected Areas
 
-[List and define all acronyms, abbreviations, and domain-specific terms used in this specification.]
+[List files, components, hooks, services, or types that will be created or modified.]
 
-## 3. Requirements, Constraints & Guidelines
+| Area | Action | Details |
+|------|--------|---------|
+| `src/components/X/` | Create | New component for... |
+| `src/hooks/useX/` | Modify | Add new state for... |
+| `src/types/x.ts` | Create | New interfaces for... |
 
-[Explicitly list all requirements, constraints, rules, and guidelines. Use bullet points or tables for clarity.]
+## 3. Requirements
 
-- **REQ-001**: Requirement 1
-- **SEC-001**: Security Requirement 1
-- **[3 LETTERS]-001**: Other Requirement 1
-- **CON-001**: Constraint 1
-- **GUD-001**: Guideline 1
-- **PAT-001**: Pattern to follow 1
+- **REQ-001**: [Requirement description]
+- **REQ-002**: [Requirement description]
 
-## 4. Interfaces & Data Contracts
+## 4. UI/UX Specifications
 
-[Describe the interfaces, APIs, data contracts, or integration points. Use tables or code blocks for schemas and examples.]
+[For UI features: describe layout, interactions, states, responsive behavior. Reference design tokens from `src/styles/index.css`.]
 
-## 5. Acceptance Criteria
+### States
+- Default state
+- Loading state
+- Error state
+- Empty state
 
-[Define clear, testable acceptance criteria for each requirement using Given-When-Then format where appropriate.]
+## 5. Interfaces & Data
+
+[TypeScript interfaces, API contracts, Chrome storage keys affected.]
+
+```typescript
+// New types to create in src/types/
+interface ExampleType {
+  id: string;
+  name: string;
+}
+```
+
+## 6. Implementation Notes
+
+[Key decisions, patterns to follow, gotchas. Reference CLAUDE.md rules.]
+
+- Use arrow functions for all components and handlers
+- Use design tokens only (no hardcoded values)
+- Follow folder-per-hook pattern for new hooks
+- Use `<Button>` component, not raw `<button>`
+
+## 7. Acceptance Criteria
 
 - **AC-001**: Given [context], When [action], Then [expected outcome]
-- **AC-002**: The system shall [specific behavior] when [condition]
-- **AC-003**: [Additional acceptance criteria as needed]
+- **AC-002**: [Additional criteria]
 
-## 6. Test Automation Strategy
+## 8. Edge Cases
 
-[Define the testing approach, frameworks, and automation requirements.]
-
-- **Test Levels**: Unit, Integration, End-to-End
-- **Frameworks**: MSTest, FluentAssertions, Moq (for .NET applications)
-- **Test Data Management**: [approach for test data creation and cleanup]
-- **CI/CD Integration**: [automated testing in GitHub Actions pipelines]
-- **Coverage Requirements**: [minimum code coverage thresholds]
-- **Performance Testing**: [approach for load and performance testing]
-
-## 7. Rationale & Context
-
-[Explain the reasoning behind the requirements, constraints, and guidelines. Provide context for design decisions.]
-
-## 8. Dependencies & External Integrations
-
-[Define the external systems, services, and architectural dependencies required for this specification. Focus on **what** is needed rather than **how** it's implemented.]
-
-### External Systems
-- **EXT-001**: [External system name] - [Purpose and integration type]
-
-### Third-Party Services
-- **SVC-001**: [Service name] - [Required capabilities and SLA requirements]
-
-### Infrastructure Dependencies
-- **INF-001**: [Infrastructure component] - [Requirements and constraints]
-
-### Data Dependencies
-- **DAT-001**: [External data source] - [Format, frequency, and access requirements]
-
-### Technology Platform Dependencies
-- **PLT-001**: [Platform/runtime requirement] - [Version constraints and rationale]
-
-### Compliance Dependencies
-- **COM-001**: [Regulatory or compliance requirement] - [Impact on implementation]
-
-**Note**: This section should focus on architectural and business dependencies, not specific package implementations. For example, specify "OAuth 2.0 authentication library" rather than "Microsoft.AspNetCore.Authentication.JwtBearer v6.0.1".
-
-## 9. Examples & Edge Cases
-
-[Code snippets or data examples demonstrating the correct application of the guidelines, including edge cases.]
-
-## 10. Validation Criteria
-
-[List the criteria or tests that must be satisfied for compliance with this specification.]
-
-## 11. Related Specifications / Further Reading
-
-[Link to related specs or relevant external documentation.]
+[List edge cases and how they should be handled.]
 ```
+
+<!-- markdownlint-disable-file MD031 MD040 -->
+
+## Guidelines
+
+- Be specific to MarkMind's architecture (React 19, TypeScript, Chrome Extension MV3)
+- Reference actual file paths and existing patterns in the codebase
+- Use design tokens from `src/styles/index.css` for any UI specs
+- Keep it concise - specs are consumed by AI, not printed in books
+- Include TypeScript interfaces for any new data structures
+- Consider Chrome extension constraints (popup lifecycle, storage limits, permissions)
+- **If the requirements are unclear or ambiguous, ASK the user before assuming** - do not invent requirements
