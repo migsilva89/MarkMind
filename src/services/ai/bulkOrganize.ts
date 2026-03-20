@@ -3,7 +3,6 @@ import { type FolderPathMap } from '../../types/bookmarks';
 import { BULK_ORGANIZE_SYSTEM_PROMPT, buildBulkOrganizeUserPrompt } from './bulkPrompt';
 import { getApiKey, callProvider } from './providerUtils';
 import { findFolderIdByAIPath } from '../../utils/folders';
-import { debug } from '../../utils/debug';
 
 // Gemini 2.5 Flash uses "thinking" tokens that count against maxOutputTokens,
 // so this budget must be high enough for both thinking and the full response.
@@ -62,7 +61,7 @@ const parseBulkOrganizeResponse = (
       const bookmark = bookmarkMap.get(bookmarkId);
 
       if (!bookmark) {
-        debug('[BulkOrganize] Unknown bookmarkId in assignment:', bookmarkId);
+        console.error('[BulkOrganize] Unknown bookmarkId in assignment:', bookmarkId);
       }
 
       return {
@@ -94,13 +93,6 @@ export const organizeBookmarks = async (
   const apiKey = await getApiKey(serviceId);
   const userPrompt = buildBulkOrganizeUserPrompt(bookmarks, folderTree);
 
-  debug(
-    '[BulkOrganize] Prompt:\n\n--- SYSTEM ---\n' +
-      BULK_ORGANIZE_SYSTEM_PROMPT +
-      '\n\n--- USER ---\n' +
-      userPrompt
-  );
-
   const responseText = await callProvider(
     serviceId,
     apiKey,
@@ -109,8 +101,6 @@ export const organizeBookmarks = async (
     modelId,
     ORGANIZE_MAX_TOKENS
   );
-
-  debug('[BulkOrganize] Response:', responseText);
 
   return parseBulkOrganizeResponse(responseText, bookmarks, pathToIdMap);
 };
