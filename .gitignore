@@ -62,9 +62,9 @@ web-ext-artifacts/
 # Preview assets (local only)
 preview/
 
-# Claude Code local settings
-.claude/settings.json
-.claude/settings.local.json
+# Claude Code (keep locally, exclude from public repo)
+.claude/
+CLAUDE.md
 
 # Scripts (dev-only)
 scripts/
