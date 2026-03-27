@@ -11,25 +11,63 @@ interface MainContentProps {
   onOpenSettings: () => void;
   theme: ResolvedTheme;
   onToggleTheme: () => void;
+  showOnboardingTooltips?: boolean;
+  onTooltipsDismissed?: () => void;
 }
 
-const MainContent = ({ onOpenSettings, theme, onToggleTheme }: MainContentProps) => {
+const MainContent = ({
+  onOpenSettings,
+  theme,
+  onToggleTheme,
+  showOnboardingTooltips = false,
+  onTooltipsDismissed,
+}: MainContentProps) => {
   const [activeTab, setActiveTab] = useState('home');
+  const [tooltipStep, setTooltipStep] = useState<'card' | 'organize' | 'done'>(
+    showOnboardingTooltips ? 'card' : 'done'
+  );
 
   const handleTabChange = useCallback((tabId: string): void => {
+    if (tooltipStep !== 'done') {
+      setTooltipStep('done');
+      onTooltipsDismissed?.();
+    }
     setActiveTab(tabId);
+  }, [tooltipStep, onTooltipsDismissed]);
+
+  const handleDismissCardTooltip = useCallback((): void => {
+    setTooltipStep('organize');
   }, []);
+
+  const handleDismissOrganizeTooltip = useCallback((): void => {
+    setTooltipStep('done');
+    onTooltipsDismissed?.();
+  }, [onTooltipsDismissed]);
 
   const renderActiveTab = () => {
     switch (activeTab) {
       case 'home':
-        return <HomeTab onTabChange={handleTabChange} onOpenSettings={onOpenSettings} />;
+        return (
+          <HomeTab
+            onTabChange={handleTabChange}
+            onOpenSettings={onOpenSettings}
+            showCardTooltip={tooltipStep === 'card'}
+            onDismissCardTooltip={handleDismissCardTooltip}
+          />
+        );
       case 'organize':
         return <OrganizeTab />;
       case 'discover':
         return <DiscoverTab />;
       default:
-        return <HomeTab onTabChange={handleTabChange} onOpenSettings={onOpenSettings} />;
+        return (
+          <HomeTab
+            onTabChange={handleTabChange}
+            onOpenSettings={onOpenSettings}
+            showCardTooltip={tooltipStep === 'card'}
+            onDismissCardTooltip={handleDismissCardTooltip}
+          />
+        );
     }
   };
 
@@ -58,7 +96,12 @@ const MainContent = ({ onOpenSettings, theme, onToggleTheme }: MainContentProps)
         </div>
       </header>
 
-      <TabNavigation activeTab={activeTab} onTabChange={handleTabChange} />
+      <TabNavigation
+        activeTab={activeTab}
+        onTabChange={handleTabChange}
+        showOrganizeTooltip={tooltipStep === 'organize'}
+        onDismissOrganizeTooltip={handleDismissOrganizeTooltip}
+      />
 
       <main className="main-content">
         {renderActiveTab()}

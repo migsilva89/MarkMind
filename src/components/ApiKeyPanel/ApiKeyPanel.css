@@ -444,3 +444,65 @@
 .btn-danger-full {
   width: 100%;
 }
+
+/* Setup Guide Link in Header */
+.header-guide-link {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.header-guide-tooltip {
+  position: absolute;
+  top: calc(100% + var(--spacing-xs));
+  right: 0;
+  white-space: nowrap;
+  font-size: var(--font-size-2xs);
+  color: var(--color-white);
+  background-color: var(--color-primary);
+  padding: var(--spacing-xs) var(--spacing-md);
+  border-radius: var(--radius-sm);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity var(--transition-fast);
+}
+
+.header-guide-link:hover .header-guide-tooltip {
+  opacity: 1;
+}
+
+/* Setup Guide View */
+.setup-guide-section {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-md);
+}
+
+.setup-guide-heading {
+  font-size: var(--font-size-lg);
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-text);
+  margin: 0;
+}
+
+.setup-guide-text {
+  font-size: var(--font-size-sm);
+  color: var(--color-text-muted);
+  line-height: var(--line-height-relaxed);
+  margin: 0;
+}
+
+.setup-guide-reassurances {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-sm);
+}
+
+.setup-guide-reassurance-item {
+  font-size: var(--font-size-xs);
+  color: var(--color-text-secondary);
+  margin: 0;
+  padding: var(--spacing-2xs) 0;
+}
+
+/* Step list classes are shared — see src/styles/index.css (.step-list-*) */
