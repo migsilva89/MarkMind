@@ -1,0 +1,226 @@
+/**
+ * Onboarding Component Styles
+ * Reuses ApiKeyPanel layout patterns and design tokens
+ */
+
+/* Step Progress Dots */
+.onboarding-progress {
+  display: flex;
+  justify-content: center;
+  gap: var(--spacing-md);
+  padding: var(--spacing-xl) 0;
+}
+
+.onboarding-dot {
+  width: var(--spacing-md);
+  height: var(--spacing-md);
+  border-radius: var(--radius-full);
+  background-color: var(--color-border-light);
+  transition: background-color var(--transition-smooth);
+  border: none;
+  padding: 0;
+}
+
+.onboarding-dot.active {
+  background-color: var(--color-primary);
+}
+
+/* Step Container */
+.onboarding-step {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  gap: var(--spacing-xl);
+}
+
+/* Welcome Step */
+.onboarding-welcome {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  padding: var(--spacing-4xl) 0;
+  gap: var(--spacing-xl);
+}
+
+.onboarding-welcome-logo {
+  width: 48px;
+  height: 48px;
+}
+
+.onboarding-welcome-title {
+  font-size: var(--font-size-2xl);
+  font-weight: var(--font-weight-bold);
+  color: var(--color-text);
+  letter-spacing: var(--letter-spacing-tight);
+  line-height: var(--line-height-tight);
+  margin: 0;
+}
+
+.onboarding-welcome-subtitle {
+  font-size: var(--font-size-sm);
+  color: var(--color-text-muted);
+  line-height: var(--line-height-relaxed);
+  margin: 0;
+  max-width: 280px;
+}
+
+.onboarding-features {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-lg);
+  padding: var(--spacing-md) 0;
+}
+
+.onboarding-feature-item {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-md);
+  font-size: var(--font-size-xs);
+  color: var(--color-text-secondary);
+}
+
+.onboarding-feature-item svg {
+  flex-shrink: 0;
+  color: var(--color-primary);
+}
+
+/* Back Button Row */
+.onboarding-back-row {
+  display: flex;
+  align-items: center;
+  margin-bottom: var(--spacing-xs);
+}
+
+/* Explain Step */
+.onboarding-explain-title {
+  font-size: var(--font-size-lg);
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-text);
+  margin: 0;
+}
+
+.onboarding-explain-text {
+  font-size: var(--font-size-sm);
+  color: var(--color-text-muted);
+  line-height: var(--line-height-relaxed);
+  margin: 0;
+}
+
+.onboarding-reassurances {
+  background-color: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-xl);
+  padding: var(--spacing-xl);
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-lg);
+}
+
+.onboarding-reassurance-item {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-md);
+  font-size: var(--font-size-xs);
+  color: var(--color-text-secondary);
+}
+
+.onboarding-reassurance-item svg {
+  flex-shrink: 0;
+}
+
+.onboarding-escape-link {
+  font-size: var(--font-size-2xs);
+  color: var(--color-text-light);
+  text-align: center;
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-family: var(--font-family);
+  padding: var(--spacing-sm) 0;
+  transition: color var(--transition-fast);
+  width: 100%;
+}
+
+.onboarding-escape-link:hover {
+  color: var(--color-text-muted);
+  text-decoration: underline;
+}
+
+/* Guide Step */
+.onboarding-guide-title {
+  font-size: var(--font-size-lg);
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-text);
+  margin: 0;
+}
+
+.onboarding-guide-subtitle {
+  font-size: var(--font-size-sm);
+  color: var(--color-text-muted);
+  margin: 0;
+}
+
+.onboarding-step-link {
+  display: inline;
+}
+
+/* Input Section */
+.onboarding-input-section {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-md);
+  padding-top: var(--spacing-md);
+}
+
+.onboarding-error-message {
+  font-size: var(--font-size-xs);
+  color: var(--color-error);
+  line-height: var(--line-height-normal);
+  margin: 0;
+}
+
+.onboarding-validating-text {
+  font-size: var(--font-size-xs);
+  color: var(--color-text-muted);
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+  margin: 0;
+}
+
+/* Success Step */
+.onboarding-success {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  padding: var(--spacing-4xl) 0;
+  gap: var(--spacing-xl);
+}
+
+.onboarding-success-icon {
+  color: var(--color-success);
+}
+
+.onboarding-success-title {
+  font-size: var(--font-size-2xl);
+  font-weight: var(--font-weight-bold);
+  color: var(--color-text);
+  letter-spacing: var(--letter-spacing-tight);
+  line-height: var(--line-height-tight);
+  margin: 0;
+}
+
+.onboarding-success-subtitle {
+  font-size: var(--font-size-sm);
+  color: var(--color-text-muted);
+  line-height: var(--line-height-relaxed);
+  margin: 0;
+  max-width: 280px;
+}
+
+/* Button wrapper for full-width at bottom */
+.onboarding-cta {
+  padding-top: var(--spacing-md);
+}
