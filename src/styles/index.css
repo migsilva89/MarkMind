@@ -410,6 +410,43 @@ a:hover {
   font-weight: var(--font-weight-medium);
 }
 
+/* ========================================
+   Numbered Step List (shared across Onboarding + Setup Guide)
+   ======================================== */
+.step-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-md);
+}
+
+.step-list-row {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-xl);
+  padding: var(--spacing-sm) 0;
+}
+
+.step-list-number {
+  width: var(--spacing-3xl);
+  height: var(--spacing-3xl);
+  border-radius: var(--radius-full);
+  background-color: var(--color-primary);
+  color: var(--color-white);
+  font-size: var(--font-size-2xs);
+  font-weight: var(--font-weight-bold);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.step-list-text {
+  font-size: var(--font-size-sm);
+  color: var(--color-text);
+  font-weight: var(--font-weight-medium);
+  flex: 1;
+}
+
 /* Spinner Animation */
 .spinner {
   animation: spin 1s linear infinite;

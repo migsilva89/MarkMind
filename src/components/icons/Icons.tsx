@@ -44,8 +44,8 @@ export const ArrowRightIcon = ({ width = 14, height = 14 }: IconProps) => (
   </svg>
 );
 
-export const KeyIcon = () => (
-  <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+export const KeyIcon = ({ width = 14, height = 14 }: IconProps) => (
+  <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" width={width} height={height}>
     <path
       strokeLinecap="round"
       strokeLinejoin="round"
@@ -55,8 +55,8 @@ export const KeyIcon = () => (
   </svg>
 );
 
-export const ShieldIcon = () => (
-  <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+export const ShieldIcon = ({ width = 14, height = 14 }: IconProps) => (
+  <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" width={width} height={height}>
     <path
       strokeLinecap="round"
       strokeLinejoin="round"
