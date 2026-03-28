@@ -37,9 +37,6 @@ const App = () => {
       const tooltipsPending = !!result[ONBOARDING_TOOLTIPS_PENDING_KEY];
       const tooltipsSeen = !!result[ONBOARDING_TOOLTIPS_SEEN_KEY];
       setShowOnboardingTooltips(tooltipsPending && !tooltipsSeen);
-    }
-
-    if (hasKey) {
       setShowApiKeyPanel(false);
     } else if (result[ONBOARDING_COMPLETE_STORAGE_KEY]) {
       setShowApiKeyPanel(true);

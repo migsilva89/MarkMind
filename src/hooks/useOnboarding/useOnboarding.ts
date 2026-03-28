@@ -5,6 +5,7 @@ import {
   ONBOARDING_STEP_STORAGE_KEY,
   ONBOARDING_COMPLETE_STORAGE_KEY,
   ONBOARDING_TOOLTIPS_PENDING_KEY,
+  AI_STUDIO_URL,
 } from '../../config/onboarding';
 import { type UseOnboardingProps, type UseOnboardingReturn } from './types';
 import { createHandleOnboardingKeySave } from './handlers';
@@ -98,7 +99,7 @@ export const useOnboarding = ({
   );
 
   const handleOpenAIStudio = useCallback((): void => {
-    chrome.tabs.create({ url: 'https://aistudio.google.com/apikey' });
+    chrome.tabs.create({ url: AI_STUDIO_URL });
   }, []);
 
   const handleEscape = useCallback(async (): Promise<void> => {

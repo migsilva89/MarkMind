@@ -35,13 +35,11 @@ export const createHandleOnboardingKeySave = (deps: HandleOnboardingKeySaveDeps)
         return;
       }
 
+      const firstModel = models[0].id;
       const cacheKey = `${MODELS_CACHE_KEY_PREFIX}google`;
+
       await chrome.storage.local.set({
         [cacheKey]: { models, fetchedAt: Date.now() },
-      });
-
-      const firstModel = models[0].id;
-      await chrome.storage.local.set({
         [SELECTED_SERVICE_STORAGE_KEY]: 'google',
         [SELECTED_MODEL_STORAGE_KEY]: firstModel,
         [`selectedModel_google`]: firstModel,

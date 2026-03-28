@@ -1,6 +1,7 @@
 import { useState, useCallback } from 'react';
 import ServiceSelector from '../ServiceSelector/ServiceSelector';
 import Button from '../Button/Button';
+import SetupGuide from '../SetupGuide/SetupGuide';
 import { useApiKeyPanel } from '../../hooks/apiKeyPanel';
 import {
   StarIcon,
@@ -10,11 +11,11 @@ import {
   ShieldIcon,
   CheckCircleIcon,
   InfoIcon,
-  ExternalLinkIcon,
   SunIcon,
   MoonIcon,
 } from '../icons/Icons';
 import Footer from '../Footer/Footer';
+import { AI_STUDIO_URL } from '../../config/onboarding';
 import './ApiKeyPanel.css';
 
 interface ApiKeyPanelProps {
@@ -68,7 +69,7 @@ const ApiKeyPanel = ({
   }, []);
 
   const handleOpenAIStudio = useCallback((): void => {
-    chrome.tabs.create({ url: 'https://aistudio.google.com/apikey' });
+    chrome.tabs.create({ url: AI_STUDIO_URL });
   }, []);
 
   if (!isOpen) return null;
@@ -80,90 +81,10 @@ const ApiKeyPanel = ({
 
   if (showSetupGuide) {
     return (
-      <div className="api-key-panel active">
-        <div className="api-key-panel-content">
-          <header className="api-key-panel-header">
-            <div className="header-settings">
-              <div className="header-left">
-                <Button variant="icon" onClick={handleCloseSetupGuide} title="Back to Settings">
-                  <ArrowLeftIcon />
-                </Button>
-                <h2 className="header-title">Setup Guide</h2>
-              </div>
-            </div>
-          </header>
-          <div className="api-key-panel-body">
-            <div className="setup-guide-section">
-              <h3 className="setup-guide-heading">How does it work?</h3>
-              <p className="setup-guide-text">
-                MarkMind uses Google's free AI to read your bookmarks and sort them into the right folders.
-              </p>
-              <p className="setup-guide-text">
-                To connect, you need a special password called an API key.
-                Think of it like a Wi-Fi password that connects MarkMind to Google's AI.
-              </p>
-            </div>
-
-            <div className="info-card">
-              <div className="info-card-header">
-                <div className="info-card-icon-wrap">
-                  <CheckCircleIcon width={16} height={16} />
-                </div>
-                <div className="info-card-titles">
-                  <h3 className="info-card-title">Good to know</h3>
-                </div>
-              </div>
-              <div className="setup-guide-reassurances">
-                <p className="setup-guide-reassurance-item">100% free. No credit card needed.</p>
-                <p className="setup-guide-reassurance-item">Your data never leaves your device.</p>
-                <p className="setup-guide-reassurance-item">Takes about 30 seconds to set up.</p>
-              </div>
-            </div>
-
-            <div className="api-key-card">
-              <div className="api-key-card-header">
-                <div className="api-key-icon">
-                  <KeyIcon />
-                </div>
-                <div className="api-key-titles">
-                  <h3 className="api-key-title">How to get your free key</h3>
-                  <p className="api-key-subtitle">Follow these 4 simple steps</p>
-                </div>
-              </div>
-
-              <div className="step-list">
-                <div className="step-list-row">
-                  <span className="step-list-number">1</span>
-                  <span className="step-list-text">
-                    Open Google AI Studio
-                    {' '}
-                    <Button variant="ghost" compact onClick={handleOpenAIStudio}>
-                      <ExternalLinkIcon width={10} height={10} />
-                      Open
-                    </Button>
-                  </span>
-                </div>
-                <div className="step-list-row">
-                  <span className="step-list-number">2</span>
-                  <span className="step-list-text">Sign in with your Google account</span>
-                </div>
-                <div className="step-list-row">
-                  <span className="step-list-number">3</span>
-                  <span className="step-list-text">Click "Create API Key"</span>
-                </div>
-                <div className="step-list-row">
-                  <span className="step-list-number">4</span>
-                  <span className="step-list-text">Copy the key and paste it in Settings</span>
-                </div>
-              </div>
-            </div>
-
-            <Button variant="primary" fullWidth onClick={handleCloseSetupGuide}>
-              Got it
-            </Button>
-          </div>
-        </div>
-      </div>
+      <SetupGuide
+        onClose={handleCloseSetupGuide}
+        onOpenAIStudio={handleOpenAIStudio}
+      />
     );
   }
 

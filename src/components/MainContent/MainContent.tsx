@@ -46,19 +46,11 @@ const MainContent = ({
 
   const renderActiveTab = () => {
     switch (activeTab) {
-      case 'home':
-        return (
-          <HomeTab
-            onTabChange={handleTabChange}
-            onOpenSettings={onOpenSettings}
-            showCardTooltip={tooltipStep === 'card'}
-            onDismissCardTooltip={handleDismissCardTooltip}
-          />
-        );
       case 'organize':
         return <OrganizeTab />;
       case 'discover':
         return <DiscoverTab />;
+      case 'home':
       default:
         return (
           <HomeTab
