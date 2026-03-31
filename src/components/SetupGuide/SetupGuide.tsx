@@ -29,11 +29,12 @@ const SetupGuide = ({ onClose, onOpenAIStudio }: SetupGuideProps) => (
         <div className="setup-guide-section">
           <h3 className="setup-guide-heading">How does it work?</h3>
           <p className="setup-guide-text">
-            MarkMind uses Google's free AI to read your bookmarks and sort them into the right folders.
+            MarkMind uses AI to read your bookmarks and sort them into the right folders.
+            We recommend starting with Google Gemini because it's completely free.
           </p>
           <p className="setup-guide-text">
             To connect, you need a special password called an API key.
-            Think of it like a Wi-Fi password that connects MarkMind to Google's AI.
+            Think of it like a Wi-Fi password that lets MarkMind talk to the AI.
           </p>
         </div>
 

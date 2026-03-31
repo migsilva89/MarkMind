@@ -108,11 +108,12 @@ const Onboarding = ({
       {renderBackButton()}
       <h2 className="onboarding-explain-title">How does it work?</h2>
       <p className="onboarding-explain-text">
-        MarkMind uses Google's free AI to read your bookmarks and sort them into the right folders.
+        MarkMind uses AI to read your bookmarks and sort them into the right folders.
+        We recommend starting with Google Gemini because it's completely free.
       </p>
       <p className="onboarding-explain-text">
         To connect, you need a special password called an API key.
-        Think of it like a Wi-Fi password that connects MarkMind to Google's AI.
+        Think of it like a Wi-Fi password that lets MarkMind talk to the AI.
       </p>
       <div className="onboarding-reassurances">
         <div className="onboarding-reassurance-item">
