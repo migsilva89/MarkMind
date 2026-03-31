@@ -1,3 +1,7 @@
+.tab-navigation-wrapper {
+  position: relative;
+}
+
 .tab-navigation {
   display: flex;
   gap: var(--spacing-sm);
@@ -12,4 +16,12 @@
   padding: var(--spacing-md) var(--spacing-md);
   font-size: var(--font-size-xs);
   gap: var(--spacing-xs);
+}
+
+.tab-navigation-tooltip {
+  position: absolute;
+  top: 100%;
+  left: 25%;
+  padding-top: var(--spacing-md);
+  z-index: 50;
 }

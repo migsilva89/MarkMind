@@ -1,6 +1,7 @@
-import { useState } from 'react';
+import { useState, useCallback } from 'react';
 import ServiceSelector from '../ServiceSelector/ServiceSelector';
 import Button from '../Button/Button';
+import SetupGuide from '../SetupGuide/SetupGuide';
 import { useApiKeyPanel } from '../../hooks/apiKeyPanel';
 import {
   StarIcon,
@@ -14,6 +15,7 @@ import {
   MoonIcon,
 } from '../icons/Icons';
 import Footer from '../Footer/Footer';
+import { AI_STUDIO_URL } from '../../config/onboarding';
 import './ApiKeyPanel.css';
 
 interface ApiKeyPanelProps {
@@ -56,6 +58,19 @@ const ApiKeyPanel = ({
   } = useApiKeyPanel({ isOpen, canClose, onClose });
 
   const [isTooltipVisible, setIsTooltipVisible] = useState(false);
+  const [showSetupGuide, setShowSetupGuide] = useState(false);
+
+  const handleOpenSetupGuide = useCallback((): void => {
+    setShowSetupGuide(true);
+  }, []);
+
+  const handleCloseSetupGuide = useCallback((): void => {
+    setShowSetupGuide(false);
+  }, []);
+
+  const handleOpenAIStudio = useCallback((): void => {
+    chrome.tabs.create({ url: AI_STUDIO_URL });
+  }, []);
 
   if (!isOpen) return null;
 
@@ -63,6 +78,15 @@ const ApiKeyPanel = ({
   const hasModelSelected = selectedModel !== '';
   const isApiKeyInteractive = hasProviderSelected || hasExistingKey;
   const showConfiguredState = hasExistingKey && !isEditingKey && hasModelSelected;
+
+  if (showSetupGuide) {
+    return (
+      <SetupGuide
+        onClose={handleCloseSetupGuide}
+        onOpenAIStudio={handleOpenAIStudio}
+      />
+    );
+  }
 
   return (
     <div className="api-key-panel active">
@@ -108,6 +132,14 @@ const ApiKeyPanel = ({
                   <ArrowLeftIcon />
                 </Button>
                 <h2 className="header-title">Settings</h2>
+              </div>
+              <div className="header-right">
+                <div className="header-guide-link">
+                  <Button variant="icon" onClick={handleOpenSetupGuide} title="Setup Guide">
+                    <InfoIcon />
+                  </Button>
+                  <span className="header-guide-tooltip">Setup Guide</span>
+                </div>
               </div>
             </div>
           )}

@@ -444,3 +444,32 @@
 .btn-danger-full {
   width: 100%;
 }
+
+/* Setup Guide Link in Header */
+.header-guide-link {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.header-guide-tooltip {
+  position: absolute;
+  top: calc(100% + var(--spacing-xs));
+  right: 0;
+  white-space: nowrap;
+  font-size: var(--font-size-2xs);
+  color: var(--color-white);
+  background-color: var(--color-primary);
+  padding: var(--spacing-xs) var(--spacing-md);
+  border-radius: var(--radius-sm);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity var(--transition-fast);
+}
+
+.header-guide-link:hover .header-guide-tooltip {
+  opacity: 1;
+}
+
+/* Step list classes are shared — see src/styles/index.css (.step-list-*) */
+/* Setup guide view extracted to components/SetupGuide/ */

@@ -2,13 +2,21 @@ import { useOrganizeBookmark } from '../../hooks/useOrganizeBookmark';
 import WelcomeBanner from '../WelcomeBanner/WelcomeBanner';
 import CurrentPageCard from '../CurrentPageCard/CurrentPageCard';
 import QuickActions from '../QuickActions/QuickActions';
+import OnboardingTooltip from '../OnboardingTooltip/OnboardingTooltip';
 
 interface HomeTabProps {
   onTabChange: (tabId: string) => void;
   onOpenSettings: () => void;
+  showCardTooltip?: boolean;
+  onDismissCardTooltip?: () => void;
 }
 
-const HomeTab = ({ onTabChange, onOpenSettings }: HomeTabProps) => {
+const HomeTab = ({
+  onTabChange,
+  onOpenSettings,
+  showCardTooltip = false,
+  onDismissCardTooltip,
+}: HomeTabProps) => {
   const {
     currentPageData,
     isLoadingPage,
@@ -39,6 +47,12 @@ const HomeTab = ({ onTabChange, onOpenSettings }: HomeTabProps) => {
         onAccept={handleAcceptSuggestion}
         onDecline={handleDeclineSuggestion}
       />
+      {showCardTooltip && onDismissCardTooltip && (
+        <OnboardingTooltip
+          content="This shows the page you're on. Hit Organize to find the perfect folder!"
+          onDismiss={onDismissCardTooltip}
+        />
+      )}
       <QuickActions onTabChange={onTabChange} onOpenSettings={onOpenSettings} />
     </>
   );
