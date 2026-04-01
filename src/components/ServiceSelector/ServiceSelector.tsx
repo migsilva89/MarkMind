@@ -1,4 +1,4 @@
-import { useEffect, useState, useCallback } from 'react';
+import { useEffect, useState, useCallback, useRef } from 'react';
 import {
   SERVICES,
   SELECTED_SERVICE_STORAGE_KEY,
@@ -37,6 +37,8 @@ const ServiceSelector = ({
   const [currentServiceId, setCurrentServiceId] = useState<string>('');
   const [currentModelId, setCurrentModelId] = useState<string>('');
   const [availableModels, setAvailableModels] = useState<ModelOption[]>([]);
+  const availableModelsRef = useRef(availableModels);
+  availableModelsRef.current = availableModels;
   const [isLoadingModels, setIsLoadingModels] = useState(false);
   const [modelsError, setModelsError] = useState('');
 
@@ -86,8 +88,9 @@ const ServiceSelector = ({
   }, []);
 
   const selectModel = useCallback(async (serviceId: string, modelId: string): Promise<void> => {
+    const model = availableModelsRef.current.find((m) => m.id === modelId);
     setCurrentModelId(modelId);
-    setSelectedModelId(modelId);
+    setSelectedModelId(modelId, model?.maxOutputTokens);
     await chrome.storage.local.set({
       [getPerProviderModelKey(serviceId)]: modelId,
       [SELECTED_MODEL_STORAGE_KEY]: modelId,

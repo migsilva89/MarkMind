@@ -24,6 +24,9 @@ export const fetchAnthropicModels = async (apiKey: string): Promise<ModelOption[
     .map((model: Record<string, unknown>) => ({
       id: model.id as string,
       name: (model.display_name as string) || (model.id as string),
+      ...(typeof model.max_tokens === 'number' && {
+        maxOutputTokens: model.max_tokens as number,
+      }),
     }))
     .sort((modelA: ModelOption, modelB: ModelOption) => modelA.name.localeCompare(modelB.name));
 };
@@ -33,7 +36,7 @@ export const callAnthropic = async (
   systemPrompt: string,
   userPrompt: string,
   model: string,
-  maxTokens = 100
+  maxTokens?: number
 ): Promise<string> => {
   const response = await fetchWithTimeout('https://api.anthropic.com/v1/messages', {
     method: 'POST',
@@ -45,7 +48,7 @@ export const callAnthropic = async (
     },
     body: JSON.stringify({
       model,
-      max_tokens: maxTokens,
+      max_tokens: maxTokens ?? 4096,
       system: systemPrompt,
       messages: [{ role: 'user', content: userPrompt }],
     }),

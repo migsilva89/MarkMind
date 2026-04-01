@@ -28,6 +28,9 @@ export const fetchGeminiModels = async (apiKey: string): Promise<ModelOption[]> 
     .map((model: Record<string, unknown>) => ({
       id: (model.name as string).replace('models/', ''),
       name: model.displayName as string,
+      ...(typeof model.outputTokenLimit === 'number' && {
+        maxOutputTokens: model.outputTokenLimit as number,
+      }),
     }));
 };
 

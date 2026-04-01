@@ -19,6 +19,7 @@ export interface StartOrganizePayload {
   folderTree: string;
   pathToIdMap: FolderPathMap;
   defaultParentId: string;
+  maxOutputTokens?: number;
 }
 
 export interface OrganizeCompletePayload {

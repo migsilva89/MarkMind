@@ -20,16 +20,19 @@ import {
 
 let currentServiceId = '';
 let currentModelId = '';
+let currentMaxOutputTokens: number | undefined;
 
 export const getSelectedServiceId = (): string => currentServiceId;
 export const getSelectedModelId = (): string => currentModelId;
+export const getSelectedMaxOutputTokens = (): number | undefined => currentMaxOutputTokens;
 
 export const setSelectedServiceId = (id: string): void => {
   currentServiceId = id;
 };
 
-export const setSelectedModelId = (id: string): void => {
+export const setSelectedModelId = (id: string, maxOutputTokens?: number): void => {
   currentModelId = id;
+  currentMaxOutputTokens = maxOutputTokens;
 };
 
 export const initSelectedState = async (): Promise<void> => {

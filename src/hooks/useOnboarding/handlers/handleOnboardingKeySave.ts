@@ -46,7 +46,7 @@ export const createHandleOnboardingKeySave = (deps: HandleOnboardingKeySaveDeps)
       });
 
       setSelectedServiceId('google');
-      setSelectedModelId(firstModel);
+      setSelectedModelId(firstModel, models[0].maxOutputTokens);
 
       setCurrentStep('success');
       await persistStep('success');

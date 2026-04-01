@@ -7,6 +7,7 @@ import { getBookmarkStats, flattenAllBookmarks } from '../../utils/bookmarkScann
 import { getFolderDataForAI, buildFullIdToPathMapFromTree } from '../../utils/folders';
 import { saveOrganizeSession, loadOrganizeSession, clearOrganizeSession, getInitialSession } from '../../services/organizeSession';
 import { moveBookmark, createFolderPath } from '../../services/bookmarks';
+import { getSelectedMaxOutputTokens } from '../../services/selectedState';
 import { type UseBulkOrganizeReturn } from './types';
 
 const LOADING_MESSAGE_INTERVAL_MS = 2000;
@@ -294,6 +295,7 @@ export const useBulkOrganize = (): UseBulkOrganizeReturn => {
           folderTree: currentSession.folderTree,
           pathToIdMap: currentSession.pathToIdMap,
           defaultParentId: currentSession.defaultParentId,
+          maxOutputTokens: getSelectedMaxOutputTokens(),
         },
       }).catch(async (error) => {
         console.error('Error starting organize:', error);
