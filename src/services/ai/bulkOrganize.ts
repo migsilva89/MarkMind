@@ -3,11 +3,16 @@ import { type FolderPathMap } from '../../types/bookmarks';
 import { BULK_ORGANIZE_SYSTEM_PROMPT, buildBulkOrganizeUserPrompt } from './bulkPrompt';
 import { getApiKey, callProvider } from './providerUtils';
 import { findFolderIdByAIPath } from '../../utils/folders';
+import { type ModelOption } from '../../types/services';
+import { MODELS_CACHE_KEY_PREFIX } from '../../config/services';
 
-// Gemini 2.5 Flash uses "thinking" tokens that count against maxOutputTokens,
-// so this budget must be high enough for both thinking and the full response.
-// 65536 = Gemini 2.5 Flash max. Other providers cap at their own limits.
-const ORGANIZE_MAX_TOKENS = 65536;
+const lookupMaxOutputTokens = async (serviceId: string, modelId: string): Promise<number | undefined> => {
+  const cacheKey = `${MODELS_CACHE_KEY_PREFIX}${serviceId}`;
+  const cached = await chrome.storage.local.get([cacheKey]);
+  const entry = cached[cacheKey] as { models: ModelOption[] } | undefined;
+  const model = entry?.models?.find((m) => m.id === modelId);
+  return model?.maxOutputTokens;
+};
 
 const extractJsonFromResponse = (responseText: string): string => {
   const trimmed = responseText.trim();
@@ -88,8 +93,10 @@ export const organizeBookmarks = async (
   modelId: string,
   bookmarks: CompactBookmark[],
   folderTree: string,
-  pathToIdMap: FolderPathMap
+  pathToIdMap: FolderPathMap,
+  maxOutputTokens?: number
 ): Promise<BulkOrganizeResult> => {
+  const resolvedTokens = maxOutputTokens ?? await lookupMaxOutputTokens(serviceId, modelId);
   const apiKey = await getApiKey(serviceId);
   const userPrompt = buildBulkOrganizeUserPrompt(bookmarks, folderTree);
 
@@ -99,7 +106,7 @@ export const organizeBookmarks = async (
     BULK_ORGANIZE_SYSTEM_PROMPT,
     userPrompt,
     modelId,
-    ORGANIZE_MAX_TOKENS
+    resolvedTokens
   );
 
   return parseBulkOrganizeResponse(responseText, bookmarks, pathToIdMap);

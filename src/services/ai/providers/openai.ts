@@ -35,7 +35,7 @@ export const callOpenAI = async (
   systemPrompt: string,
   userPrompt: string,
   model: string,
-  maxTokens = 100
+  maxTokens?: number
 ): Promise<string> => {
   const response = await fetchWithTimeout('https://api.openai.com/v1/chat/completions', {
     method: 'POST',
@@ -49,7 +49,7 @@ export const callOpenAI = async (
         { role: 'system', content: systemPrompt },
         { role: 'user', content: userPrompt },
       ],
-      max_tokens: maxTokens,
+      ...(maxTokens !== undefined && { max_tokens: maxTokens }),
     }),
   });
 

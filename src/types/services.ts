@@ -1,6 +1,7 @@
 export interface ModelOption {
   id: string;
   name: string;
+  maxOutputTokens?: number;
 }
 
 export interface ServiceConfig {

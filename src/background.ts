@@ -22,7 +22,8 @@ const handleStartOrganize = async (payload: StartOrganizePayload): Promise<void>
     payload.modelId,
     payload.bookmarks,
     payload.folderTree,
-    payload.pathToIdMap
+    payload.pathToIdMap,
+    payload.maxOutputTokens
   );
 
   // Merge AI results into the existing session (or a fresh one if storage read fails)

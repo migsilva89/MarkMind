@@ -26,10 +26,17 @@ export const fetchOpenRouterModels = async (apiKey: string): Promise<ModelOption
       const modelId = model.id as string;
       return OPENROUTER_TEXT_PREFIXES.some((prefix) => modelId.startsWith(prefix));
     })
-    .map((model: Record<string, unknown>) => ({
-      id: model.id as string,
-      name: (model.name as string) || (model.id as string),
-    }))
+    .map((model: Record<string, unknown>) => {
+      const topProvider = model.top_provider as Record<string, unknown> | undefined;
+      const maxCompletionTokens = topProvider?.max_completion_tokens;
+      return {
+        id: model.id as string,
+        name: (model.name as string) || (model.id as string),
+        ...(typeof maxCompletionTokens === 'number' && {
+          maxOutputTokens: maxCompletionTokens,
+        }),
+      };
+    })
     .sort((modelA: ModelOption, modelB: ModelOption) => modelA.name.localeCompare(modelB.name));
 };
 
@@ -38,7 +45,7 @@ export const callOpenRouter = async (
   systemPrompt: string,
   userPrompt: string,
   model: string,
-  maxTokens = 100
+  maxTokens?: number
 ): Promise<string> => {
   const response = await fetchWithTimeout('https://openrouter.ai/api/v1/chat/completions', {
     method: 'POST',
@@ -52,7 +59,7 @@ export const callOpenRouter = async (
         { role: 'system', content: systemPrompt },
         { role: 'user', content: userPrompt },
       ],
-      max_tokens: maxTokens,
+      ...(maxTokens !== undefined && { max_tokens: maxTokens }),
     }),
   });
 
