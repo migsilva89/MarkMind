@@ -1,6 +1,12 @@
 import { type ApiKeyPanelHandlerDeps, type ApiKeyPanelStatusMessage } from '../types';
 import { fetchModelsForProvider } from '../../../services/ai/providerUtils';
 import { MODELS_CACHE_KEY_PREFIX } from '../../../config/services';
+import {
+  getCustomOriginPermission,
+  normalizeCustomBaseUrl,
+  removeCustomOriginPermission,
+  requestCustomOriginPermission,
+} from '../../../utils/customProviderPermissions';
 
 interface HandleApiKeySaveDeps extends Pick<
   ApiKeyPanelHandlerDeps,
@@ -33,22 +39,10 @@ export const createHandleApiKeySave = (deps: HandleApiKeySaveDeps) => {
     } = deps;
 
     const trimmedKey = apiKeyInput.trim();
-
-    if (currentService.baseUrlStorageKey) {
-      const trimmedUrl = baseUrlInput.trim();
-      if (!trimmedUrl) {
-        showButtonError('Please enter a base URL');
-        return;
-      }
-      try {
-        new URL(trimmedUrl);
-      } catch {
-        showButtonError('Invalid base URL format');
-        return;
-      }
-      const normalizedUrl = trimmedUrl.replace(/\/+$/, '');
-      await chrome.storage.local.set({ [currentService.baseUrlStorageKey]: normalizedUrl });
-    }
+    let normalizedBaseUrl = '';
+    let previousBaseUrl = '';
+    let requestedOriginPermission = '';
+    let shouldRollbackRequestedPermission = false;
 
     if (!trimmedKey) {
       showButtonError('Please enter an API key');
@@ -61,16 +55,56 @@ export const createHandleApiKeySave = (deps: HandleApiKeySaveDeps) => {
     }
 
     try {
-      await chrome.storage.local.set({ [currentService.storageKey]: trimmedKey });
-      setHasExistingKey(true);
-      setApiKeyInput('');
+      if (currentService.baseUrlStorageKey) {
+        try {
+          normalizedBaseUrl = normalizeCustomBaseUrl(baseUrlInput);
+        } catch (error) {
+          showButtonError(error instanceof Error ? error.message : 'Invalid base URL format');
+          return;
+        }
+
+        requestedOriginPermission = getCustomOriginPermission(normalizedBaseUrl);
+        const permissionGranted = await requestCustomOriginPermission(normalizedBaseUrl);
+
+        if (!permissionGranted) {
+          setStatus({
+            message: 'Host access was not granted. Allow access to this endpoint to use the Custom provider.',
+            type: 'error',
+            showGoToApp: false,
+          });
+          return;
+        }
+
+        const storedBaseUrlResult = await chrome.storage.local.get([currentService.baseUrlStorageKey]);
+        previousBaseUrl = storedBaseUrlResult[currentService.baseUrlStorageKey] as string || '';
+        const previousOriginPermission = previousBaseUrl
+          ? getCustomOriginPermission(previousBaseUrl)
+          : '';
+
+        shouldRollbackRequestedPermission = requestedOriginPermission !== previousOriginPermission;
+      }
 
       showStatusMessage('Validating key & loading models...', 'loading');
 
-      // Fetching models validates the key implicitly — if the key is invalid, this throws
-      const models = await fetchModelsForProvider(currentService.id, trimmedKey);
+      // Fetching models validates the key implicitly — if the key is invalid, this throws.
+      const models = await fetchModelsForProvider(currentService.id, trimmedKey, normalizedBaseUrl || undefined);
+
+      await chrome.storage.local.set({
+        [currentService.storageKey]: trimmedKey,
+        ...(currentService.baseUrlStorageKey && { [currentService.baseUrlStorageKey]: normalizedBaseUrl }),
+      });
+      setHasExistingKey(true);
+      setApiKeyInput('');
+      const shouldRemovePreviousPermission = (
+        previousBaseUrl &&
+        getCustomOriginPermission(previousBaseUrl) !== requestedOriginPermission
+      );
 
       if (models.length === 0) {
+        if (shouldRemovePreviousPermission) {
+          await removeCustomOriginPermission(previousBaseUrl);
+        }
+
         setStatus({
           message: 'Key accepted but no models found.',
           type: 'default',
@@ -92,9 +126,21 @@ export const createHandleApiKeySave = (deps: HandleApiKeySaveDeps) => {
       });
       setIsEditingKey(false);
 
+      if (shouldRemovePreviousPermission) {
+        await removeCustomOriginPermission(previousBaseUrl);
+      }
+
       // Signal ServiceSelector to reload models from cache
       onModelsLoaded();
     } catch (error) {
+      if (currentService.baseUrlStorageKey && shouldRollbackRequestedPermission) {
+        try {
+          await removeCustomOriginPermission(normalizedBaseUrl);
+        } catch (permissionError) {
+          console.warn('Failed to roll back custom host permission:', permissionError);
+        }
+      }
+
       console.error('Failed to save or validate API key:', error);
       const errorMessage = error instanceof Error ? error.message : 'Connection failed';
       setStatus({

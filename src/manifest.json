@@ -25,13 +25,16 @@
     "activeTab",
     "storage",
     "scripting",
-    "alarms"
+    "alarms",
+    "permissions"
   ],
   "host_permissions": [
     "https://generativelanguage.googleapis.com/*",
     "https://api.openai.com/*",
     "https://api.anthropic.com/*",
-    "https://openrouter.ai/*",
+    "https://openrouter.ai/*"
+  ],
+  "optional_host_permissions": [
     "http://*/*",
     "https://*/*"
   ]

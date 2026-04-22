@@ -14,7 +14,8 @@ const getCustomBaseUrl = async (): Promise<string> => {
 
 export const fetchModelsForProvider = async (
   serviceId: string,
-  apiKey: string
+  apiKey: string,
+  customBaseUrl?: string
 ): Promise<ModelOption[]> => {
   switch (serviceId) {
     case 'google':
@@ -26,7 +27,7 @@ export const fetchModelsForProvider = async (
     case 'openrouter':
       return fetchOpenRouterModels(apiKey);
     case 'custom':
-      return fetchCustomModels(apiKey, await getCustomBaseUrl());
+      return fetchCustomModels(apiKey, customBaseUrl || await getCustomBaseUrl());
     default:
       throw new Error(`Unsupported service: ${serviceId}`);
   }
