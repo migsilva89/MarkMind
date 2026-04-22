@@ -10,6 +10,7 @@ interface HandleApiKeySaveDeps extends Pick<
   | 'setApiKeyInput'
   | 'showStatusMessage'
 > {
+  baseUrlInput: string;
   setStatus: (status: ApiKeyPanelStatusMessage) => void;
   setIsEditingKey: (value: boolean) => void;
   showButtonError: (message: string) => void;
@@ -21,6 +22,7 @@ export const createHandleApiKeySave = (deps: HandleApiKeySaveDeps) => {
     const {
       currentService,
       apiKeyInput,
+      baseUrlInput,
       setHasExistingKey,
       setApiKeyInput,
       showStatusMessage,
@@ -31,6 +33,22 @@ export const createHandleApiKeySave = (deps: HandleApiKeySaveDeps) => {
     } = deps;
 
     const trimmedKey = apiKeyInput.trim();
+
+    if (currentService.baseUrlStorageKey) {
+      const trimmedUrl = baseUrlInput.trim();
+      if (!trimmedUrl) {
+        showButtonError('Please enter a base URL');
+        return;
+      }
+      try {
+        new URL(trimmedUrl);
+      } catch {
+        showButtonError('Invalid base URL format');
+        return;
+      }
+      const normalizedUrl = trimmedUrl.replace(/\/+$/, '');
+      await chrome.storage.local.set({ [currentService.baseUrlStorageKey]: normalizedUrl });
+    }
 
     if (!trimmedKey) {
       showButtonError('Please enter an API key');

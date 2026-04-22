@@ -16,7 +16,11 @@ export const createHandleApiKeyRemove = (deps: HandleApiKeyRemoveDeps) => {
     if (!confirmRemoval) return;
 
     try {
-      await chrome.storage.local.remove([currentService.storageKey]);
+      const keysToRemove = [currentService.storageKey];
+      if (currentService.baseUrlStorageKey) {
+        keysToRemove.push(currentService.baseUrlStorageKey);
+      }
+      await chrome.storage.local.remove(keysToRemove);
       setHasExistingKey(false);
       setApiKeyInput('');
       onClose?.();

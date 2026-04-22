@@ -38,6 +38,7 @@ const ApiKeyPanel = ({
   const {
     currentService,
     apiKeyInput,
+    baseUrlInput,
     selectedModel,
     modelsRefreshTrigger,
     hasExistingKey,
@@ -47,6 +48,7 @@ const ApiKeyPanel = ({
     handleServiceChange,
     handleModelChange,
     handleApiKeyInputChange,
+    handleBaseUrlInputChange,
     handleApiKeySave,
     handleApiKeyInputKeyDown,
     handleApiKeyRemove,
@@ -186,6 +188,21 @@ const ApiKeyPanel = ({
                 )}
               </button>
             )}
+            {currentService.baseUrlStorageKey && (
+              <div className="base-url-section">
+                <label className="base-url-label">Base URL</label>
+                <input
+                  type="url"
+                  value={baseUrlInput}
+                  onChange={handleBaseUrlInputChange}
+                  placeholder={currentService.baseUrlPlaceholder || 'https://api.example.com/v1'}
+                  autoComplete="off"
+                  className="base-url-input"
+                />
+                <p className="base-url-hint">OpenAI-compatible endpoint (e.g. Ollama, vLLM, LiteLLM)</p>
+              </div>
+            )}
+
             {showConfiguredState ? (
               <div className="api-key-configured">
                 <div className="api-key-configured-badge">
@@ -282,16 +299,18 @@ const ApiKeyPanel = ({
                   </div>
                 )}
 
-                <p className="api-key-help">
-                  Get your API key at{' '}
-                  <a
-                    href={currentService.helpLink}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                  >
-                    {currentService.helpLinkText}
-                  </a>
-                </p>
+                {currentService.helpLink && (
+                  <p className="api-key-help">
+                    Get your API key at{' '}
+                    <a
+                      href={currentService.helpLink}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                    >
+                      {currentService.helpLinkText}
+                    </a>
+                  </p>
+                )}
               </>
             )}
           </div>
