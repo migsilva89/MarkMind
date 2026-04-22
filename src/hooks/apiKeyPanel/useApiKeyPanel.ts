@@ -16,6 +16,7 @@ import {
 export const useApiKeyPanel = ({ isOpen, canClose, onClose }: UseApiKeyPanelProps) => {
   const [currentService, setCurrentService] = useState<ServiceConfig>(EMPTY_SERVICE);
   const [apiKeyInput, setApiKeyInput] = useState('');
+  const [baseUrlInput, setBaseUrlInput] = useState('');
   const [selectedModel, setSelectedModel] = useState<string>('');
   const [hasExistingKey, setHasExistingKey] = useState(false);
   const [isEditingKey, setIsEditingKey] = useState(false);
@@ -108,6 +109,7 @@ export const useApiKeyPanel = ({ isOpen, canClose, onClose }: UseApiKeyPanelProp
     () => createHandleApiKeySave({
       currentService,
       apiKeyInput,
+      baseUrlInput,
       setHasExistingKey,
       setApiKeyInput,
       showStatusMessage,
@@ -116,7 +118,7 @@ export const useApiKeyPanel = ({ isOpen, canClose, onClose }: UseApiKeyPanelProp
       setIsEditingKey,
       onModelsLoaded: handleModelsLoaded,
     }),
-    [currentService, apiKeyInput, showStatusMessage, showButtonError, handleModelsLoaded]
+    [currentService, apiKeyInput, baseUrlInput, showStatusMessage, showButtonError, handleModelsLoaded]
   );
 
   const handleApiKeyRemove = useMemo(
@@ -133,6 +135,13 @@ export const useApiKeyPanel = ({ isOpen, canClose, onClose }: UseApiKeyPanelProp
   const handleApiKeyInputChange = useCallback(
     (event: React.ChangeEvent<HTMLInputElement>): void => {
       setApiKeyInput(event.target.value);
+    },
+    []
+  );
+
+  const handleBaseUrlInputChange = useCallback(
+    (event: React.ChangeEvent<HTMLInputElement>): void => {
+      setBaseUrlInput(event.target.value);
     },
     []
   );
@@ -176,12 +185,23 @@ export const useApiKeyPanel = ({ isOpen, canClose, onClose }: UseApiKeyPanelProp
   }, [isOpen, currentService, checkExistingApiKey]);
 
   useEffect(() => {
+    if (currentService.baseUrlStorageKey) {
+      chrome.storage.local.get([currentService.baseUrlStorageKey]).then(result => {
+        setBaseUrlInput(result[currentService.baseUrlStorageKey!] || '');
+      });
+    } else {
+      setBaseUrlInput('');
+    }
+  }, [currentService]);
+
+  useEffect(() => {
     setCanClosePanel(canClose);
   }, [canClose]);
 
   return {
     currentService,
     apiKeyInput,
+    baseUrlInput,
     selectedModel,
     modelsRefreshTrigger,
     hasExistingKey,
@@ -192,6 +212,7 @@ export const useApiKeyPanel = ({ isOpen, canClose, onClose }: UseApiKeyPanelProp
     handleServiceChange,
     handleModelChange,
     handleApiKeyInputChange,
+    handleBaseUrlInputChange,
     handleApiKeySave,
     handleApiKeyInputKeyDown,
     handleApiKeyRemove,

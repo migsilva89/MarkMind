@@ -44,6 +44,18 @@ export const SERVICES: Record<string, ServiceConfig> = {
     helpLinkText: 'OpenRouter Dashboard',
     validateKey: (key: string) => key.startsWith('sk-or-') && key.length >= 30,
   },
+  custom: {
+    id: 'custom',
+    name: 'Custom',
+    label: 'API Key',
+    storageKey: 'customApiKey',
+    placeholder: 'Enter your API key',
+    helpLink: '',
+    helpLinkText: '',
+    baseUrlStorageKey: 'customBaseUrl',
+    baseUrlPlaceholder: 'https://api.example.com/v1',
+    validateKey: (key: string) => key.length >= 1,
+  },
 };
 
 export const DEFAULT_SERVICE_ID = 'google';

@@ -1,13 +1,21 @@
 import { SERVICES } from '../../config/services';
 import { type ModelOption } from '../../types/services';
 import {
-  callGemini, callOpenAI, callAnthropic, callOpenRouter,
-  fetchGeminiModels, fetchOpenAIModels, fetchAnthropicModels, fetchOpenRouterModels,
+  callGemini, callOpenAI, callAnthropic, callOpenRouter, callCustom,
+  fetchGeminiModels, fetchOpenAIModels, fetchAnthropicModels, fetchOpenRouterModels, fetchCustomModels,
 } from './providers';
+
+const getCustomBaseUrl = async (): Promise<string> => {
+  const result = await chrome.storage.local.get(['customBaseUrl']);
+  const baseUrl = result.customBaseUrl;
+  if (!baseUrl) throw new Error('No base URL configured. Please set a base URL in Settings.');
+  return baseUrl;
+};
 
 export const fetchModelsForProvider = async (
   serviceId: string,
-  apiKey: string
+  apiKey: string,
+  customBaseUrl?: string
 ): Promise<ModelOption[]> => {
   switch (serviceId) {
     case 'google':
@@ -18,6 +26,8 @@ export const fetchModelsForProvider = async (
       return fetchAnthropicModels(apiKey);
     case 'openrouter':
       return fetchOpenRouterModels(apiKey);
+    case 'custom':
+      return fetchCustomModels(apiKey, customBaseUrl || await getCustomBaseUrl());
     default:
       throw new Error(`Unsupported service: ${serviceId}`);
   }
@@ -56,6 +66,8 @@ export const callProvider = async (
       return callAnthropic(apiKey, systemPrompt, userPrompt, model, maxTokens);
     case 'openrouter':
       return callOpenRouter(apiKey, systemPrompt, userPrompt, model, maxTokens);
+    case 'custom':
+      return callCustom(apiKey, await getCustomBaseUrl(), systemPrompt, userPrompt, model, maxTokens);
     default:
       throw new Error(`Unsupported service: ${serviceId}`);
   }

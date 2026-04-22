@@ -14,4 +14,6 @@ export interface ServiceConfig {
   helpLinkText: string;
   freeTierNote?: string;
   validateKey: (key: string) => boolean;
+  baseUrlStorageKey?: string;
+  baseUrlPlaceholder?: string;
 }
