@@ -1,4 +1,4 @@
-import { fetchWithTimeout, throwApiResponseError } from '../../../utils/helpers';
+import { fetchWithTimeout, getAiTimeoutMs, throwApiResponseError } from '../../../utils/helpers';
 import { type ModelOption } from '../../../types/services';
 
 export const fetchAnthropicModels = async (apiKey: string): Promise<ModelOption[]> => {
@@ -36,23 +36,28 @@ export const callAnthropic = async (
   systemPrompt: string,
   userPrompt: string,
   model: string,
-  maxTokens?: number
+  maxTokens?: number,
+  bookmarkCount?: number
 ): Promise<string> => {
-  const response = await fetchWithTimeout('https://api.anthropic.com/v1/messages', {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      'x-api-key': apiKey,
-      'anthropic-version': '2023-06-01',
-      'anthropic-dangerous-direct-browser-access': 'true',
+  const response = await fetchWithTimeout(
+    'https://api.anthropic.com/v1/messages',
+    {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'x-api-key': apiKey,
+        'anthropic-version': '2023-06-01',
+        'anthropic-dangerous-direct-browser-access': 'true',
+      },
+      body: JSON.stringify({
+        model,
+        max_tokens: maxTokens ?? 4096,
+        system: systemPrompt,
+        messages: [{ role: 'user', content: userPrompt }],
+      }),
     },
-    body: JSON.stringify({
-      model,
-      max_tokens: maxTokens ?? 4096,
-      system: systemPrompt,
-      messages: [{ role: 'user', content: userPrompt }],
-    }),
-  });
+    getAiTimeoutMs(bookmarkCount)
+  );
 
   if (!response.ok) {
     await throwApiResponseError('Anthropic', response);

@@ -1,4 +1,4 @@
-import { fetchWithTimeout, throwApiResponseError } from '../../../utils/helpers';
+import { fetchWithTimeout, getAiTimeoutMs, throwApiResponseError } from '../../../utils/helpers';
 import { type ModelOption } from '../../../types/services';
 
 const GEMINI_MODEL_PREFIX = 'models/gemini-';
@@ -39,24 +39,29 @@ export const callGemini = async (
   systemPrompt: string,
   userPrompt: string,
   model: string,
-  maxTokens?: number
+  maxTokens?: number,
+  bookmarkCount?: number
 ): Promise<string> => {
   const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent`;
 
-  const response = await fetchWithTimeout(endpoint, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      'x-goog-api-key': apiKey,
-    },
-    body: JSON.stringify({
-      systemInstruction: { parts: [{ text: systemPrompt }] },
-      contents: [{ parts: [{ text: userPrompt }] }],
-      ...(maxTokens !== undefined && {
-        generationConfig: { maxOutputTokens: maxTokens },
+  const response = await fetchWithTimeout(
+    endpoint,
+    {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'x-goog-api-key': apiKey,
+      },
+      body: JSON.stringify({
+        systemInstruction: { parts: [{ text: systemPrompt }] },
+        contents: [{ parts: [{ text: userPrompt }] }],
+        ...(maxTokens !== undefined && {
+          generationConfig: { maxOutputTokens: maxTokens },
+        }),
       }),
-    }),
-  });
+    },
+    getAiTimeoutMs(bookmarkCount)
+  );
 
   if (!response.ok) {
     await throwApiResponseError('Gemini', response);
