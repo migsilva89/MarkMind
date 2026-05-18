@@ -1,9 +1,18 @@
-const AI_REQUEST_TIMEOUT_MS = 45_000;
+const TIMEOUT_BASE_MS = 60_000;
+const TIMEOUT_PER_BOOKMARK_MS = 500;
+const TIMEOUT_CEILING_MS = 300_000;
+
+export const getAiTimeoutMs = (bookmarkCount: number = 1): number => {
+  return Math.min(
+    TIMEOUT_BASE_MS + bookmarkCount * TIMEOUT_PER_BOOKMARK_MS,
+    TIMEOUT_CEILING_MS
+  );
+};
 
 export const fetchWithTimeout = async (
   url: string,
   options: RequestInit = {},
-  timeoutMs = AI_REQUEST_TIMEOUT_MS
+  timeoutMs = getAiTimeoutMs()
 ): Promise<Response> => {
   if (options.signal) {
     throw new Error('fetchWithTimeout does not support passing an external AbortSignal.');
