@@ -106,7 +106,8 @@ export const organizeBookmarks = async (
     BULK_ORGANIZE_SYSTEM_PROMPT,
     userPrompt,
     modelId,
-    resolvedTokens
+    resolvedTokens,
+    bookmarks.length
   );
 
   return parseBulkOrganizeResponse(responseText, bookmarks, pathToIdMap);

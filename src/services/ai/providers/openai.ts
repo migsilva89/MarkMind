@@ -1,4 +1,4 @@
-import { fetchWithTimeout, throwApiResponseError } from '../../../utils/helpers';
+import { fetchWithTimeout, getAiTimeoutMs, throwApiResponseError } from '../../../utils/helpers';
 import { type ModelOption } from '../../../types/services';
 
 const OPENAI_CHAT_PREFIXES = ['gpt-', 'o1', 'o3', 'o4', 'chatgpt-'];
@@ -35,23 +35,28 @@ export const callOpenAI = async (
   systemPrompt: string,
   userPrompt: string,
   model: string,
-  maxTokens?: number
+  maxTokens?: number,
+  bookmarkCount?: number
 ): Promise<string> => {
-  const response = await fetchWithTimeout('https://api.openai.com/v1/chat/completions', {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      Authorization: `Bearer ${apiKey}`,
+  const response = await fetchWithTimeout(
+    'https://api.openai.com/v1/chat/completions',
+    {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${apiKey}`,
+      },
+      body: JSON.stringify({
+        model,
+        messages: [
+          { role: 'system', content: systemPrompt },
+          { role: 'user', content: userPrompt },
+        ],
+        ...(maxTokens !== undefined && { max_tokens: maxTokens }),
+      }),
     },
-    body: JSON.stringify({
-      model,
-      messages: [
-        { role: 'system', content: systemPrompt },
-        { role: 'user', content: userPrompt },
-      ],
-      ...(maxTokens !== undefined && { max_tokens: maxTokens }),
-    }),
-  });
+    getAiTimeoutMs(bookmarkCount)
+  );
 
   if (!response.ok) {
     await throwApiResponseError('OpenAI', response);
