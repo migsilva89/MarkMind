@@ -167,6 +167,29 @@
   font-weight: var(--font-weight-normal);
 }
 
+/* Base URL Section */
+.base-url-section {
+  margin-bottom: var(--spacing-md);
+}
+
+.base-url-label {
+  display: block;
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-text);
+  margin-bottom: var(--spacing-xs);
+}
+
+.base-url-input {
+  margin-bottom: var(--spacing-xs);
+}
+
+.base-url-hint {
+  font-size: var(--font-size-2xs);
+  color: var(--color-text-light);
+  margin: 0;
+}
+
 /* API Key Card */
 .api-key-card {
   position: relative;
