@@ -32,8 +32,12 @@ export const useApiKeyPanel = ({ isOpen, canClose, onClose }: UseApiKeyPanelProp
   const [modelsRefreshTrigger, setModelsRefreshTrigger] = useState(0);
 
   const checkExistingApiKey = useCallback(async (service: ServiceConfig): Promise<boolean> => {
-    const result = await chrome.storage.local.get([service.storageKey]);
-    const keyExists = !!result[service.storageKey];
+    const keys = [service.storageKey, ...(service.baseUrlStorageKey ? [service.baseUrlStorageKey] : [])];
+    const result = await chrome.storage.local.get(keys);
+    // For providers with optional API key (validateKey('') === true), a saved base URL counts as configured.
+    const keyExists = service.validateKey('') && service.baseUrlStorageKey
+      ? !!result[service.baseUrlStorageKey]
+      : !!result[service.storageKey];
     setHasExistingKey(keyExists);
     return keyExists;
   }, []);

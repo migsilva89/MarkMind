@@ -44,13 +44,8 @@ export const createHandleApiKeySave = (deps: HandleApiKeySaveDeps) => {
     let requestedOriginPermission = '';
     let shouldRollbackRequestedPermission = false;
 
-    if (!trimmedKey) {
-      showButtonError('Please enter an API key');
-      return;
-    }
-
     if (!currentService.validateKey(trimmedKey)) {
-      showButtonError('Invalid API key format');
+      showButtonError(trimmedKey ? 'Invalid API key format' : 'Please enter an API key');
       return;
     }
 

@@ -6,8 +6,10 @@ import {
 } from './providers';
 
 const getCustomBaseUrl = async (): Promise<string> => {
-  const result = await chrome.storage.local.get(['customBaseUrl']);
-  const baseUrl = result.customBaseUrl;
+  const storageKey = SERVICES.custom.baseUrlStorageKey;
+  if (!storageKey) throw new Error('Custom provider is missing a base URL storage key');
+  const result = await chrome.storage.local.get([storageKey]);
+  const baseUrl = result[storageKey];
   if (!baseUrl) throw new Error('No base URL configured. Please set a base URL in Settings.');
   return baseUrl;
 };
@@ -40,9 +42,10 @@ export const getApiKey = async (serviceId: string): Promise<string> => {
   }
 
   const storageResult = await chrome.storage.local.get([service.storageKey]);
-  const apiKey = storageResult[service.storageKey];
+  const apiKey = storageResult[service.storageKey] || '';
 
-  if (!apiKey) {
+  // Some providers (e.g. Custom for local LLM runners) accept an empty key.
+  if (!apiKey && !service.validateKey('')) {
     throw new Error(`No API key found for ${service.name}`);
   }
 

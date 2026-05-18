@@ -1,5 +1,12 @@
 const SUPPORTED_CUSTOM_PROVIDER_PROTOCOLS = new Set(['http:', 'https:']);
 
+const isLoopbackHost = (hostname: string): boolean => {
+  if (hostname === 'localhost' || hostname === '[::1]') return true;
+  if (hostname.endsWith('.localhost')) return true;
+  if (hostname.startsWith('127.')) return true;
+  return false;
+};
+
 const parseCustomBaseUrl = (baseUrl: string): URL => {
   let url: URL;
 
@@ -11,6 +18,10 @@ const parseCustomBaseUrl = (baseUrl: string): URL => {
 
   if (!SUPPORTED_CUSTOM_PROVIDER_PROTOCOLS.has(url.protocol)) {
     throw new Error('Base URL must start with http:// or https://');
+  }
+
+  if (url.protocol === 'http:' && !isLoopbackHost(url.hostname)) {
+    throw new Error('http:// is only allowed for localhost. Use https:// for remote endpoints — otherwise the API key travels in cleartext.');
   }
 
   if (url.username || url.password) {

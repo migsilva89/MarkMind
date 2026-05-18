@@ -47,14 +47,14 @@ export const SERVICES: Record<string, ServiceConfig> = {
   custom: {
     id: 'custom',
     name: 'Custom',
-    label: 'API Key',
+    label: 'API Key (optional)',
     storageKey: 'customApiKey',
-    placeholder: 'Enter your API key',
+    placeholder: 'Leave empty for local endpoints (e.g. Ollama)',
     helpLink: '',
     helpLinkText: '',
     baseUrlStorageKey: 'customBaseUrl',
     baseUrlPlaceholder: 'https://api.example.com/v1',
-    validateKey: (key: string) => key.length >= 1,
+    validateKey: () => true,
   },
 };
 
