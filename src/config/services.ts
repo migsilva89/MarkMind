@@ -12,7 +12,7 @@ export const SERVICES: Record<string, ServiceConfig> = {
     helpLink: 'https://aistudio.google.com/apikey',
     helpLinkText: 'Google AI Studio',
     freeTierNote: 'Free tier has rate limits. Some models (e.g. Pro) may require a paid plan or have very low daily quotas.',
-    validateKey: (key: string) => key.startsWith('AI') && key.length >= 30,
+    validateKey: (key: string) => key.trim().length >= 20,
   },
   openai: {
     id: 'openai',
@@ -22,7 +22,7 @@ export const SERVICES: Record<string, ServiceConfig> = {
     placeholder: 'Enter your OpenAI API key',
     helpLink: 'https://platform.openai.com/api-keys',
     helpLinkText: 'OpenAI Platform',
-    validateKey: (key: string) => key.startsWith('sk-') && key.length >= 30,
+    validateKey: (key: string) => key.trim().length >= 20,
   },
   anthropic: {
     id: 'anthropic',
@@ -32,7 +32,7 @@ export const SERVICES: Record<string, ServiceConfig> = {
     placeholder: 'Enter your Anthropic API key',
     helpLink: 'https://console.anthropic.com/settings/keys',
     helpLinkText: 'Anthropic Console',
-    validateKey: (key: string) => key.startsWith('sk-ant-') && key.length >= 30,
+    validateKey: (key: string) => key.trim().length >= 20,
   },
   openrouter: {
     id: 'openrouter',
@@ -42,7 +42,7 @@ export const SERVICES: Record<string, ServiceConfig> = {
     placeholder: 'Enter your OpenRouter API key',
     helpLink: 'https://openrouter.ai/keys',
     helpLinkText: 'OpenRouter Dashboard',
-    validateKey: (key: string) => key.startsWith('sk-or-') && key.length >= 30,
+    validateKey: (key: string) => key.trim().length >= 20,
   },
   custom: {
     id: 'custom',
