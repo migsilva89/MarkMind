@@ -23,7 +23,10 @@ const handleStartOrganize = async (payload: StartOrganizePayload): Promise<void>
     payload.bookmarks,
     payload.folderTree,
     payload.pathToIdMap,
-    payload.maxOutputTokens
+    payload.maxOutputTokens,
+    (processedCount, totalCount) => {
+      notifyPopup('ORGANIZE_PROGRESS', { processedCount, totalCount });
+    }
   );
 
   // Merge AI results into the existing session (or a fresh one if storage read fails)

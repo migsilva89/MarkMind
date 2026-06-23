@@ -1,22 +1,25 @@
 import { useState, useEffect, useCallback, useRef, useMemo } from 'react';
 import { SELECTED_SERVICE_STORAGE_KEY, SELECTED_MODEL_STORAGE_KEY } from '../../config/services';
-import { LOADING_MESSAGES, getNextLoadingMessage } from '../../config/loadingMessages';
+import { buildLoadingMessage, getNextLoadingMessageIndex } from '../../utils/loadingMessages';
 import { type StatusType } from '../../types/common';
 import { type OrganizeSession, type BulkOrganizeResult } from '../../types/organize';
 import { getBookmarkStats, flattenAllBookmarks } from '../../utils/bookmarkScanner';
 import { getFolderDataForAI, buildFullIdToPathMapFromTree } from '../../utils/folders';
 import { saveOrganizeSession, loadOrganizeSession, clearOrganizeSession, getInitialSession } from '../../services/organizeSession';
-import { moveBookmark, createFolderPath } from '../../services/bookmarks';
+import { moveBookmark, createFolderPath, removeBookmark } from '../../services/bookmarks';
 import { getSelectedMaxOutputTokens } from '../../services/selectedState';
 import { type UseBulkOrganizeReturn } from './types';
 
-const LOADING_MESSAGE_INTERVAL_MS = 2000;
+const STATUS_TICK_MS = 1000;
+const MESSAGE_ROTATE_EVERY_TICKS = 2;
 const DEBOUNCE_SAVE_MS = 500;
 
 export const useBulkOrganize = (): UseBulkOrganizeReturn => {
   const [session, setSession] = useState<OrganizeSession>(getInitialSession());
   const [statusMessage, setStatusMessage] = useState('');
   const [statusType, setStatusType] = useState<StatusType>('default');
+  const [elapsedSeconds, setElapsedSeconds] = useState(0);
+  const [organizeProgress, setOrganizeProgress] = useState<{ processed: number; total: number } | null>(null);
 
   // Ref always holds the latest session — avoids stale closures in handlers
   // and race conditions when multiple updates happen before React re-renders
@@ -34,19 +37,35 @@ export const useBulkOrganize = (): UseBulkOrganizeReturn => {
     }
     setStatusMessage('');
     setStatusType('default');
+    setElapsedSeconds(0);
+    setOrganizeProgress(null);
   }, []);
 
-  const startLoadingMessages = useCallback((): void => {
-    loadingMessageIndexRef.current = 0;
-    setStatusMessage(LOADING_MESSAGES[0]);
-    setStatusType('loading');
+  // Shows rotating status built from the real provider + bookmark count, plus a
+  // live elapsed timer (derived from startedAt so it stays accurate across popup
+  // reopen). The AI runs as a single service-worker call, so there is no
+  // per-bookmark progress to report — this is the honest signal we can give.
+  const startLoadingMessages = useCallback(
+    (bookmarkCount: number, startedAt: number): void => {
+      loadingMessageIndexRef.current = 0;
+      setOrganizeProgress(null);
+      setStatusMessage(buildLoadingMessage(0, bookmarkCount));
+      setStatusType('loading');
+      setElapsedSeconds(Math.max(0, Math.floor((Date.now() - startedAt) / 1000)));
 
-    loadingMessageIntervalRef.current = setInterval(() => {
-      const { message, nextIndex } = getNextLoadingMessage(loadingMessageIndexRef.current);
-      loadingMessageIndexRef.current = nextIndex;
-      setStatusMessage(message);
-    }, LOADING_MESSAGE_INTERVAL_MS);
-  }, []);
+      let tickCount = 0;
+      loadingMessageIntervalRef.current = setInterval(() => {
+        tickCount += 1;
+        setElapsedSeconds(Math.max(0, Math.floor((Date.now() - startedAt) / 1000)));
+
+        if (tickCount % MESSAGE_ROTATE_EVERY_TICKS === 0) {
+          loadingMessageIndexRef.current = getNextLoadingMessageIndex(loadingMessageIndexRef.current);
+          setStatusMessage(buildLoadingMessage(loadingMessageIndexRef.current, bookmarkCount));
+        }
+      }, STATUS_TICK_MS);
+    },
+    []
+  );
 
   const debouncedSaveSession = useCallback((sessionToSave: OrganizeSession): void => {
     if (debouncedSaveRef.current) {
@@ -92,9 +111,12 @@ export const useBulkOrganize = (): UseBulkOrganizeReturn => {
 
         setSession(savedSession);
 
-        // AI call runs in service worker — show loading messages while waiting
+        // AI call runs in service worker — resume loading messages while waiting
         if (savedSession.status === 'organizing') {
-          startLoadingMessages();
+          startLoadingMessages(
+            savedSession.bookmarksToOrganize.length,
+            savedSession.startedAt ?? Date.now()
+          );
         }
       } catch (error) {
         console.error('Error resuming organize session:', error);
@@ -121,6 +143,11 @@ export const useBulkOrganize = (): UseBulkOrganizeReturn => {
     const handleMessage = (message: { type: string; payload?: unknown }): void => {
       // Ignore service worker responses if the user already cancelled
       if (sessionRef.current.status !== 'organizing') return;
+
+      if (message.type === 'ORGANIZE_PROGRESS') {
+        const payload = message.payload as { processedCount: number; totalCount: number };
+        setOrganizeProgress({ processed: payload.processedCount, total: payload.totalCount });
+      }
 
       if (message.type === 'ORGANIZE_COMPLETE') {
         const payload = message.payload as { result: BulkOrganizeResult };
@@ -215,6 +242,18 @@ export const useBulkOrganize = (): UseBulkOrganizeReturn => {
     }
   }, [updateSession]);
 
+  const handleRemoveDuplicates = useCallback(async (bookmarkIdsToRemove: string[]): Promise<void> => {
+    for (const bookmarkId of bookmarkIdsToRemove) {
+      try {
+        await removeBookmark(bookmarkId);
+      } catch (error) {
+        console.error('Error removing duplicate bookmark:', bookmarkId, error);
+      }
+    }
+    // Re-scan so the bookmark list and selection reflect the removals.
+    await handleStartScan();
+  }, [handleStartScan]);
+
   const handleToggleBookmarks = useCallback((bookmarkIds: string[]): void => {
     setSession(previousSession => {
       const currentSelected = new Set(previousSession.selectedBookmarkIds ?? []);
@@ -278,13 +317,15 @@ export const useBulkOrganize = (): UseBulkOrganizeReturn => {
         return;
       }
 
+      const startedAt = Date.now();
       await updateSession({
         status: 'organizing',
         bookmarksToOrganize,
         serviceId,
+        startedAt,
       });
 
-      startLoadingMessages();
+      startLoadingMessages(bookmarksToOrganize.length, startedAt);
 
       chrome.runtime.sendMessage({
         type: 'START_ORGANIZE',
@@ -444,7 +485,10 @@ export const useBulkOrganize = (): UseBulkOrganizeReturn => {
     bookmarkStats,
     statusMessage,
     statusType,
+    elapsedSeconds,
+    organizeProgress,
     handleStartScan,
+    handleRemoveDuplicates,
     handleToggleBookmarks,
     handleSelectAll,
     handleDeselectAll,

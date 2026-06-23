@@ -46,6 +46,13 @@ export interface BulkOrganizeResult {
   assignments: BookmarkAssignment[];
 }
 
+// A set of bookmarks that share the same URL. The first is kept; the rest are
+// candidates for removal.
+export interface DuplicateGroup {
+  url: string;
+  bookmarks: CompactBookmark[];
+}
+
 export interface FolderTreeNode {
   name: string;
   path: string;

@@ -9,6 +9,21 @@ export const getAiTimeoutMs = (bookmarkCount: number = 1): number => {
   );
 };
 
+// Errors flagged retryable are transient (overload, rate limit, timeout) and
+// worth retrying with backoff — important for free tiers that 503 under load.
+export interface RetryableError extends Error {
+  retryable?: boolean;
+}
+
+export const createRetryableError = (message: string): RetryableError => {
+  const error: RetryableError = new Error(message);
+  error.retryable = true;
+  return error;
+};
+
+export const isRetryableError = (error: unknown): boolean =>
+  Boolean((error as RetryableError)?.retryable);
+
 export const fetchWithTimeout = async (
   url: string,
   options: RequestInit = {},
@@ -25,12 +40,30 @@ export const fetchWithTimeout = async (
     return await fetch(url, { ...options, signal: controller.signal });
   } catch (error) {
     if (error instanceof DOMException && error.name === 'AbortError') {
-      throw new Error('Request timed out. Please try again.');
+      throw createRetryableError('Request timed out. Please try again.');
     }
     throw error;
   } finally {
     clearTimeout(timeoutId);
   }
+};
+
+// Formats elapsed seconds as m:ss (e.g. 75 -> "1:15") for the organizing timer.
+export const formatElapsedTime = (totalSeconds: number): string => {
+  const safeSeconds = Math.max(0, Math.floor(totalSeconds));
+  const minutes = Math.floor(safeSeconds / 60);
+  const seconds = safeSeconds % 60;
+  return `${minutes}:${seconds.toString().padStart(2, '0')}`;
+};
+
+// Splits an array into chunks of at most chunkSize items (last chunk may be smaller).
+export const chunkArray = <T>(items: T[], chunkSize: number): T[][] => {
+  const safeSize = Math.max(1, Math.floor(chunkSize));
+  const chunks: T[][] = [];
+  for (let index = 0; index < items.length; index += safeSize) {
+    chunks.push(items.slice(index, index + safeSize));
+  }
+  return chunks;
 };
 
 export const hasArrayWithItems = (data: unknown, propertyName: string): boolean => {
@@ -65,11 +98,20 @@ export const extractApiErrorMessage = (responseBody: string): string | null => {
   }
 };
 
+// Shown when the model's reply is cut off — kept jargon-free (no "tokens").
+export const TRUNCATED_RESPONSE_MESSAGE =
+  'The AI response was cut off. Try selecting fewer bookmarks, or choose a model with a larger response limit.';
+
 export const throwApiResponseError = async (providerName: string, response: Response): Promise<never> => {
   const errorBody = await response.text();
   console.error(`${providerName} API error [${response.status}]:`, errorBody);
   const rawMessage = extractApiErrorMessage(errorBody);
-  throw new Error(humanizeApiError(rawMessage || `${providerName} error: ${response.status}`, response.status));
+  const error: RetryableError = new Error(
+    humanizeApiError(rawMessage || `${providerName} error: ${response.status}`, response.status)
+  );
+  // 429 (rate limit) and 5xx (overload/unavailable) are transient — safe to retry.
+  error.retryable = response.status === 429 || response.status >= 500;
+  throw error;
 };
 
 export const humanizeApiError = (rawMessage: string, statusCode: number): string => {
@@ -95,9 +137,11 @@ export const humanizeApiError = (rawMessage: string, statusCode: number): string
     return 'AI service temporarily unavailable. Please try again later.';
   }
 
-  if (rawMessage.length > 120) {
-    return rawMessage.slice(0, 117) + '...';
+  if (statusCode === 400) {
+    return "The AI couldn't handle this request. Try a different model or fewer bookmarks.";
   }
 
-  return rawMessage;
+  // Unknown error — keep it friendly. Never expose raw API text or status codes;
+  // the real detail is already logged to the console for developers.
+  return 'Something went wrong with the AI service. Please try again, or choose a different model.';
 };

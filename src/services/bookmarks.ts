@@ -82,6 +82,18 @@ export const moveBookmark = async (
   });
 };
 
+export const removeBookmark = async (bookmarkId: string): Promise<void> => {
+  return new Promise((resolve, reject) => {
+    chrome.bookmarks.remove(bookmarkId, () => {
+      if (chrome.runtime.lastError) {
+        reject(new Error(chrome.runtime.lastError.message));
+        return;
+      }
+      resolve();
+    });
+  });
+};
+
 export const createFolderPath = async (
   folderPath: string,
   pathToIdMap: FolderPathMap,

@@ -7,7 +7,10 @@ export interface UseBulkOrganizeReturn {
   bookmarkStats: BookmarkStats | null;
   statusMessage: string;
   statusType: StatusType;
+  elapsedSeconds: number;
+  organizeProgress: { processed: number; total: number } | null;
   handleStartScan: () => Promise<void>;
+  handleRemoveDuplicates: (bookmarkIdsToRemove: string[]) => Promise<void>;
   handleToggleBookmarks: (bookmarkIds: string[]) => void;
   handleSelectAll: () => void;
   handleDeselectAll: () => void;
