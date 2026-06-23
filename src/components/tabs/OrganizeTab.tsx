@@ -1,4 +1,5 @@
 import { useBulkOrganize } from '../../hooks/useBulkOrganize';
+import { formatElapsedTime } from '../../utils/helpers';
 import { SpinnerIcon } from '../icons/Icons';
 import Button from '../Button/Button';
 import OrganizeScan from '../OrganizeScan/OrganizeScan';
@@ -13,7 +14,10 @@ const OrganizeTab = () => {
     bookmarkStats,
     statusMessage,
     statusType,
+    elapsedSeconds,
+    organizeProgress,
     handleStartScan,
+    handleRemoveDuplicates,
     handleToggleBookmarks,
     handleSelectAll,
     handleDeselectAll,
@@ -41,23 +45,31 @@ const OrganizeTab = () => {
           onSelectAll={handleSelectAll}
           onDeselectAll={handleDeselectAll}
           onStartPlanning={handleStartOrganizing}
+          onRemoveDuplicates={handleRemoveDuplicates}
         />
       );
 
-    case 'organizing':
+    case 'organizing': {
+      // Once a pass completes we have a real count to show — more honest than the
+      // rotating messages, which carry the wait until the first pass finishes.
+      const organizingTitle = organizeProgress
+        ? `Organized ${organizeProgress.processed.toLocaleString()} of ${organizeProgress.total.toLocaleString()} bookmarks...`
+        : statusType === 'loading' && statusMessage
+          ? statusMessage
+          : 'Analyzing your bookmarks...';
+
       return (
         <OrganizeStatusView
           icon={<SpinnerIcon width={24} height={24} />}
-          title={statusType === 'loading' && statusMessage
-            ? statusMessage
-            : 'Analyzing your bookmarks...'}
-          description="Feel free to close this popup — MarkMind keeps organizing in the background. Come back anytime to check progress."
+          title={organizingTitle}
+          description={`Working for ${formatElapsedTime(elapsedSeconds)} — feel free to close this popup. MarkMind keeps organizing in the background; come back anytime to check progress.`}
         >
           <Button onClick={handleCancelOrganizing} fullWidth>
             Cancel
           </Button>
         </OrganizeStatusView>
       );
+    }
 
     case 'reviewing_assignments':
       return (

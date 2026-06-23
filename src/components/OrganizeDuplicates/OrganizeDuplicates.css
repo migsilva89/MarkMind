@@ -1,0 +1,105 @@
+.organize-duplicates {
+  background-color: var(--color-white);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-xl);
+  padding: var(--spacing-2xl);
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-md);
+}
+
+.organize-duplicates-title {
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-text);
+}
+
+.organize-duplicates-subtitle {
+  font-size: var(--font-size-xs);
+  color: var(--color-text-secondary);
+  line-height: var(--line-height-normal);
+}
+
+.organize-duplicates-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-md);
+  max-height: 260px;
+  overflow-y: auto;
+}
+
+.organize-duplicates-group {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-2xs);
+  padding-bottom: var(--spacing-sm);
+  border-bottom: 1px solid var(--color-border);
+}
+
+.organize-duplicates-url {
+  font-size: var(--font-size-xs);
+  color: var(--color-text);
+  font-weight: var(--font-weight-medium);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.organize-duplicates-copies {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-2xs);
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.organize-duplicates-copy {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+  font-size: var(--font-size-xs);
+  color: var(--color-text-secondary);
+}
+
+.organize-duplicates-tag-keep,
+.organize-duplicates-tag-remove {
+  flex-shrink: 0;
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-semibold);
+  padding: 1px var(--spacing-xs);
+  border-radius: var(--radius-sm);
+}
+
+.organize-duplicates-tag-keep {
+  color: var(--color-success);
+  background-color: var(--color-success-bg);
+}
+
+.organize-duplicates-tag-remove {
+  color: var(--color-warning);
+  background-color: var(--color-warning-bg);
+}
+
+.organize-duplicates-location {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.organize-duplicates-confirm {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-sm);
+}
+
+.organize-duplicates-confirm-text {
+  font-size: var(--font-size-sm);
+  color: var(--color-text);
+  font-weight: var(--font-weight-medium);
+}
+
+.organize-duplicates-confirm-actions {
+  display: flex;
+  gap: var(--spacing-md);
+}

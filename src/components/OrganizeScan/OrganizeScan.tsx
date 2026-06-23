@@ -2,8 +2,10 @@ import { useState, useCallback, useMemo } from 'react';
 import { type OrganizeSession } from '../../types/organize';
 import { type BookmarkStats } from '../../types/bookmarks';
 import { buildFolderTree } from '../../utils/bookmarkScanner';
+import { findDuplicateBookmarks, countRemovableDuplicates } from '../../utils/duplicates';
 import { FolderIcon, SpinnerIcon, RefreshIcon } from '../icons/Icons';
 import OrganizeStatusView from '../OrganizeStatusView/OrganizeStatusView';
+import OrganizeDuplicates from '../OrganizeDuplicates/OrganizeDuplicates';
 import TreeNode from '../TreeNode/TreeNode';
 import Button from '../Button/Button';
 import './OrganizeScan.css';
@@ -16,6 +18,7 @@ interface OrganizeScanProps {
   onSelectAll: () => void;
   onDeselectAll: () => void;
   onStartPlanning: () => void;
+  onRemoveDuplicates: (bookmarkIdsToRemove: string[]) => Promise<void>;
 }
 
 const OrganizeScan = ({
@@ -26,8 +29,10 @@ const OrganizeScan = ({
   onSelectAll,
   onDeselectAll,
   onStartPlanning,
+  onRemoveDuplicates,
 }: OrganizeScanProps) => {
   const [expandedPaths, setExpandedPaths] = useState<Set<string>>(new Set());
+  const [showDuplicates, setShowDuplicates] = useState(false);
 
   const handleToggleExpand = useCallback((nodePath: string) => {
     setExpandedPaths(previous => {
@@ -52,6 +57,16 @@ const OrganizeScan = ({
   );
 
   const selectedCount = selectedSet.size;
+
+  const duplicateGroups = useMemo(
+    () => findDuplicateBookmarks(session.allBookmarks),
+    [session.allBookmarks]
+  );
+  const duplicateCount = countRemovableDuplicates(duplicateGroups);
+
+  // Many bookmarks means several passes — set expectations up front, in plain terms.
+  const LARGE_SELECTION_THRESHOLD = 200;
+  const isLargeSelection = selectedCount >= LARGE_SELECTION_THRESHOLD;
 
   if (session.status === 'scanning') {
     return (
@@ -87,6 +102,20 @@ const OrganizeScan = ({
             <Button onClick={onDeselectAll}>Deselect All</Button>
           </div>
 
+          {duplicateCount > 0 && (
+            <Button
+              variant="ghost"
+              fullWidth
+              onClick={() => setShowDuplicates(previous => !previous)}
+            >
+              {showDuplicates ? 'Hide' : 'Review'} {duplicateCount} duplicate {duplicateCount === 1 ? 'bookmark' : 'bookmarks'}
+            </Button>
+          )}
+
+          {showDuplicates && duplicateCount > 0 && (
+            <OrganizeDuplicates groups={duplicateGroups} onRemove={onRemoveDuplicates} />
+          )}
+
           <div className="organize-scan-folder-list">
             {folderTree.children.map(topLevelNode => (
               <TreeNode
@@ -101,6 +130,12 @@ const OrganizeScan = ({
             ))}
           </div>
         </div>
+
+        {isLargeSelection && (
+          <p className="organize-scan-heads-up">
+            You've selected {selectedCount.toLocaleString()} bookmarks. Organizing this many can take a few minutes — you can also do it in smaller groups.
+          </p>
+        )}
 
         <Button
           variant="primary"
