@@ -243,13 +243,17 @@ export const useBulkOrganize = (): UseBulkOrganizeReturn => {
   }, [updateSession]);
 
   const handleRemoveDuplicates = useCallback(async (bookmarkIdsToRemove: string[]): Promise<void> => {
-    for (const bookmarkId of bookmarkIdsToRemove) {
-      try {
-        await removeBookmark(bookmarkId);
-      } catch (error) {
-        console.error('Error removing duplicate bookmark:', bookmarkId, error);
-      }
-    }
+    // Remove in parallel — deletions target distinct bookmark nodes and don't
+    // depend on each other. Per-item catch so one failure doesn't abort the rest.
+    await Promise.all(
+      bookmarkIdsToRemove.map(async (bookmarkId) => {
+        try {
+          await removeBookmark(bookmarkId);
+        } catch (error) {
+          console.error('Error removing duplicate bookmark:', bookmarkId, error);
+        }
+      })
+    );
     // Re-scan so the bookmark list and selection reflect the removals.
     await handleStartScan();
   }, [handleStartScan]);

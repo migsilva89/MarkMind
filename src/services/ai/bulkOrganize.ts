@@ -183,10 +183,10 @@ export const organizeBookmarks = async (
   const foldersByPath = new Map<string, ProposedFolder>();
   const allAssignments: BookmarkAssignment[] = [];
   const summaries: string[] = [];
-  let processedCount = 0;
   let failedCount = 0;
 
-  for (const batch of batches) {
+  for (let batchIndex = 0; batchIndex < batches.length; batchIndex += 1) {
+    const batch = batches[batchIndex];
     try {
       const result = await withRetry(() =>
         organizeBatch(
@@ -215,13 +215,12 @@ export const organizeBookmarks = async (
       console.error('[BulkOrganize] Batch failed:', error);
       failedCount += batch.length;
 
-      // If nothing has succeeded yet and this was the only/last batch, surface the real error.
-      if (allAssignments.length === 0 && processedCount + batch.length >= bookmarks.length) {
+      // If nothing has succeeded by the final batch, surface the real error.
+      if (allAssignments.length === 0 && batchIndex === batches.length - 1) {
         throw error;
       }
     }
 
-    processedCount += batch.length;
     // Report bookmarks actually organized (not merely attempted) so the count is honest on failures.
     onProgress?.(allAssignments.length, bookmarks.length);
   }

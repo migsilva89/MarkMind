@@ -28,6 +28,13 @@ describe('escapeControlCharsInJsonStrings', () => {
     const ok = '{"a": "she said \\"hi\\""}';
     expect(JSON.parse(escapeControlCharsInJsonStrings(ok)).a).toBe('she said "hi"');
   });
+
+  it('escapes a control char that directly follows a backslash', () => {
+    // Backslash immediately followed by a literal newline (0x0A).
+    const bad = '{"a": "path\\\nmore"}';
+    const fixed = escapeControlCharsInJsonStrings(bad);
+    expect(() => JSON.parse(fixed)).not.toThrow();
+  });
 });
 
 describe('parseJsonLoose', () => {

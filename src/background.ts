@@ -49,6 +49,15 @@ const handleStartOrganize = async (payload: StartOrganizePayload): Promise<void>
     defaultParentId: payload.defaultParentId,
   };
 
+  // Re-check right before persisting: the user may have cancelled while we were
+  // preparing the result. Without this, a cancel that lands in the small window
+  // after the read above would be overwritten and resurrected on next open.
+  const latestSession = await loadOrganizeSession();
+  if (latestSession && latestSession.status !== 'organizing') {
+    chrome.alarms.clear(KEEPALIVE_ALARM_NAME);
+    return;
+  }
+
   await saveOrganizeSession(completedSession);
   chrome.alarms.clear(KEEPALIVE_ALARM_NAME);
 

@@ -11,8 +11,22 @@ export const escapeControlCharsInJsonStrings = (json: string): string => {
   for (let index = 0; index < json.length; index += 1) {
     const char = json[index];
 
-    // Previous char was a backslash — keep this char as-is (it's an escape sequence).
+    // Previous char was a backslash. A real escape sequence is kept as-is, but a
+    // literal control char here (e.g. backslash directly followed by a newline)
+    // is still invalid JSON — emit the escape letter so the existing backslash
+    // forms a valid sequence (\ + newline -> \n).
     if (escaped) {
+      if (inString) {
+        const code = char.charCodeAt(0);
+        if (code < 0x20) {
+          if (char === '\n') result += 'n';
+          else if (char === '\r') result += 'r';
+          else if (char === '\t') result += 't';
+          else result += `u${code.toString(16).padStart(4, '0')}`;
+          escaped = false;
+          continue;
+        }
+      }
       result += char;
       escaped = false;
       continue;
