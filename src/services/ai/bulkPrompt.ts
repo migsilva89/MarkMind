@@ -53,9 +53,15 @@ PATH FORMAT RULES:
 - isNew = true ONLY for folders that need to be created
 - isNew = false for folders that already exist in the tree`;
 
+export interface ProposedFolderHint {
+  path: string;
+  description: string;
+}
+
 export const buildBulkOrganizeUserPrompt = (
   bookmarks: CompactBookmark[],
-  folderTree: string
+  folderTree: string,
+  proposedFolders: ProposedFolderHint[] = []
 ): string => {
   const bookmarkLines = bookmarks
     .map((bookmark, index) =>
@@ -69,11 +75,30 @@ export const buildBulkOrganizeUserPrompt = (
     '',
     '## CURRENT FOLDER STRUCTURE',
     folderTree,
+  ];
+
+  // When organizing in multiple passes, tell the model which folders earlier
+  // passes already proposed so it reuses the exact paths instead of creating
+  // near-duplicates (e.g. "Dev/Frontend" vs "Development/Frontend").
+  if (proposedFolders.length > 0) {
+    const proposedLines = proposedFolders
+      .map(folder => `- ${folder.path}${folder.description ? ` — ${folder.description}` : ''}`)
+      .join('\n');
+
+    parts.push(
+      '',
+      '## FOLDERS ALREADY PROPOSED IN THIS RUN',
+      'Reuse these EXACT paths whenever a bookmark fits — do not create near-duplicate folders:',
+      proposedLines
+    );
+  }
+
+  parts.push(
     '',
     'Analyze these bookmarks, propose the ideal folder structure, and assign each bookmark to the best folder.',
     'Reuse existing folders where appropriate. Only create new folders when necessary.',
-    'Return ONLY the JSON response.',
-  ];
+    'Return ONLY the JSON response.'
+  );
 
   return parts.join('\n');
 };

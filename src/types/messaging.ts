@@ -4,6 +4,7 @@ import { type FolderPathMap } from './bookmarks';
 export type OrganizeMessageType =
   | 'START_ORGANIZE'
   | 'GET_ORGANIZE_STATUS'
+  | 'ORGANIZE_PROGRESS'
   | 'ORGANIZE_COMPLETE'
   | 'ORGANIZE_ERROR';
 
@@ -20,6 +21,11 @@ export interface StartOrganizePayload {
   pathToIdMap: FolderPathMap;
   defaultParentId: string;
   maxOutputTokens?: number;
+}
+
+export interface OrganizeProgressPayload {
+  processedCount: number;
+  totalCount: number;
 }
 
 export interface OrganizeCompletePayload {

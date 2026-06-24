@@ -34,7 +34,10 @@ MarkMind uses AI to understand what you're saving and automatically organizes yo
 ### Key Features
 
 - **Smart Organization** - AI analyzes page content and suggests the best folder
-- **Bulk Processing** - Organize hundreds of bookmarks at once
+- **Bulk Processing** - Organize hundreds (or thousands) of bookmarks at once
+- **Handles Loose Bookmarks** - Bookmarks scattered outside folders are organized too, not just ones already in folders
+- **Duplicate Cleanup** - Finds bookmarks saved more than once and lets you remove the extras
+- **Live Progress** - See exactly how many bookmarks have been organized while it works
 - **Multiple AI Providers** - Google Gemini, OpenAI, Anthropic, or OpenRouter
 - **Privacy First** - Your bookmarks stay in your browser, only titles/URLs are sent to the AI
 - **Review Before Apply** - Always review and approve changes before they happen
@@ -92,8 +95,16 @@ MarkMind uses AI to understand what you're saving and automatically organizes yo
 
 1. Click the MarkMind icon → Organize tab
 2. Scan your bookmarks
-3. Select bookmarks to organize
-4. Review AI suggestions and apply
+3. (Optional) Review and remove any duplicate bookmarks found
+4. Select bookmarks to organize — loose bookmarks outside folders are included
+5. Review AI suggestions and apply
+
+### What to Expect
+
+- **How long does it take?** Usually seconds to a minute. Large collections are processed in several passes and can take a few minutes — you'll see a live "Organized X of Y bookmarks" count and a timer the whole time, so you always know it's working. Feel free to close the popup; it keeps going in the background.
+- **Free AI providers:** Free tiers (e.g. free Gemini models) have stricter limits and can be briefly unavailable. MarkMind automatically retries, sizes the work to fit your model, and tells you in plain language if something needs another try. If a large run struggles, organizing in smaller groups helps.
+- **Scattered bookmarks:** Bookmarks that aren't in any folder are picked up and organized along with the rest.
+- **Duplicates:** After scanning, MarkMind shows any bookmarks saved more than once and lets you remove the extras (it always keeps one copy).
 
 ## Supported AI Providers
 

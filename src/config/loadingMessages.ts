@@ -1,19 +1,12 @@
-export const LOADING_MESSAGES: string[] = [
-  'MarkMind is helping you...',
-  'Finding the perfect folder...',
-  'Almost there!',
-  "You're on the right path!",
-  'Organizing your world...',
-  'AI is thinking...',
-  'Just a moment...',
-  'Analyzing your page...',
+// Status messages shown while the AI organizes bookmarks.
+// {bookmarks} is replaced with the real count (e.g. "1,240 bookmarks").
+// Templates are DATA only — substitution lives in utils/loadingMessages.ts.
+export const LOADING_MESSAGE_TEMPLATES: string[] = [
+  'Sending your {bookmarks} for analysis...',
+  'MarkMind is reading your {bookmarks}...',
+  'MarkMind is choosing the best folders...',
+  'Analyzing {bookmarks}...',
+  'MarkMind is thinking this through — larger collections take longer...',
   'Smart sorting in progress...',
+  'Still working — organizing your {bookmarks}...',
 ];
-
-export const getNextLoadingMessage = (currentIndex: number): { message: string; nextIndex: number } => {
-  const nextIndex = (currentIndex + 1) % LOADING_MESSAGES.length;
-  return {
-    message: LOADING_MESSAGES[nextIndex],
-    nextIndex,
-  };
-};

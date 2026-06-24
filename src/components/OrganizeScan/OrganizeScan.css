@@ -90,3 +90,14 @@
   max-height: 340px;
   overflow-y: auto;
 }
+
+/* Plain-language heads-up for large selections */
+.organize-scan-heads-up {
+  background-color: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  padding: var(--spacing-md);
+  font-size: var(--font-size-sm);
+  color: var(--color-text-secondary);
+  line-height: var(--line-height-normal);
+}

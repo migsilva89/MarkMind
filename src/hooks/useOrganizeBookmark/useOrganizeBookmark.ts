@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
-import { LOADING_MESSAGES, getNextLoadingMessage } from '../../config/loadingMessages';
+import { buildLoadingMessage, getNextLoadingMessageIndex } from '../../utils/loadingMessages';
 import { type StatusType } from '../../types/common';
 import { type FolderDataForAI, type PendingSuggestion } from '../../types/bookmarks';
 import { type PageMetadata } from '../../types/pages';
@@ -77,14 +77,16 @@ export const useOrganizeBookmark = (): UseOrganizeBookmarkReturn => {
   }, []);
 
   const startLoadingMessages = useCallback((): void => {
+    // Single-page organize handles exactly one bookmark.
+    const SINGLE_BOOKMARK_COUNT = 1;
+
     loadingMessageIndexRef.current = 0;
-    setStatusMessage(LOADING_MESSAGES[0]);
+    setStatusMessage(buildLoadingMessage(0, SINGLE_BOOKMARK_COUNT));
     setStatusType('loading');
 
     loadingMessageIntervalRef.current = setInterval(() => {
-      const { message, nextIndex } = getNextLoadingMessage(loadingMessageIndexRef.current);
-      loadingMessageIndexRef.current = nextIndex;
-      setStatusMessage(message);
+      loadingMessageIndexRef.current = getNextLoadingMessageIndex(loadingMessageIndexRef.current);
+      setStatusMessage(buildLoadingMessage(loadingMessageIndexRef.current, SINGLE_BOOKMARK_COUNT));
     }, LOADING_MESSAGE_INTERVAL_MS);
   }, []);
 

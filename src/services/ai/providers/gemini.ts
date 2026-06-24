@@ -1,4 +1,4 @@
-import { fetchWithTimeout, getAiTimeoutMs, throwApiResponseError } from '../../../utils/helpers';
+import { fetchWithTimeout, getAiTimeoutMs, throwApiResponseError, TRUNCATED_RESPONSE_MESSAGE } from '../../../utils/helpers';
 import { type ModelOption } from '../../../types/services';
 
 const GEMINI_MODEL_PREFIX = 'models/gemini-';
@@ -71,7 +71,7 @@ export const callGemini = async (
   const finishReason = data?.candidates?.[0]?.finishReason;
 
   if (finishReason === 'MAX_TOKENS') {
-    throw new Error('Gemini response was truncated — the model ran out of output tokens. Please try again.');
+    throw new Error(TRUNCATED_RESPONSE_MESSAGE);
   }
 
   const text = data?.candidates?.[0]?.content?.parts?.[0]?.text;

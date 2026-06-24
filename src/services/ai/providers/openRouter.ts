@@ -1,4 +1,4 @@
-import { fetchWithTimeout, getAiTimeoutMs, throwApiResponseError } from '../../../utils/helpers';
+import { fetchWithTimeout, getAiTimeoutMs, throwApiResponseError, TRUNCATED_RESPONSE_MESSAGE } from '../../../utils/helpers';
 import { type ModelOption } from '../../../types/services';
 
 const OPENROUTER_TEXT_PREFIXES = [
@@ -75,7 +75,7 @@ export const callOpenRouter = async (
   const data = await response.json();
 
   if (data?.choices?.[0]?.finish_reason === 'length') {
-    throw new Error('OpenRouter response was truncated — the model ran out of output tokens. Please try again.');
+    throw new Error(TRUNCATED_RESPONSE_MESSAGE);
   }
 
   const text = data?.choices?.[0]?.message?.content;

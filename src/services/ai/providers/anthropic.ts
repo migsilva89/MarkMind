@@ -1,4 +1,4 @@
-import { fetchWithTimeout, getAiTimeoutMs, throwApiResponseError } from '../../../utils/helpers';
+import { fetchWithTimeout, getAiTimeoutMs, throwApiResponseError, TRUNCATED_RESPONSE_MESSAGE } from '../../../utils/helpers';
 import { type ModelOption } from '../../../types/services';
 
 export const fetchAnthropicModels = async (apiKey: string): Promise<ModelOption[]> => {
@@ -66,7 +66,7 @@ export const callAnthropic = async (
   const data = await response.json();
 
   if (data?.stop_reason === 'max_tokens') {
-    throw new Error('Anthropic response was truncated — the model ran out of output tokens. Please try again.');
+    throw new Error(TRUNCATED_RESPONSE_MESSAGE);
   }
 
   const text = data?.content?.[0]?.text;
