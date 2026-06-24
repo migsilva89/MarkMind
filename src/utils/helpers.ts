@@ -42,6 +42,13 @@ export const fetchWithTimeout = async (
     if (error instanceof DOMException && error.name === 'AbortError') {
       throw createRetryableError('Request timed out. Please try again.');
     }
+    // A network-level failure (offline, DNS, or the AI endpoint refusing the
+    // connection) surfaces as a TypeError "Failed to fetch" — make it readable.
+    if (error instanceof TypeError) {
+      throw createRetryableError(
+        "Couldn't reach the AI service. Check your internet connection and try again. If it keeps failing, the model may be overloaded — try a more reliable model or provider."
+      );
+    }
     throw error;
   } finally {
     clearTimeout(timeoutId);
@@ -118,7 +125,7 @@ export const humanizeApiError = (rawMessage: string, statusCode: number): string
   const lower = rawMessage.toLowerCase();
 
   if (statusCode === 429 || lower.includes('quota') || lower.includes('rate limit')) {
-    return 'Rate limit reached. Wait a moment or try a different model.';
+    return 'The AI service is rate-limiting requests. Free and smaller models hit these limits quickly — wait a moment, or switch to a more capable model or a paid API key for large batches.';
   }
 
   if (statusCode === 401 || lower.includes('unauthorized') || lower.includes('invalid api key') || lower.includes('incorrect api key')) {
@@ -134,7 +141,7 @@ export const humanizeApiError = (rawMessage: string, statusCode: number): string
   }
 
   if (statusCode >= 500) {
-    return 'AI service temporarily unavailable. Please try again later.';
+    return 'The AI service is overloaded right now. Free and smaller models (like free Gemini) are often unavailable under load — try again shortly, or switch to a more reliable model or provider.';
   }
 
   if (statusCode === 400) {

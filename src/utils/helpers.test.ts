@@ -1,4 +1,4 @@
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect, vi, afterEach } from 'vitest';
 import {
   chunkArray,
   getAiTimeoutMs,
@@ -8,6 +8,7 @@ import {
   createRetryableError,
   isRetryableError,
   formatElapsedTime,
+  fetchWithTimeout,
 } from './helpers';
 
 describe('chunkArray', () => {
@@ -43,7 +44,7 @@ describe('formatElapsedTime', () => {
 
 describe('humanizeApiError', () => {
   it('maps 429 to a rate-limit message', () => {
-    expect(humanizeApiError('whatever', 429)).toMatch(/rate limit/i);
+    expect(humanizeApiError('whatever', 429)).toMatch(/rate-limit/i);
   });
 
   it('maps 401 to an invalid-key message', () => {
@@ -104,5 +105,30 @@ describe('getAiTimeoutMs', () => {
     expect(getAiTimeoutMs(0)).toBe(60000);
     expect(getAiTimeoutMs(10)).toBe(65000);
     expect(getAiTimeoutMs(100000)).toBe(300000);
+  });
+});
+
+describe('fetchWithTimeout', () => {
+  afterEach(() => {
+    vi.unstubAllGlobals();
+  });
+
+  it('converts a network failure into a friendly, retryable error (no raw "Failed to fetch")', async () => {
+    vi.stubGlobal('fetch', vi.fn(() => Promise.reject(new TypeError('Failed to fetch'))));
+
+    try {
+      await fetchWithTimeout('https://example.test/api');
+      throw new Error('should have thrown');
+    } catch (error) {
+      expect((error as Error).message).not.toContain('Failed to fetch');
+      expect((error as Error).message).toMatch(/couldn't reach/i);
+      expect(isRetryableError(error)).toBe(true);
+    }
+  });
+
+  it('rejects when an external AbortSignal is supplied', async () => {
+    await expect(
+      fetchWithTimeout('https://example.test/api', { signal: new AbortController().signal })
+    ).rejects.toThrow(/AbortSignal/);
   });
 });
