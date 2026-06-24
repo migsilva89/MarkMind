@@ -49,42 +49,45 @@
   display: flex;
   flex-direction: column;
   gap: var(--spacing-2xs);
-  list-style: none;
-  margin: 0;
-  padding: 0;
 }
 
 .organize-duplicates-copy {
   display: flex;
   align-items: center;
   gap: var(--spacing-sm);
+  width: 100%;
+  text-align: left;
+  padding: var(--spacing-2xs) var(--spacing-xs);
+  border-radius: var(--radius-sm);
   font-size: var(--font-size-xs);
   color: var(--color-text-secondary);
+  cursor: pointer;
+  transition: background-color var(--transition-fast);
 }
 
-.organize-duplicates-tag-keep,
-.organize-duplicates-tag-remove {
-  flex-shrink: 0;
-  font-size: var(--font-size-xs);
-  font-weight: var(--font-weight-semibold);
-  padding: 1px var(--spacing-xs);
-  border-radius: var(--radius-sm);
+.organize-duplicates-copy:hover {
+  background-color: var(--color-surface);
 }
 
-.organize-duplicates-tag-keep {
-  color: var(--color-success);
-  background-color: var(--color-success-bg);
-}
-
-.organize-duplicates-tag-remove {
-  color: var(--color-warning);
-  background-color: var(--color-warning-bg);
+.organize-duplicates-copy.is-keeper {
+  color: var(--color-text);
 }
 
 .organize-duplicates-location {
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+}
+
+.organize-duplicates-keep-tag {
+  flex-shrink: 0;
+  margin-left: auto;
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-success);
+  background-color: var(--color-success-bg);
+  padding: 1px var(--spacing-xs);
+  border-radius: var(--radius-sm);
 }
 
 .organize-duplicates-confirm {
