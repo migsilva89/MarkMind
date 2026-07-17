@@ -1,0 +1,28 @@
+{
+   "action": {
+      "default_icon": {
+         "128": "assets/icons/icon128.png",
+         "16": "assets/icons/icon16.png",
+         "48": "assets/icons/icon48.png"
+      },
+      "default_popup": "src/popup.html"
+   },
+   "background": {
+      "service_worker": "service-worker-loader.js",
+      "type": "module"
+   },
+   "description": "Transform your chaotic bookmarks into organized bliss with AI",
+   "host_permissions": [ "https://generativelanguage.googleapis.com/*", "https://api.openai.com/*", "https://api.anthropic.com/*", "https://openrouter.ai/*" ],
+   "icons": {
+      "128": "assets/icons/icon128.png",
+      "16": "assets/icons/icon16.png",
+      "48": "assets/icons/icon48.png"
+   },
+   "key": "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAxBhyitMoAX8QVxB+icr8pgXVHZ6RmkEQyuofzamlSPFaFWL3agUTjQT7A+qkCX1sWHmDnqtTCXdeERV05kTK34JZWjS6H5OzbKtpQSJNZCroar1o6k8gYQV9q9FWs7OMMskb7McdEt89KwqcbyjzwkC9GzasgChLlgF4HZH8QIFfEvSxXPOV1ItiBAHglosuC3m8/z94gkOAeAbIGJ6733LdvxS1tNz3AswKz8UOoRhkSzG0xOxdaY6o5xDhKMCDgtAwYpOW7nRZtLgxP3pdZAiuDpsH4b3xaGnu4ApLXDDYiD+wGcSYLhEdGvFrilaq3/Bj9LnUdU0NFu5DcwdffQIDAQAB",
+   "manifest_version": 3,
+   "name": "MarkMind",
+   "optional_host_permissions": [ "http://*/*", "https://*/*" ],
+   "permissions": [ "bookmarks", "activeTab", "storage", "scripting", "alarms", "permissions" ],
+   "update_url": "https://clients2.google.com/service/update2/crx",
+   "version": "2.0.6"
+}
