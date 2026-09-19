@@ -13,6 +13,9 @@
     <a href="https://github.com/migsilva89/MarkMind/blob/main/LICENSE">
       <img src="https://img.shields.io/badge/License-MIT-blue.svg" alt="License">
     </a>
+    <a href="https://buymeacoffee.com/migsilva?utm_source=github-markmind">
+      <img src="https://img.shields.io/badge/Buy%20me%20a%20coffee-%E2%98%95-FFDD00" alt="Buy me a coffee">
+    </a>
   </p>
 
   <a href="https://www.youtube.com/watch?v=9I5tpjMDrIQ">
