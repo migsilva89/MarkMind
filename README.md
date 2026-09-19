@@ -175,6 +175,7 @@ src/
 - [Open an issue](https://github.com/migsilva89/MarkMind/issues) on GitHub
 - Email: <themarkmind@gmail.com>
 - Website: [markmind.xyz](https://markmind.xyz)
+- Like it? [Buy me a coffee](https://buymeacoffee.com/migsilva?utm_source=github-markmind) — it keeps the next release coming
 
 ## License
 
