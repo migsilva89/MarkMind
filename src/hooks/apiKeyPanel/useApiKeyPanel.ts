@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback, useRef, useMemo } from 'react';
-import { EMPTY_SERVICE, type ServiceConfig } from '../../config/services';
+import { EMPTY_SERVICE, getServiceCredentialKeys, isServiceConfigured, type ServiceConfig } from '../../config/services';
 import { type StatusType } from '../../types/common';
 import {
   type ApiKeyPanelStatusMessage,
@@ -32,12 +32,8 @@ export const useApiKeyPanel = ({ isOpen, canClose, onClose }: UseApiKeyPanelProp
   const [modelsRefreshTrigger, setModelsRefreshTrigger] = useState(0);
 
   const checkExistingApiKey = useCallback(async (service: ServiceConfig): Promise<boolean> => {
-    const keys = [service.storageKey, ...(service.baseUrlStorageKey ? [service.baseUrlStorageKey] : [])];
-    const result = await chrome.storage.local.get(keys);
-    // For providers with optional API key (validateKey('') === true), a saved base URL counts as configured.
-    const keyExists = service.validateKey('') && service.baseUrlStorageKey
-      ? !!result[service.baseUrlStorageKey]
-      : !!result[service.storageKey];
+    const result = await chrome.storage.local.get(getServiceCredentialKeys(service));
+    const keyExists = isServiceConfigured(service, result);
     setHasExistingKey(keyExists);
     return keyExists;
   }, []);

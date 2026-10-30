@@ -3,6 +3,7 @@ import { type FolderPathMap } from './bookmarks';
 
 export type OrganizeMessageType =
   | 'START_ORGANIZE'
+  | 'CANCEL_ORGANIZE'
   | 'GET_ORGANIZE_STATUS'
   | 'ORGANIZE_PROGRESS'
   | 'ORGANIZE_COMPLETE'

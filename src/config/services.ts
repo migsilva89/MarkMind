@@ -81,3 +81,22 @@ export const getService = (serviceId: string): ServiceConfig => {
 export const getServiceIds = (): string[] => {
   return Object.keys(SERVICES);
 };
+
+// Storage keys that decide whether a service is configured (key, plus base URL when it has one).
+export const getServiceCredentialKeys = (service: ServiceConfig): string[] => {
+  return service.baseUrlStorageKey
+    ? [service.storageKey, service.baseUrlStorageKey]
+    : [service.storageKey];
+};
+
+// Providers with an optional API key (e.g. Custom for local runners like Ollama)
+// count as configured once a base URL is saved — an empty key is valid for them.
+export const isServiceConfigured = (
+  service: ServiceConfig,
+  storedValues: Record<string, unknown>
+): boolean => {
+  if (service.baseUrlStorageKey && service.validateKey('')) {
+    return !!storedValues[service.baseUrlStorageKey];
+  }
+  return !!storedValues[service.storageKey];
+};

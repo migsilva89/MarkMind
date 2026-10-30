@@ -37,7 +37,8 @@ export const callAnthropic = async (
   userPrompt: string,
   model: string,
   maxTokens?: number,
-  bookmarkCount?: number
+  bookmarkCount?: number,
+  cancelSignal?: AbortSignal
 ): Promise<string> => {
   const response = await fetchWithTimeout(
     'https://api.anthropic.com/v1/messages',
@@ -56,7 +57,8 @@ export const callAnthropic = async (
         messages: [{ role: 'user', content: userPrompt }],
       }),
     },
-    getAiTimeoutMs(bookmarkCount)
+    getAiTimeoutMs(bookmarkCount),
+    cancelSignal
   );
 
   if (!response.ok) {

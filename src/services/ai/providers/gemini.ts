@@ -40,7 +40,8 @@ export const callGemini = async (
   userPrompt: string,
   model: string,
   maxTokens?: number,
-  bookmarkCount?: number
+  bookmarkCount?: number,
+  cancelSignal?: AbortSignal
 ): Promise<string> => {
   const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent`;
 
@@ -60,7 +61,8 @@ export const callGemini = async (
         }),
       }),
     },
-    getAiTimeoutMs(bookmarkCount)
+    getAiTimeoutMs(bookmarkCount),
+    cancelSignal
   );
 
   if (!response.ok) {

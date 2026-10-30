@@ -1,5 +1,10 @@
-import { fetchWithTimeout, getAiTimeoutMs, throwApiResponseError, TRUNCATED_RESPONSE_MESSAGE } from '../../../utils/helpers';
+import { fetchWithTimeout, getLocalAiTimeoutMs, throwApiResponseError, TRUNCATED_RESPONSE_MESSAGE } from '../../../utils/helpers';
 import { type ModelOption } from '../../../types/services';
+
+// Ollama answers 403 to browser-extension origins unless OLLAMA_ORIGINS allows
+// them (listing models still works, so setup looks fine until the first organize).
+export const CUSTOM_FORBIDDEN_MESSAGE =
+  'The endpoint refused the request (403). Ollama blocks browser extensions by default: restart it with OLLAMA_ORIGINS="chrome-extension://*". In LM Studio, turn on CORS in the server settings. For a remote endpoint, check your API key.';
 
 const buildAuthHeaders = (apiKey: string): Record<string, string> => {
   const trimmed = apiKey.trim();
@@ -32,6 +37,24 @@ export const fetchCustomModels = async (apiKey: string, baseUrl: string): Promis
     .sort((modelA: ModelOption, modelB: ModelOption) => modelA.name.localeCompare(modelB.name));
 };
 
+// JSON mode makes local runners (Ollama, llama.cpp, vLLM) emit valid JSON: a 3B
+// model broke the bulk JSON in 11 of 12 groups without it, 0 of 12 with it.
+const buildChatBody = (
+  model: string,
+  systemPrompt: string,
+  userPrompt: string,
+  maxTokens: number | undefined,
+  useJsonMode: boolean
+): string => JSON.stringify({
+  model,
+  messages: [
+    { role: 'system', content: systemPrompt },
+    { role: 'user', content: userPrompt },
+  ],
+  ...(maxTokens !== undefined && { max_tokens: maxTokens }),
+  ...(useJsonMode && { response_format: { type: 'json_object' } }),
+});
+
 export const callCustom = async (
   apiKey: string,
   baseUrl: string,
@@ -39,9 +62,11 @@ export const callCustom = async (
   userPrompt: string,
   model: string,
   maxTokens?: number,
-  bookmarkCount?: number
+  bookmarkCount?: number,
+  expectJson = false,
+  cancelSignal?: AbortSignal
 ): Promise<string> => {
-  const response = await fetchWithTimeout(
+  const sendChatRequest = (useJsonMode: boolean): Promise<Response> => fetchWithTimeout(
     `${baseUrl}/chat/completions`,
     {
       method: 'POST',
@@ -49,17 +74,24 @@ export const callCustom = async (
         'Content-Type': 'application/json',
         ...buildAuthHeaders(apiKey),
       },
-      body: JSON.stringify({
-        model,
-        messages: [
-          { role: 'system', content: systemPrompt },
-          { role: 'user', content: userPrompt },
-        ],
-        ...(maxTokens !== undefined && { max_tokens: maxTokens }),
-      }),
+      body: buildChatBody(model, systemPrompt, userPrompt, maxTokens, useJsonMode),
     },
-    getAiTimeoutMs(bookmarkCount)
+    getLocalAiTimeoutMs(bookmarkCount),
+    cancelSignal
   );
+
+  let response = await sendChatRequest(expectJson);
+
+  // Not every OpenAI-compatible server accepts json_object — fall back to plain text.
+  if (expectJson && response.status === 400) {
+    console.warn('Custom endpoint rejected JSON mode, retrying without it:', await response.text());
+    response = await sendChatRequest(false);
+  }
+
+  if (response.status === 403) {
+    console.error('Custom API error [403]:', await response.text());
+    throw new Error(CUSTOM_FORBIDDEN_MESSAGE);
+  }
 
   if (!response.ok) {
     await throwApiResponseError('Custom', response);

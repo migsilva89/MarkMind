@@ -36,7 +36,8 @@ export const callOpenAI = async (
   userPrompt: string,
   model: string,
   maxTokens?: number,
-  bookmarkCount?: number
+  bookmarkCount?: number,
+  cancelSignal?: AbortSignal
 ): Promise<string> => {
   const response = await fetchWithTimeout(
     'https://api.openai.com/v1/chat/completions',
@@ -55,7 +56,8 @@ export const callOpenAI = async (
         ...(maxTokens !== undefined && { max_tokens: maxTokens }),
       }),
     },
-    getAiTimeoutMs(bookmarkCount)
+    getAiTimeoutMs(bookmarkCount),
+    cancelSignal
   );
 
   if (!response.ok) {
