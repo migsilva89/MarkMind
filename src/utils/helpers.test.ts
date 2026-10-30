@@ -2,6 +2,7 @@ import { describe, it, expect, vi, afterEach } from 'vitest';
 import {
   chunkArray,
   getAiTimeoutMs,
+  getLocalAiTimeoutMs,
   hasArrayWithItems,
   extractApiErrorMessage,
   humanizeApiError,
@@ -126,9 +127,47 @@ describe('fetchWithTimeout', () => {
     }
   });
 
+  it('aborts the request and reports a non-retryable cancel when the cancel signal fires', async () => {
+    let fetchSignal: AbortSignal | undefined;
+    vi.stubGlobal('fetch', vi.fn((_url: string, init: RequestInit) => new Promise((_resolve, reject) => {
+      fetchSignal = init.signal ?? undefined;
+      fetchSignal?.addEventListener('abort', () => reject(new DOMException('aborted', 'AbortError')));
+    })));
+    const controller = new AbortController();
+
+    const request = fetchWithTimeout('https://example.test/api', {}, 60_000, controller.signal);
+    controller.abort();
+
+    await expect(request).rejects.toMatchObject({ name: 'AbortError' });
+    await request.catch(error => expect(isRetryableError(error)).toBe(false));
+    expect(fetchSignal?.aborted).toBe(true);
+  });
+
+  it('refuses to start when the cancel signal has already fired', async () => {
+    const fetchMock = vi.fn();
+    vi.stubGlobal('fetch', fetchMock);
+    const controller = new AbortController();
+    controller.abort();
+
+    await expect(fetchWithTimeout('https://example.test/api', {}, 60_000, controller.signal))
+      .rejects.toMatchObject({ name: 'AbortError' });
+    expect(fetchMock).not.toHaveBeenCalled();
+  });
+
   it('rejects when an external AbortSignal is supplied', async () => {
     await expect(
       fetchWithTimeout('https://example.test/api', { signal: new AbortController().signal })
     ).rejects.toThrow(/AbortSignal/);
+  });
+});
+
+describe('getLocalAiTimeoutMs', () => {
+  it('gives local models a much longer budget than cloud ones', () => {
+    expect(getLocalAiTimeoutMs(15)).toBe(180_000);
+    expect(getLocalAiTimeoutMs(15)).toBeGreaterThan(getAiTimeoutMs(15));
+  });
+
+  it('caps the budget at ten minutes', () => {
+    expect(getLocalAiTimeoutMs(1000)).toBe(600_000);
   });
 });

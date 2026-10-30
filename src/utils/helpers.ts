@@ -9,6 +9,19 @@ export const getAiTimeoutMs = (bookmarkCount: number = 1): number => {
   );
 };
 
+// Local runners (Ollama, LM Studio) on consumer GPUs generate far slower than
+// cloud APIs, so the Custom provider gets a much more generous budget.
+const LOCAL_TIMEOUT_BASE_MS = 120_000;
+const LOCAL_TIMEOUT_PER_BOOKMARK_MS = 4_000;
+const LOCAL_TIMEOUT_CEILING_MS = 600_000;
+
+export const getLocalAiTimeoutMs = (bookmarkCount: number = 1): number => {
+  return Math.min(
+    LOCAL_TIMEOUT_BASE_MS + bookmarkCount * LOCAL_TIMEOUT_PER_BOOKMARK_MS,
+    LOCAL_TIMEOUT_CEILING_MS
+  );
+};
+
 // Errors flagged retryable are transient (overload, rate limit, timeout) and
 // worth retrying with backoff — important for free tiers that 503 under load.
 export interface RetryableError extends Error {
@@ -24,21 +37,39 @@ export const createRetryableError = (message: string): RetryableError => {
 export const isRetryableError = (error: unknown): boolean =>
   Boolean((error as RetryableError)?.retryable);
 
+// The user stopped the run. Never retried, never shown as a failure.
+export const createCancelledError = (): DOMException =>
+  new DOMException('Organizing was cancelled.', 'AbortError');
+
+export const isCancelledError = (error: unknown): boolean =>
+  error instanceof DOMException && error.name === 'AbortError';
+
+export const throwIfCancelled = (cancelSignal?: AbortSignal): void => {
+  if (cancelSignal?.aborted) throw createCancelledError();
+};
+
 export const fetchWithTimeout = async (
   url: string,
   options: RequestInit = {},
-  timeoutMs = getAiTimeoutMs()
+  timeoutMs = getAiTimeoutMs(),
+  cancelSignal?: AbortSignal
 ): Promise<Response> => {
   if (options.signal) {
     throw new Error('fetchWithTimeout does not support passing an external AbortSignal.');
   }
+  throwIfCancelled(cancelSignal);
 
   const controller = new AbortController();
   const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
+  const abortOnCancel = (): void => controller.abort();
+  cancelSignal?.addEventListener('abort', abortOnCancel);
 
   try {
     return await fetch(url, { ...options, signal: controller.signal });
   } catch (error) {
+    if (cancelSignal?.aborted) {
+      throw createCancelledError();
+    }
     if (error instanceof DOMException && error.name === 'AbortError') {
       throw createRetryableError('Request timed out. Please try again.');
     }
@@ -52,6 +83,7 @@ export const fetchWithTimeout = async (
     throw error;
   } finally {
     clearTimeout(timeoutId);
+    cancelSignal?.removeEventListener('abort', abortOnCancel);
   }
 };
 

@@ -117,6 +117,20 @@ MarkMind uses AI to understand what you're saving and automatically organizes yo
 | OpenAI | [OpenAI Platform](https://platform.openai.com/api-keys) |
 | Anthropic | [Anthropic Console](https://console.anthropic.com/) |
 | OpenRouter | [OpenRouter](https://openrouter.ai/keys) |
+| Custom (OpenAI-compatible, e.g. Ollama, LM Studio) | Not needed for local models |
+
+### Using a local model (Ollama, LM Studio)
+
+1. In Settings, pick **Custom** and enter the server's base URL — `http://127.0.0.1:11434/v1` for Ollama, `http://127.0.0.1:1234/v1` for LM Studio. Leave the API key empty.
+2. Chrome asks to let MarkMind reach that address — allow it.
+3. **Ollama blocks browser extensions by default.** The model list still loads, but organizing fails with a 403 until you start Ollama with:
+   ```bash
+   OLLAMA_ORIGINS="chrome-extension://*" ollama serve
+   ```
+   (On the macOS app: `launchctl setenv OLLAMA_ORIGINS "chrome-extension://*"`, then restart Ollama.)
+4. In LM Studio, if requests are refused, turn on **Enable CORS** in the server settings.
+
+Local models run on your machine, so they're slower than cloud ones. MarkMind sends them small groups of bookmarks and waits longer for each one. Very small models (around 3B) work, but their folder names can be uneven.
 
 ## Privacy & Security
 

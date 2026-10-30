@@ -46,7 +46,8 @@ export const callOpenRouter = async (
   userPrompt: string,
   model: string,
   maxTokens?: number,
-  bookmarkCount?: number
+  bookmarkCount?: number,
+  cancelSignal?: AbortSignal
 ): Promise<string> => {
   const response = await fetchWithTimeout(
     'https://openrouter.ai/api/v1/chat/completions',
@@ -65,7 +66,8 @@ export const callOpenRouter = async (
         ...(maxTokens !== undefined && { max_tokens: maxTokens }),
       }),
     },
-    getAiTimeoutMs(bookmarkCount)
+    getAiTimeoutMs(bookmarkCount),
+    cancelSignal
   );
 
   if (!response.ok) {

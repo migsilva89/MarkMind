@@ -6,6 +6,7 @@ import { type OrganizeSession, type BulkOrganizeResult } from '../../types/organ
 import { getBookmarkStats, flattenAllBookmarks } from '../../utils/bookmarkScanner';
 import { getFolderDataForAI, buildFullIdToPathMapFromTree } from '../../utils/folders';
 import { saveOrganizeSession, loadOrganizeSession, clearOrganizeSession, getInitialSession } from '../../services/organizeSession';
+import { createSessionSaveQueue } from '../../services/sessionSaveQueue';
 import { moveBookmark, createFolderPath, removeBookmark } from '../../services/bookmarks';
 import { getSelectedMaxOutputTokens } from '../../services/selectedState';
 import { type UseBulkOrganizeReturn } from './types';
@@ -13,6 +14,13 @@ import { type UseBulkOrganizeReturn } from './types';
 const STATUS_TICK_MS = 1000;
 const MESSAGE_ROTATE_EVERY_TICKS = 2;
 const DEBOUNCE_SAVE_MS = 500;
+
+// Stops the run in the service worker: aborts the in-flight AI request and any further batches.
+const requestBackgroundCancel = (): void => {
+  chrome.runtime.sendMessage({ type: 'CANCEL_ORGANIZE' }).catch(error => {
+    console.error('Error cancelling organize in background:', error);
+  });
+};
 
 export const useBulkOrganize = (): UseBulkOrganizeReturn => {
   const [session, setSession] = useState<OrganizeSession>(getInitialSession());
@@ -28,7 +36,7 @@ export const useBulkOrganize = (): UseBulkOrganizeReturn => {
 
   const loadingMessageIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const loadingMessageIndexRef = useRef(0);
-  const debouncedSaveRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const saveQueueRef = useRef(createSessionSaveQueue(saveOrganizeSession, DEBOUNCE_SAVE_MS));
 
   const clearLoadingMessages = useCallback((): void => {
     if (loadingMessageIntervalRef.current) {
@@ -68,14 +76,7 @@ export const useBulkOrganize = (): UseBulkOrganizeReturn => {
   );
 
   const debouncedSaveSession = useCallback((sessionToSave: OrganizeSession): void => {
-    if (debouncedSaveRef.current) {
-      clearTimeout(debouncedSaveRef.current);
-    }
-    debouncedSaveRef.current = setTimeout(() => {
-      saveOrganizeSession(sessionToSave).catch(error => {
-        console.error('Error saving session:', error);
-      });
-    }, DEBOUNCE_SAVE_MS);
+    saveQueueRef.current.schedule(sessionToSave);
   }, []);
 
   // Resume session from storage on mount
@@ -128,13 +129,12 @@ export const useBulkOrganize = (): UseBulkOrganizeReturn => {
 
   // Cleanup timers on unmount
   useEffect(() => {
+    const saveQueue = saveQueueRef.current;
     return () => {
       if (loadingMessageIntervalRef.current) {
         clearInterval(loadingMessageIntervalRef.current);
       }
-      if (debouncedSaveRef.current) {
-        clearTimeout(debouncedSaveRef.current);
-      }
+      saveQueue.cancel();
     };
   }, []);
 
@@ -193,7 +193,7 @@ export const useBulkOrganize = (): UseBulkOrganizeReturn => {
     setSession(updatedSession);
 
     try {
-      await saveOrganizeSession(updatedSession);
+      await saveQueueRef.current.saveNow(updatedSession);
     } catch (error) {
       console.error('Error saving organize session:', error);
     }
@@ -281,7 +281,7 @@ export const useBulkOrganize = (): UseBulkOrganizeReturn => {
         ...previousSession,
         selectedBookmarkIds: previousSession.allBookmarks.map(bookmark => bookmark.id),
       };
-      saveOrganizeSession(updatedSession).catch(error => {
+      saveQueueRef.current.saveNow(updatedSession).catch(error => {
         console.error('Error saving bookmark selection:', error);
       });
       return updatedSession;
@@ -291,7 +291,7 @@ export const useBulkOrganize = (): UseBulkOrganizeReturn => {
   const handleDeselectAll = useCallback((): void => {
     setSession(previousSession => {
       const updatedSession = { ...previousSession, selectedBookmarkIds: [] };
-      saveOrganizeSession(updatedSession).catch(error => {
+      saveQueueRef.current.saveNow(updatedSession).catch(error => {
         console.error('Error saving bookmark selection:', error);
       });
       return updatedSession;
@@ -471,13 +471,24 @@ export const useBulkOrganize = (): UseBulkOrganizeReturn => {
 
   const handleCancelOrganizing = useCallback((): void => {
     clearLoadingMessages();
-    updateSession({ status: 'selecting', folderPlan: null }).catch(error => {
+    requestBackgroundCancel();
+    // Back to the selection, keeping what the user picked; nothing from the stopped run.
+    updateSession({
+      status: 'selecting',
+      folderPlan: null,
+      assignments: [],
+      bookmarksToOrganize: [],
+      startedAt: null,
+      errorMessage: null,
+    }).catch(error => {
       console.error('Error cancelling organize:', error);
     });
   }, [clearLoadingMessages, updateSession]);
 
   const handleReset = useCallback((): void => {
     clearLoadingMessages();
+    saveQueueRef.current.cancel();
+    if (sessionRef.current.status === 'organizing') requestBackgroundCancel();
     setSession(getInitialSession());
     clearOrganizeSession().catch(error => {
       console.error('Error clearing organize session:', error);

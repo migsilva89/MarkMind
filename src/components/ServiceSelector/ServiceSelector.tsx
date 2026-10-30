@@ -5,6 +5,8 @@ import {
   SELECTED_MODEL_STORAGE_KEY,
   MODELS_CACHE_KEY_PREFIX,
   getServiceIds,
+  getServiceCredentialKeys,
+  isServiceConfigured,
 } from '../../config/services';
 import { setSelectedServiceId, setSelectedModelId } from '../../services/selectedState';
 import { fetchModelsForProvider } from '../../services/ai/providerUtils';
@@ -46,10 +48,10 @@ const ServiceSelector = ({
     const service = SERVICES[serviceId];
     if (!service) return [];
 
-    const storageResult = await chrome.storage.local.get([service.storageKey]);
-    const apiKey = storageResult[service.storageKey];
+    const storageResult = await chrome.storage.local.get(getServiceCredentialKeys(service));
+    const apiKey = (storageResult[service.storageKey] as string | undefined) ?? '';
 
-    if (!apiKey) {
+    if (!isServiceConfigured(service, storageResult)) {
       setAvailableModels([]);
       return [];
     }

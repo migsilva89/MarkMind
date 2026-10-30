@@ -59,19 +59,21 @@ export const callProvider = async (
   userPrompt: string,
   model: string,
   maxTokens?: number,
-  bookmarkCount?: number
+  bookmarkCount?: number,
+  expectJson = false,
+  cancelSignal?: AbortSignal
 ): Promise<string> => {
   switch (serviceId) {
     case 'google':
-      return callGemini(apiKey, systemPrompt, userPrompt, model, maxTokens, bookmarkCount);
+      return callGemini(apiKey, systemPrompt, userPrompt, model, maxTokens, bookmarkCount, cancelSignal);
     case 'openai':
-      return callOpenAI(apiKey, systemPrompt, userPrompt, model, maxTokens, bookmarkCount);
+      return callOpenAI(apiKey, systemPrompt, userPrompt, model, maxTokens, bookmarkCount, cancelSignal);
     case 'anthropic':
-      return callAnthropic(apiKey, systemPrompt, userPrompt, model, maxTokens, bookmarkCount);
+      return callAnthropic(apiKey, systemPrompt, userPrompt, model, maxTokens, bookmarkCount, cancelSignal);
     case 'openrouter':
-      return callOpenRouter(apiKey, systemPrompt, userPrompt, model, maxTokens, bookmarkCount);
+      return callOpenRouter(apiKey, systemPrompt, userPrompt, model, maxTokens, bookmarkCount, cancelSignal);
     case 'custom':
-      return callCustom(apiKey, await getCustomBaseUrl(), systemPrompt, userPrompt, model, maxTokens, bookmarkCount);
+      return callCustom(apiKey, await getCustomBaseUrl(), systemPrompt, userPrompt, model, maxTokens, bookmarkCount, expectJson, cancelSignal);
     default:
       throw new Error(`Unsupported service: ${serviceId}`);
   }

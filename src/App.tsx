@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback } from 'react';
 import ApiKeyPanel from './components/ApiKeyPanel/ApiKeyPanel';
 import MainContent from './components/MainContent/MainContent';
 import Onboarding from './components/Onboarding/Onboarding';
-import { SERVICES } from './config/services';
+import { SERVICES, getServiceCredentialKeys, isServiceConfigured } from './config/services';
 import { initSelectedState } from './services/selectedState';
 import { useTheme } from './hooks/useTheme';
 import {
@@ -19,16 +19,15 @@ const App = () => {
   const [showOnboardingTooltips, setShowOnboardingTooltips] = useState(false);
 
   const checkForExistingApiKeys = useCallback(async (): Promise<void> => {
-    const storageKeys = Object.values(SERVICES).map(
-      (service) => service.storageKey
-    );
+    const services = Object.values(SERVICES);
+    const storageKeys = services.flatMap(getServiceCredentialKeys);
     const result = await chrome.storage.local.get([
       ...storageKeys,
       ONBOARDING_COMPLETE_STORAGE_KEY,
       ONBOARDING_TOOLTIPS_PENDING_KEY,
       ONBOARDING_TOOLTIPS_SEEN_KEY,
     ]);
-    const hasKey = storageKeys.some((key) => !!result[key]);
+    const hasKey = services.some((service) => isServiceConfigured(service, result));
 
     setHasAnyApiKey(hasKey);
     setOnboardingComplete(!!result[ONBOARDING_COMPLETE_STORAGE_KEY]);
