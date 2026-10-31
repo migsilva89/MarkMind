@@ -3,12 +3,16 @@ import { type OrganizeSession } from '../../types/organize';
 import { type BookmarkStats } from '../../types/bookmarks';
 import { buildFolderTree } from '../../utils/bookmarkScanner';
 import { findDuplicateBookmarks, countRemovableDuplicates } from '../../utils/duplicates';
+import { formatDestinationLabel } from '../../utils/destination';
 import { FolderIcon, SpinnerIcon, RefreshIcon } from '../icons/Icons';
 import OrganizeStatusView from '../OrganizeStatusView/OrganizeStatusView';
 import OrganizeDuplicates from '../OrganizeDuplicates/OrganizeDuplicates';
 import TreeNode from '../TreeNode/TreeNode';
 import Button from '../Button/Button';
+import Dropdown from '../Dropdown/Dropdown';
 import './OrganizeScan.css';
+
+const NO_DESTINATION_ID = '';
 
 interface OrganizeScanProps {
   session: OrganizeSession;
@@ -17,6 +21,7 @@ interface OrganizeScanProps {
   onToggleBookmarks: (bookmarkIds: string[]) => void;
   onSelectAll: () => void;
   onDeselectAll: () => void;
+  onSelectDestination: (folderId: string) => void;
   onStartPlanning: () => void;
   onRemoveDuplicates: (bookmarkIdsToRemove: string[]) => Promise<void>;
 }
@@ -28,6 +33,7 @@ const OrganizeScan = ({
   onToggleBookmarks,
   onSelectAll,
   onDeselectAll,
+  onSelectDestination,
   onStartPlanning,
   onRemoveDuplicates,
 }: OrganizeScanProps) => {
@@ -57,6 +63,20 @@ const OrganizeScan = ({
   );
 
   const selectedCount = selectedSet.size;
+
+  const destinationOptions = useMemo(
+    () => [
+      { id: NO_DESTINATION_ID, label: 'Any folder (default)' },
+      ...(session.destinationFolders ?? []).map(folder => ({
+        id: folder.id,
+        label: formatDestinationLabel(folder.path),
+      })),
+    ],
+    [session.destinationFolders]
+  );
+  const destinationLabel = destinationOptions.find(
+    option => option.id !== NO_DESTINATION_ID && option.id === session.destinationFolderId
+  )?.label;
 
   const duplicateGroups = useMemo(
     () => findDuplicateBookmarks(session.allBookmarks),
@@ -136,6 +156,20 @@ const OrganizeScan = ({
             You've selected {selectedCount.toLocaleString()} bookmarks. Organizing this many can take a few minutes — you can also do it in smaller groups.
           </p>
         )}
+
+        <div className="organize-scan-destination">
+          <Dropdown
+            label="Move organized bookmarks into"
+            options={destinationOptions}
+            selectedId={destinationLabel ? session.destinationFolderId ?? NO_DESTINATION_ID : NO_DESTINATION_ID}
+            onSelect={onSelectDestination}
+          />
+          <p className="organize-scan-destination-hint">
+            {destinationLabel
+              ? `New folders are created inside "${destinationLabel}". Only the bookmarks you selected above move; everything else stays where it is.`
+              : 'MarkMind picks the best folder anywhere in your bookmarks. Only the bookmarks you selected above move.'}
+          </p>
+        </div>
 
         <Button
           variant="primary"

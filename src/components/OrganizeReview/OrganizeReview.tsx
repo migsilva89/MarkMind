@@ -10,6 +10,8 @@ import './OrganizeReview.css';
 interface OrganizeReviewProps {
   assignments: BookmarkAssignment[];
   folderPlan: FolderPlan | null;
+  // Set when the user chose a destination; suggested paths are relative to it
+  destinationLabel?: string;
   onToggleGroupAssignments: (bookmarkIds: string[]) => void;
   onSelectAll: () => void;
   onDeselectAll: () => void;
@@ -22,6 +24,7 @@ interface OrganizeReviewProps {
 const OrganizeReview = ({
   assignments,
   folderPlan,
+  destinationLabel,
   onToggleGroupAssignments,
   onSelectAll,
   onDeselectAll,
@@ -71,6 +74,12 @@ const OrganizeReview = ({
       <p className="organize-review-summary">
         {assignments.length} bookmark{assignments.length !== 1 ? 's' : ''} assigned to {folderGroups.length} folder{folderGroups.length !== 1 ? 's' : ''}
       </p>
+
+      {destinationLabel && (
+        <p className="organize-review-summary">
+          All folders below are inside "{destinationLabel}"
+        </p>
+      )}
 
       <div className="organize-review-bulk-actions">
         <Button onClick={onSelectAll}>Select All</Button>

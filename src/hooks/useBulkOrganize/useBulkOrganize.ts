@@ -7,7 +7,9 @@ import { getBookmarkStats, flattenAllBookmarks } from '../../utils/bookmarkScann
 import { getFolderDataForAI, buildFullIdToPathMapFromTree } from '../../utils/folders';
 import { saveOrganizeSession, loadOrganizeSession, clearOrganizeSession, getInitialSession } from '../../services/organizeSession';
 import { createSessionSaveQueue } from '../../services/sessionSaveQueue';
-import { moveBookmark, createFolderPath, removeBookmark } from '../../services/bookmarks';
+import { removeBookmark } from '../../services/bookmarks';
+import { applyAssignments, buildLiveDestinationScope } from '../../services/applyAssignments';
+import { listDestinationFolders } from '../../utils/destination';
 import { getSelectedMaxOutputTokens } from '../../services/selectedState';
 import { type UseBulkOrganizeReturn } from './types';
 
@@ -224,6 +226,13 @@ export const useBulkOrganize = (): UseBulkOrganizeReturn => {
 
       // getFolderDataForAI is still needed for the AI prompt tree and pathToIdMap used during organising
       const folderData = await getFolderDataForAI();
+      const destinationFolders = listDestinationFolders(bookmarkTree);
+
+      // Keep the chosen destination across a re-scan if it still exists
+      const previousDestinationId = sessionRef.current.destinationFolderId ?? null;
+      const destinationFolderId = previousDestinationId && destinationFolders.some(folder => folder.id === previousDestinationId)
+        ? previousDestinationId
+        : null;
 
       await updateSession({
         status: 'selecting',
@@ -232,6 +241,8 @@ export const useBulkOrganize = (): UseBulkOrganizeReturn => {
         folderTree: folderData.textTree,
         pathToIdMap: folderData.pathToIdMap,
         defaultParentId: folderData.defaultParentId,
+        destinationFolders,
+        destinationFolderId,
       });
     } catch (error) {
       console.error('Error scanning bookmarks:', error);
@@ -298,6 +309,13 @@ export const useBulkOrganize = (): UseBulkOrganizeReturn => {
     });
   }, []);
 
+  // Empty id = no destination (original behavior)
+  const handleSelectDestination = useCallback((folderId: string): void => {
+    updateSession({ destinationFolderId: folderId || null }).catch(error => {
+      console.error('Error saving destination folder:', error);
+    });
+  }, [updateSession]);
+
   const handleStartOrganizing = useCallback(async (): Promise<void> => {
     try {
       const currentSession = sessionRef.current;
@@ -321,6 +339,13 @@ export const useBulkOrganize = (): UseBulkOrganizeReturn => {
         return;
       }
 
+      const destinationFolderId = currentSession.destinationFolderId ?? null;
+      const destinationFolders = currentSession.destinationFolders ?? [];
+      if (destinationFolderId && !destinationFolders.some(folder => folder.id === destinationFolderId)) {
+        await updateSession({ status: 'error', errorMessage: 'The destination folder is no longer available. Re-scan and pick another one.' });
+        return;
+      }
+
       const startedAt = Date.now();
       await updateSession({
         status: 'organizing',
@@ -341,6 +366,8 @@ export const useBulkOrganize = (): UseBulkOrganizeReturn => {
           pathToIdMap: currentSession.pathToIdMap,
           defaultParentId: currentSession.defaultParentId,
           maxOutputTokens: getSelectedMaxOutputTokens(),
+          destinationFolderId,
+          destinationFolders,
         },
       }).catch(async (error) => {
         console.error('Error starting organize:', error);
@@ -421,44 +448,51 @@ export const useBulkOrganize = (): UseBulkOrganizeReturn => {
       await updateSession({ status: 'applying', startedAt: Date.now() });
       const currentSession = sessionRef.current;
 
-      const approvedAssignments = currentSession.assignments.filter(assignment => assignment.isApproved);
-      let appliedCount = 0;
-      let skippedCount = 0;
-      const mutablePathToIdMap = { ...currentSession.pathToIdMap };
+      // Only bookmarks the user selected for this run may move
+      const allowedBookmarkIds = new Set(currentSession.bookmarksToOrganize.map(bookmark => bookmark.id));
+      const destinationFolderId = currentSession.destinationFolderId ?? null;
 
-      for (const assignment of approvedAssignments) {
-        try {
-          let targetFolderId = assignment.suggestedFolderId;
-
-          if (!targetFolderId) {
-            targetFolderId = await createFolderPath(
-              assignment.suggestedPath,
-              mutablePathToIdMap,
-              currentSession.defaultParentId
-            );
-          }
-
-          if (!targetFolderId) {
-            skippedCount += 1;
-            continue;
-          }
-
-          await moveBookmark(assignment.bookmarkId, targetFolderId);
-          appliedCount += 1;
-        } catch (error) {
-          console.error('Error moving bookmark:', assignment.bookmarkId, error);
-          skippedCount += 1;
-        }
+      if (!destinationFolderId) {
+        const result = await applyAssignments({
+          assignments: currentSession.assignments,
+          allowedBookmarkIds,
+          pathToIdMap: currentSession.pathToIdMap,
+          defaultParentId: currentSession.defaultParentId,
+        });
+        await updateSession({
+          status: 'completed',
+          appliedCount: result.appliedCount,
+          skippedCount: result.skippedCount,
+          completedAt: Date.now(),
+          pathToIdMap: result.pathToIdMap,
+        });
+        return;
       }
 
-      const rejectedCount = currentSession.assignments.length - approvedAssignments.length;
+      // Resolve against the destination subtree as it is now (not at scan time),
+      // so every move lands inside the destination.
+      const scope = await buildLiveDestinationScope(destinationFolderId);
+      if (!scope) {
+        await updateSession({
+          status: 'error',
+          errorMessage: 'The destination folder no longer exists or cannot be changed. Nothing was moved — start over and pick another folder.',
+        });
+        return;
+      }
+
+      const result = await applyAssignments({
+        assignments: currentSession.assignments,
+        allowedBookmarkIds,
+        pathToIdMap: scope.pathToIdMap,
+        defaultParentId: scope.defaultParentId,
+        allowedFolderIds: scope.allowedFolderIds,
+      });
 
       await updateSession({
         status: 'completed',
-        appliedCount,
-        skippedCount: skippedCount + rejectedCount,
+        appliedCount: result.appliedCount,
+        skippedCount: result.skippedCount,
         completedAt: Date.now(),
-        pathToIdMap: mutablePathToIdMap,
       });
     } catch (error) {
       console.error('Error applying moves:', error);
@@ -507,6 +541,7 @@ export const useBulkOrganize = (): UseBulkOrganizeReturn => {
     handleToggleBookmarks,
     handleSelectAll,
     handleDeselectAll,
+    handleSelectDestination,
     handleStartOrganizing,
     handleCancelOrganizing,
     handleReOrganize,

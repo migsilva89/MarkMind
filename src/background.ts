@@ -3,6 +3,7 @@ import { type OrganizeSession } from './types/organize';
 import { organizeBookmarks } from './services/ai/bulkOrganize';
 import { saveOrganizeSession, loadOrganizeSession, getInitialSession } from './services/organizeSession';
 import { isCancelledError } from './utils/helpers';
+import { scopeFolderDataToDestination, formatDestinationLabel } from './utils/destination';
 
 const KEEPALIVE_ALARM_NAME = 'organize-keepalive';
 const KEEPALIVE_INTERVAL_MINUTES = 0.4;
@@ -28,17 +29,37 @@ const handleStartOrganize = async (payload: StartOrganizePayload, run: AbortCont
     periodInMinutes: KEEPALIVE_INTERVAL_MINUTES,
   });
 
+  // With a destination the AI only sees that folder's subtree, with relative
+  // paths, so every suggestion resolves inside it.
+  const destinationFolderId = payload.destinationFolderId ?? null;
+  const destinationFolders = payload.destinationFolders ?? [];
+  let aiFolderTree = payload.folderTree;
+  let aiPathToIdMap = payload.pathToIdMap;
+  let destinationLabel: string | undefined;
+
+  if (destinationFolderId) {
+    const scope = scopeFolderDataToDestination(destinationFolderId, destinationFolders);
+    if (!scope) {
+      throw new Error('The destination folder is no longer available. Re-scan and pick another one.');
+    }
+    aiFolderTree = scope.folderTree;
+    aiPathToIdMap = scope.pathToIdMap;
+    const destination = destinationFolders.find(folder => folder.id === destinationFolderId);
+    destinationLabel = destination ? formatDestinationLabel(destination.path) : undefined;
+  }
+
   const result = await organizeBookmarks(
     payload.serviceId,
     payload.modelId,
     payload.bookmarks,
-    payload.folderTree,
-    payload.pathToIdMap,
+    aiFolderTree,
+    aiPathToIdMap,
     payload.maxOutputTokens,
     (processedCount, totalCount) => {
       notifyPopup('ORGANIZE_PROGRESS', { processedCount, totalCount });
     },
-    run.signal
+    run.signal,
+    destinationLabel
   );
 
   // Only an explicit cancel (or a newer run) discards the result. The stored
@@ -58,6 +79,8 @@ const handleStartOrganize = async (payload: StartOrganizePayload, run: AbortCont
     folderTree: payload.folderTree,
     pathToIdMap: payload.pathToIdMap,
     defaultParentId: payload.defaultParentId,
+    destinationFolderId,
+    destinationFolders,
   };
 
   // Re-check right before persisting: the user may have cancelled while the

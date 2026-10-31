@@ -112,4 +112,58 @@ describe('background organize run', () => {
     expect(signals[0]?.aborted).toBe(true);
     expect(signals[1]?.aborted).toBe(false);
   });
+
+  it('without a destination, passes the full folder data to the AI (original behavior)', async () => {
+    vi.mocked(organizeBookmarks).mockResolvedValue(RESULT);
+    const fullPayload = { ...START_PAYLOAD, folderTree: '├── Bookmarks bar', pathToIdMap: { 'Bookmarks bar': '1' } };
+
+    sendToBackground({ type: 'START_ORGANIZE', payload: fullPayload });
+    await flush();
+
+    const args = vi.mocked(organizeBookmarks).mock.calls[0];
+    expect(args[3]).toBe('├── Bookmarks bar');
+    expect(args[4]).toEqual({ 'Bookmarks bar': '1' });
+    expect(args[8]).toBeUndefined();
+    expect(storedSession().destinationFolderId).toBeNull();
+  });
+
+  it('with a destination, shows the AI only that subtree but keeps the full data in the session', async () => {
+    vi.mocked(organizeBookmarks).mockResolvedValue(RESULT);
+    const destinationFolders = [
+      { id: '1', parentId: null, path: 'Bookmarks bar' },
+      { id: '10', parentId: '1', path: 'Bookmarks bar/Work' },
+      { id: '11', parentId: '1', path: 'Bookmarks bar/Sorted' },
+      { id: '12', parentId: '11', path: 'Bookmarks bar/Sorted/Dev' },
+    ];
+    const fullMap = { 'Bookmarks bar': '1', 'Bookmarks bar/Work': '10', 'Bookmarks bar/Sorted': '11', 'Bookmarks bar/Sorted/Dev': '12' };
+
+    sendToBackground({
+      type: 'START_ORGANIZE',
+      payload: { ...START_PAYLOAD, folderTree: 'full tree', pathToIdMap: fullMap, destinationFolderId: '11', destinationFolders },
+    });
+    await flush();
+
+    const args = vi.mocked(organizeBookmarks).mock.calls[0];
+    expect(args[3]).toBe('└── Dev');
+    expect(args[4]).toEqual({ Dev: '12' });
+    expect(args[8]).toBe('Bookmarks bar / Sorted');
+    expect(storedSession()).toMatchObject({
+      status: 'reviewing_assignments',
+      folderTree: 'full tree',
+      pathToIdMap: fullMap,
+      destinationFolderId: '11',
+    });
+  });
+
+  it('fails clearly, without calling the AI, when the destination is not in the scanned folders', async () => {
+    sendToBackground({
+      type: 'START_ORGANIZE',
+      payload: { ...START_PAYLOAD, destinationFolderId: 'gone', destinationFolders: [] },
+    });
+    await flush();
+
+    expect(organizeBookmarks).not.toHaveBeenCalled();
+    expect(sentMessages.map(message => message.type)).toContain('ORGANIZE_ERROR');
+    expect(storedSession().status).toBe('error');
+  });
 });

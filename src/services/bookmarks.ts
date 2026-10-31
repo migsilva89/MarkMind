@@ -99,7 +99,9 @@ export const createFolderPath = async (
   pathToIdMap: FolderPathMap,
   defaultParentId: string
 ): Promise<string> => {
-  const segments = folderPath.split('/');
+  // Blank segments ("", "A//B") would create untitled folders — an empty path
+  // resolves to defaultParentId itself.
+  const segments = folderPath.split('/').filter(segment => segment.trim() !== '');
   let currentParentId = defaultParentId;
   let resolvedPath = '';
 

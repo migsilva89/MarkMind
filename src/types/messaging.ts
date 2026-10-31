@@ -1,4 +1,4 @@
-import { type CompactBookmark, type BulkOrganizeResult } from './organize';
+import { type CompactBookmark, type BulkOrganizeResult, type DestinationFolder } from './organize';
 import { type FolderPathMap } from './bookmarks';
 
 export type OrganizeMessageType =
@@ -22,6 +22,9 @@ export interface StartOrganizePayload {
   pathToIdMap: FolderPathMap;
   defaultParentId: string;
   maxOutputTokens?: number;
+  // Optional so a payload from an older popup still runs unscoped
+  destinationFolderId?: string | null;
+  destinationFolders?: DestinationFolder[];
 }
 
 export interface OrganizeProgressPayload {
