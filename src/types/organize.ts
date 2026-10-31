@@ -60,6 +60,14 @@ export interface FolderTreeNode {
   children: FolderTreeNode[];
 }
 
+// A folder the user can pick as the destination for organized bookmarks.
+// path uses the escaped pathToIdMap format, including the root container.
+export interface DestinationFolder {
+  id: string;
+  parentId: string | null;
+  path: string;
+}
+
 export interface OrganizeSession {
   status: OrganizeSessionStatus;
   allBookmarks: CompactBookmark[];
@@ -77,4 +85,8 @@ export interface OrganizeSession {
   serviceId: string;
   pathToIdMap: FolderPathMap;
   defaultParentId: string;
+  // null = no destination: the AI may use any folder (original behavior).
+  // Otherwise every move lands in this folder or a subfolder of it.
+  destinationFolderId: string | null;
+  destinationFolders: DestinationFolder[];
 }

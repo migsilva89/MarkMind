@@ -192,12 +192,14 @@ const organizeBatch = async (
   pathToIdMap: FolderPathMap,
   proposedFolders: ProposedFolder[],
   maxOutputTokens?: number,
-  cancelSignal?: AbortSignal
+  cancelSignal?: AbortSignal,
+  destinationLabel?: string
 ): Promise<BulkOrganizeResult> => {
   const userPrompt = buildBulkOrganizeUserPrompt(
     batch,
     folderTree,
-    proposedFolders.map(folder => ({ path: folder.path, description: folder.description }))
+    proposedFolders.map(folder => ({ path: folder.path, description: folder.description })),
+    destinationLabel
   );
 
   const responseText = await callProvider(
@@ -223,7 +225,8 @@ export const organizeBookmarks = async (
   pathToIdMap: FolderPathMap,
   maxOutputTokens?: number,
   onProgress?: OrganizeProgressCallback,
-  cancelSignal?: AbortSignal
+  cancelSignal?: AbortSignal,
+  destinationLabel?: string
 ): Promise<BulkOrganizeResult> => {
   const resolvedTokens = maxOutputTokens ?? await lookupMaxOutputTokens(serviceId, modelId);
   const apiKey = await getApiKey(serviceId);
@@ -256,7 +259,8 @@ export const organizeBookmarks = async (
           pathToIdMap,
           [...foldersByPath.values()],
           resolvedTokens,
-          cancelSignal
+          cancelSignal,
+          destinationLabel
         ),
         maxRetries,
         cancelSignal

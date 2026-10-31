@@ -18,6 +18,8 @@ export const getInitialSession = (): OrganizeSession => ({
   serviceId: '',
   pathToIdMap: {},
   defaultParentId: '',
+  destinationFolderId: null,
+  destinationFolders: [],
 });
 
 export const saveOrganizeSession = async (session: OrganizeSession): Promise<void> => {

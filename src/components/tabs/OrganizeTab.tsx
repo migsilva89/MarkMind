@@ -7,6 +7,13 @@ import OrganizeReview from '../OrganizeReview/OrganizeReview';
 import OrganizeComplete from '../OrganizeComplete/OrganizeComplete';
 import OrganizeError from '../OrganizeError/OrganizeError';
 import OrganizeStatusView from '../OrganizeStatusView/OrganizeStatusView';
+import { type OrganizeSession } from '../../types/organize';
+import { formatDestinationLabel } from '../../utils/destination';
+
+const getDestinationLabel = (session: OrganizeSession): string | undefined => {
+  const destination = (session.destinationFolders ?? []).find(folder => folder.id === session.destinationFolderId);
+  return destination ? formatDestinationLabel(destination.path) : undefined;
+};
 
 const OrganizeTab = () => {
   const {
@@ -21,6 +28,7 @@ const OrganizeTab = () => {
     handleToggleBookmarks,
     handleSelectAll,
     handleDeselectAll,
+    handleSelectDestination,
     handleStartOrganizing,
     handleCancelOrganizing,
     handleReOrganize,
@@ -44,6 +52,7 @@ const OrganizeTab = () => {
           onToggleBookmarks={handleToggleBookmarks}
           onSelectAll={handleSelectAll}
           onDeselectAll={handleDeselectAll}
+          onSelectDestination={handleSelectDestination}
           onStartPlanning={handleStartOrganizing}
           onRemoveDuplicates={handleRemoveDuplicates}
         />
@@ -76,6 +85,7 @@ const OrganizeTab = () => {
         <OrganizeReview
           assignments={session.assignments}
           folderPlan={session.folderPlan}
+          destinationLabel={getDestinationLabel(session)}
           onToggleGroupAssignments={handleToggleGroupAssignments}
           onSelectAll={handleSelectAllAssignments}
           onDeselectAll={handleDeselectAllAssignments}

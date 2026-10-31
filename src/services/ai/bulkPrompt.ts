@@ -61,7 +61,8 @@ export interface ProposedFolderHint {
 export const buildBulkOrganizeUserPrompt = (
   bookmarks: CompactBookmark[],
   folderTree: string,
-  proposedFolders: ProposedFolderHint[] = []
+  proposedFolders: ProposedFolderHint[] = [],
+  destinationLabel?: string
 ): string => {
   const bookmarkLines = bookmarks
     .map((bookmark, index) =>
@@ -73,9 +74,25 @@ export const buildBulkOrganizeUserPrompt = (
     '## BOOKMARKS TO ORGANIZE',
     bookmarkLines,
     '',
-    '## CURRENT FOLDER STRUCTURE',
-    folderTree,
   ];
+
+  // With a destination, the folder structure below is only the destination's
+  // contents and every path is relative to it — so all results land inside it.
+  if (destinationLabel) {
+    parts.push(
+      '## DESTINATION FOLDER',
+      `The user chose to move these bookmarks into "${destinationLabel}".`,
+      `The folder structure below shows ONLY what is inside "${destinationLabel}". Every path you return is relative to it:`,
+      `- "Topic/Sub" means "${destinationLabel} / Topic / Sub". Do NOT include "${destinationLabel}" itself in any path.`,
+      '- Reuse the folders listed below when they fit; otherwise create new folders (isNew = true).',
+      '- Never reference folders outside this destination.',
+      '',
+      '## CURRENT FOLDER STRUCTURE (inside the destination)',
+      folderTree || '(empty — create the folders you need)'
+    );
+  } else {
+    parts.push('## CURRENT FOLDER STRUCTURE', folderTree);
+  }
 
   // When organizing in multiple passes, tell the model which folders earlier
   // passes already proposed so it reuses the exact paths instead of creating

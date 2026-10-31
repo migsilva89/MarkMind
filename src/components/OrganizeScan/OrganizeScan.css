@@ -101,3 +101,16 @@
   color: var(--color-text-secondary);
   line-height: var(--line-height-normal);
 }
+
+/* Destination picker — where organized bookmarks go */
+.organize-scan-destination {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-sm);
+}
+
+.organize-scan-destination-hint {
+  font-size: var(--font-size-xs);
+  color: var(--color-text-muted);
+  line-height: var(--line-height-normal);
+}

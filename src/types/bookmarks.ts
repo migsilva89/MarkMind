@@ -31,6 +31,7 @@ export interface ChromeBookmarkNode {
   index?: number;
   dateAdded?: number;
   dateGroupModified?: number;
+  unmodifiable?: string;
   children?: ChromeBookmarkNode[];
 }
 

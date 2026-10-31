@@ -14,6 +14,7 @@ export interface UseBulkOrganizeReturn {
   handleToggleBookmarks: (bookmarkIds: string[]) => void;
   handleSelectAll: () => void;
   handleDeselectAll: () => void;
+  handleSelectDestination: (folderId: string) => void;
   handleStartOrganizing: () => Promise<void>;
   handleCancelOrganizing: () => void;
   handleReOrganize: () => void;
