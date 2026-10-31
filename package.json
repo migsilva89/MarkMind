@@ -1,6 +1,6 @@
 {
   "name": "markmind",
-  "version": "2.0.7",
+  "version": "2.0.8",
   "description": "Transform your chaotic bookmarks into organized bliss with AI",
   "type": "module",
   "scripts": {
